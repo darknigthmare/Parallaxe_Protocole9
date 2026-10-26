@@ -1,0 +1,59 @@
+{
+  "version": "0.2.1",
+  "verifiedAt": "2026-10-26T21:24:47.371944+00:00",
+  "typecheck": "passed after microphone and UI corrections",
+  "radio": {
+    "passed": 19,
+    "failed": 0,
+    "newCancellationScenarios": 7
+  },
+  "radioUiController": {
+    "passed": 4,
+    "failed": 0,
+    "visualBrowserValidation": false
+  },
+  "buildLocal": "passed",
+  "buildHosted": "passed",
+  "portable": {
+    "status": "passed",
+    "nodeModulesRequired": false,
+    "clients": 2,
+    "checks": [
+      "HTML served",
+      "server modules hidden",
+      "two authenticated clients join",
+      "reference then inspection",
+      "full private perceptions used for verdict",
+      "unanimity resolves correctly",
+      "both clients leave"
+    ]
+  },
+  "baselineResults": {
+    "version": "0.2.0",
+    "rulesPassed": 17,
+    "sceneCpuPassed": 11,
+    "d1Clients": 4,
+    "rerunInThisPatch": false
+  },
+  "archives": {
+    "status": "passed",
+    "checks": [
+      "CRC of both ZIPs and embedded XLSX",
+      "source bytes identical to checkout",
+      "compiled portable assets identical to tested standalone build",
+      "embedded source ZIP identical to external source ZIP",
+      "new radio controller, tests and reports present",
+      "version 0.2.1 in both packages",
+      "no installed dependencies, runtime sessions, private keys or self-embedded portable ZIP"
+    ],
+    "sourcesFiles": 172,
+    "portableFiles": 45,
+    "extractedPortableRetested": false
+  },
+  "githubCI": "not yet run at the time these archives were generated; consult GitHub Actions for the published commit",
+  "limitations": [
+    "No GPU rendering or FPS validated",
+    "No physical microphone or human voice-quality listening",
+    "No connected browser voice session or real TURN validated"
+  ]
+}

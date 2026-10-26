@@ -1,0 +1,61 @@
+{
+  "version": "0.2.1",
+  "date": "2026-10-26",
+  "counts": {
+    "total": 120,
+    "code": 54,
+    "planned": 66
+  },
+  "pools": {
+    "hotel": 43,
+    "metro": 30,
+    "clinic": 31
+  },
+  "poolsAreOverlapping": true,
+  "sheets": [
+    "Synthèse",
+    "Boucle",
+    "Anomalies",
+    "Coopération",
+    "Radio",
+    "Personnages",
+    "Niveaux",
+    "Lieux",
+    "Direction artistique",
+    "Audio",
+    "Commandes",
+    "Narration",
+    "Production",
+    "QA",
+    "Références"
+  ],
+  "rows": {
+    "Anomalies": 120,
+    "Boucle": 27,
+    "Coopération": 25,
+    "Radio": 30,
+    "Personnages": 21,
+    "Niveaux": 3,
+    "Lieux": 21,
+    "Direction artistique": 34,
+    "Audio": 17,
+    "Commandes": 24,
+    "Narration": 18,
+    "Production": 56,
+    "QA": 81,
+    "Références": 29
+  },
+  "runtimeStatus": "Implémenté — QA partielle",
+  "sourceHash": "5977c78042deef5fbd11916a3a297b597b61e062dfcca80b1e3a07d953a756ee",
+  "liveInputCheck": {
+    "originalStatus": "Implémenté — QA partielle",
+    "changedValidated": 1,
+    "changedImplemented": 53,
+    "initialImplemented": 54,
+    "initialValidated": 0,
+    "restored": true,
+    "hotelBefore": 43,
+    "hotelChanged": 42
+  },
+  "formulaScan": "{\"kind\":\"notice\",\"message\":\"Cell search matched 0 entries.\"}"
+}

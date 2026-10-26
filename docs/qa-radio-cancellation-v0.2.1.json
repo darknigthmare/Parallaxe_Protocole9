@@ -1,0 +1,129 @@
+{
+  "game": "PARALLAXE — Protocole 9",
+  "version": "0.2.1",
+  "reportedAt": "2026-10-26T21:18:54Z",
+  "baselineRevision": "d7a173ec31344977179b8dbace3467c2ac206a55",
+  "environment": {
+    "node": "v24.22.1",
+    "mediaDevices": "Simulated, deferred getUserMedia responses",
+    "audioContext": "Simulated",
+    "realMicrophoneRequested": false,
+    "realPeerConnectionUsed": false,
+    "gpuUsed": false
+  },
+  "confirmedRegression": {
+    "sequence": [
+      "Invoke enableMicrophone explicitly",
+      "Wait until getUserMedia is pending",
+      "Invoke disablePlayback",
+      "Resolve the retired getUserMedia request with a simulated stream"
+    ],
+    "observedBeforeFix": {
+      "enabled": false,
+      "microphone": true,
+      "trackStopped": false,
+      "trackEnabled": false
+    },
+    "impact": "The client retains a muted, unstopped microphone track after the talkie is extinguished. This simulated reproduction establishes neither the physical device state nor voice transmission.",
+    "observedAfterFix": {
+      "enabled": false,
+      "microphone": false,
+      "talking": false,
+      "trackStopped": true,
+      "trackEnabled": false
+    }
+  },
+  "targetedRegressionTests": {
+    "command": "node --test-reporter=tap --test-name-pattern='radio cancellation:' tests/radio.test.mjs",
+    "beforeFix": {
+      "tests": 7,
+      "passed": 1,
+      "failed": 6
+    },
+    "afterFix": {
+      "tests": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "cases": [
+      {
+        "id": "disable_playback_pending_permission",
+        "before": "failed: muted stream adopted after playback was disabled",
+        "after": "passed: returned track stopped; playback and microphone remain off"
+      },
+      {
+        "id": "disable_microphone_keep_listening",
+        "before": "failed: old permission reactivated microphone",
+        "after": "passed: returned track stopped while playback remains enabled"
+      },
+      {
+        "id": "old_grant_after_new_activation",
+        "before": "failed: old pending promise prevented a new explicit request",
+        "after": "passed: old stream stopped; new microphone and PTT remain active"
+      },
+      {
+        "id": "old_denial_after_new_activation",
+        "before": "failed: old pending promise prevented a new explicit request",
+        "after": "passed: old denial cannot stop or fault the new microphone"
+      },
+      {
+        "id": "old_finally_during_new_request",
+        "before": "failed: old pending promise prevented a new explicit request",
+        "after": "passed: new request remains deduplicated after old finalization"
+      },
+      {
+        "id": "old_playback_failure_after_reactivation",
+        "before": "failed: late failure disabled the new playback activation",
+        "after": "passed: new playback activation remains enabled without a stale error"
+      },
+      {
+        "id": "late_stream_after_disposal",
+        "before": "passed: existing disposal guard stopped returned tracks",
+        "after": "passed: disposal protection preserved"
+      }
+    ]
+  },
+  "fullRadioSuite": {
+    "command": "node --test-reporter=tap tests/radio.test.mjs",
+    "tests": 19,
+    "passed": 19,
+    "failed": 0,
+    "status": "passed"
+  },
+  "typecheck": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit --pretty false --incremental false",
+    "exitCode": 0,
+    "status": "passed"
+  },
+  "sources": {
+    "src/game/radio.ts": "0a6ea391623249d9058637f3ae94c4d5c504defc4eee3837a68f36f6020a87b8",
+    "tests/radio.test.mjs": "b3da760afa3d8b1c519b2ef042bd18ae551edd7cffe75969ad126a4ead83db37"
+  },
+  "retainedPreviousEvidence": {
+    "rules": {
+      "passed": 17,
+      "version": "0.2",
+      "rerunForThisFix": false
+    },
+    "sceneCPU": {
+      "passed": 11,
+      "version": "0.2",
+      "rerunForThisFix": false
+    },
+    "d1FourClients": {
+      "report": "qa-network-v0.2.json",
+      "rerunForThisFix": false
+    },
+    "twoBrowserTabs": {
+      "report": "qa-radio-browser-v0.2.json",
+      "rerunForThisFix": false
+    }
+  },
+  "limitations": [
+    "All new capture and permission scenarios use simulated browser APIs; no physical microphone permission was requested.",
+    "No end-to-end voice, physical headset, latency, real TURN relay or new browser ICE connectivity was validated.",
+    "No GPU rendering or gameplay image was validated.",
+    "These tests exercise RadioClient; they do not validate the React interface pending-state integration.",
+    "Builds and portable archives for version 0.2.1 require separate final delivery checks."
+  ]
+}

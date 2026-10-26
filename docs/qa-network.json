@@ -1,0 +1,38 @@
+{
+  "game": "PARALLAXE — Protocole 9",
+  "startedAt": "2026-10-26T17:13:47.008Z",
+  "completedAt": "2026-10-26T17:14:35.284Z",
+  "backend": "Local Cloudflare D1",
+  "players": 4,
+  "concurrentConsensusRounds": 9,
+  "results": [
+    {
+      "check": "Three concurrent joins retain four unique participants",
+      "status": "passed"
+    },
+    {
+      "check": "Room capacity and server-side authorization",
+      "status": "passed"
+    },
+    {
+      "check": "Private per-client projections before each verdict",
+      "status": "passed"
+    },
+    {
+      "check": "Nine concurrent consensus rounds score exactly once and reach victory",
+      "status": "passed"
+    },
+    {
+      "check": "Real 45 second presence expiry pauses play; same tokens resume same perception and consensus",
+      "status": "passed"
+    },
+    {
+      "check": "Explicit leave succeeds, revokes token, and preserves remaining participants",
+      "status": "passed"
+    }
+  ],
+  "limitations": [
+    "Transport tested via HTTP clients, not four independent rendered browser windows.",
+    "Public internet deployment and cross-network latency not verified by this test."
+  ]
+}

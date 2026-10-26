@@ -1,0 +1,36 @@
+{
+  "file": "inspecteur-parallaxe.glb",
+  "format": "glTF 2.0 binary",
+  "bytes": 4826384,
+  "origin": "Original procedural geometry created for PARALLAXE; no downloaded third-party model",
+  "materialScope": "PBR base materials. Runtime canvas badge lettering and name sprites are not embedded.",
+  "rig": "12 articulated transform nodes; rigid pieces attached to joints, no skinned deformation",
+  "animations": [
+    {
+      "name": "Marche",
+      "durationSeconds": 0.7662420868873596,
+      "tracks": 12
+    },
+    {
+      "name": "Radio",
+      "durationSeconds": 1.5,
+      "tracks": 12
+    },
+    {
+      "name": "Salut",
+      "durationSeconds": 2,
+      "tracks": 12
+    }
+  ],
+  "dimensionsMetres": {
+    "width": 0.6853,
+    "height": 1.7287,
+    "depth": 0.508
+  },
+  "triangles": 52444,
+  "meshes": 51,
+  "validation": "Round-trip GLTFExporter → GLTFLoader passed; finite vertices; 3 animation clips",
+  "visualValidation": "Not performed: no GPU render or screenshot certified",
+  "source": "src/game/avatar.ts",
+  "rebuild": "node scripts/export-inspector.mjs"
+}

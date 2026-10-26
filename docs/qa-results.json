@@ -1,0 +1,70 @@
+{
+  "QA01": {
+    "status": "Partiel",
+    "note": "Test de règles réussi : référence normale, codes identiques et aucun point. Inspection visuelle sur GPU encore à exécuter."
+  },
+  "QA02": {
+    "status": "Partiel",
+    "note": "25 identifiants couverts. Huit suites CPU vérifient géométrie, raycast des 25 indices et reset. Pixels, shaders et qualité basse/moyenne/haute encore à vérifier sur GPU."
+  },
+  "QA03": {
+    "status": "Partiel",
+    "note": "Tests de distribution : deux codes distincts pour le relais anormal, zéro effet visuel ajouté. Comparaison rendue sur deux écrans GPU encore à vérifier."
+  },
+  "QA04": {
+    "status": "Partiel",
+    "note": "Contrôle structurel d’application et réinitialisation des 25 cas réussi. Absence de résidu visuel à confirmer sur GPU."
+  },
+  "QA15": {
+    "status": "Partiel",
+    "note": "Parcours réel D1 à quatre clients HTTP réussi sur neuf tours. Jeu rendu simultanément dans deux navigateurs GPU non vérifié."
+  },
+  "QA16": {
+    "status": "Réussi",
+    "note": "Capacité quatre membres et connexions concurrentes vérifiées par tests de règles et parcours HTTP D1 local."
+  },
+  "QA17": {
+    "status": "Réussi",
+    "note": "Tests de projection privée et vérification HTTP D1 local : absence de seed, jeton d’autrui, vérité globale et autres perceptions avant résolution."
+  },
+  "QA18": {
+    "status": "Réussi",
+    "note": "Authentification, capacité et actions réservées au responsable testées. Vérification HTTP D1 local des accès non autorisés."
+  },
+  "QA19": {
+    "status": "Réussi",
+    "note": "Test de désaccord réussi : votes opposés maintiennent la phase inspection et ne modifient pas le score."
+  },
+  "QA20": {
+    "status": "Partiel",
+    "note": "Unanimité et changement de vote testés dans la machine de jeu et via le réseau D1 local. Présentation simultanée sur deux écrans GPU reste à vérifier."
+  },
+  "QA21": {
+    "status": "Réussi",
+    "note": "Votes et transitions concurrents vérifiés sur D1 local. Les appels répétés ne doublent pas le score."
+  },
+  "QA22": {
+    "status": "Partiel",
+    "note": "Victoire à neuf diagnostics consécutifs validée dans les règles et sur un parcours D1 local de neuf tours. Scène de fin sur GPU non validée."
+  },
+  "QA23": {
+    "status": "Partiel",
+    "note": "Tests de règles réussis : série remise à zéro et compteur d’erreurs incrémenté. Débrief visuel complet encore à vérifier."
+  },
+  "QA24": {
+    "status": "Partiel",
+    "note": "Tests de règles réussis : fin au troisième échec standard ; mode détendu encore jouable après sept erreurs. Écrans sur GPU non validés."
+  },
+  "QA25": {
+    "status": "Réussi",
+    "note": "Réseau D1 local : expiration réelle de présence après 45 s, pause, reconnexion avec mêmes jetons et perceptions, reprise du verdict. Départ révoque le jeton (401) et conserve les autres membres. Voir docs/qa-network.json."
+  },
+  "QA29": {
+    "status": "Réussi",
+    "note": "Test déterministe réussi pour une même graine et configuration, avec présence de tours normaux et anormaux."
+  },
+  "QA36": {
+    "status": "Réussi",
+    "note": "12 feuilles rendues et revues. Compteurs 80 / 25 / 55 vérifiés. Changement de statut testé et restauré. Aucun résultat d’erreur de formule. Filtres, validations et volets confirmés dans le XLSX exporté."
+  }
+}

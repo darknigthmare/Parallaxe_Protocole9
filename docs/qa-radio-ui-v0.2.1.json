@@ -1,0 +1,21 @@
+{
+  "version": "0.2.1",
+  "verifiedAt": "2026-10-26T21:23:04.622251+00:00",
+  "command": "npm run test:radio-ui",
+  "passed": 4,
+  "failed": 0,
+  "typecheck": "passed after integration",
+  "checks": [
+    "Cancellation releases pending immediately; an older success cannot clear a newer wait",
+    "A retired error is ignored; a current error is reported",
+    "Client replacement/unmount invalidates late state callbacks",
+    "Activation starts synchronously in the user gesture; synchronous failure releases pending"
+  ],
+  "method": "The actual RadioActionGate module is transpiled and exercised with controlled deferred promises and pending/error callbacks. No DOM renderer, browser permission prompt or microphone device is used.",
+  "integrationReview": "app/game.tsx uses the controller for microphone, playback and reconnect actions. Stop, microphone-off and client cleanup invalidate retired operations. Leaving the room stops the talkie before awaiting the server.",
+  "sources": {
+    "src/game/radio-actions.ts": "6e24609f675dae6eeb63affbaabb26a3f660cf40ab4b7d321089f1ef83d8d05d",
+    "tests/radio-actions.test.mjs": "027c9edc46cccdd140ef28b2798e454551bdf5223bb11ca9c87841db62c234a7",
+    "app/game.tsx": "3ee6d15ab317de1d4de148b994062c077c1af6ed4cf668f4bfd99365ca55b062"
+  }
+}

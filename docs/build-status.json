@@ -1,0 +1,213 @@
+{
+  "date": "2026-10-26",
+  "build": "0.2.1",
+  "runtimeStatus": "Implémenté — QA partielle",
+  "runtimeQA": "Preuves v0.2 conservées : ID intégré au catalogue et aux règles. 17 tests de règles couvrent les 54 cas ; 11 suites CPU couvrent 48 preuves visuelles et leur reset. Pixels, shaders, reflet final et FPS restent à tester sur GPU réel.",
+  "runtimeQAById": {
+    "radio_echo": "Réception WebAudio et calibration déterministe intégrées. 19 tests radio réussis, dont relevés sans micro/réseau, PTT, consentement et annulation des demandes micro obsolètes. Écoute humaine, microphones physiques et TURN réel restent à éprouver.",
+    "radio_chop": "Réception WebAudio et calibration déterministe intégrées. 19 tests radio réussis, dont relevés sans micro/réseau, PTT, consentement et annulation des demandes micro obsolètes. Écoute humaine, microphones physiques et TURN réel restent à éprouver.",
+    "radio_static": "Réception WebAudio et calibration déterministe intégrées. 19 tests radio réussis, dont relevés sans micro/réseau, PTT, consentement et annulation des demandes micro obsolètes. Écoute humaine, microphones physiques et TURN réel restent à éprouver.",
+    "radio_detune": "Réception WebAudio et calibration déterministe intégrées. 19 tests radio réussis, dont relevés sans micro/réseau, PTT, consentement et annulation des demandes micro obsolètes. Écoute humaine, microphones physiques et TURN réel restent à éprouver.",
+    "radio_wrong_channel": "Réception WebAudio et calibration déterministe intégrées. 19 tests radio réussis, dont relevés sans micro/réseau, PTT, consentement et annulation des demandes micro obsolètes. Écoute humaine, microphones physiques et TURN réel restent à éprouver.",
+    "radio_aftertone": "Réception WebAudio et calibration déterministe intégrées. 19 tests radio réussis, dont relevés sans micro/réseau, PTT, consentement et annulation des demandes micro obsolètes. Écoute humaine, microphones physiques et TURN réel restent à éprouver."
+  },
+  "geometrySummary": "Hôtel : 196 580 triangles ; métro : 84 278 ; clinique : 107 032, effets cachés compris. Inspecteur articulé : 52 444 triangles. Six surfaces planaires, deux actives par lieu.",
+  "geometryQA": "Preuves v0.2 conservées : 11 suites CPU réussies : données finies, normales, luminaires, 48 effets et raycasts, corps/reflets sans récursion, retard réel proche d’une seconde, traversée des trois lieux, relais, collision, qualité et nettoyage.",
+  "networkQA": "Rapport v0.2 conservé : D1 local réel : quatre clients HTTP, neuf consensus concurrents, campagne trois lieux et références propres, signalisation privée et départ réussis. Ni microphones physiques ni trajet TURN réel testés par ce rapport.",
+  "evidenceSummary": "v0.2.1 : 19 tests radio et 4 du contrôleur UI réussis ; typecheck, builds local / hébergé et test portable à deux clients HTTP réussis. Preuves v0.2 conservées : 17 règles, 11 suites CPU 3D, D1 quatre clients et GLB relu. Aucun nouvel essai ICE ou de microphone physique.",
+  "note": "Correctif 0.2.1 : 19 tests radio, 4 du contrôleur UI, deux builds et test portable à deux clients HTTP réussis. Preuves v0.2 conservées : 17 règles, 11 suites CPU 3D et D1 quatre clients. GPU, microphones physiques, transport vocal et TURN réel restent non validés.",
+  "qaResults": {
+    "QA01": {
+      "status": "Partiel",
+      "note": "Règles et rapport HTTP v0.2 : références propres et non notées dans les trois lieux. Inspection visuelle GPU encore ouverte."
+    },
+    "QA03": {
+      "status": "Partiel",
+      "note": "Tests de règles : deux codes distincts pour relay_mismatch, référence commune et aucune autre perception exposée. Lecture réelle de l’afficheur à éprouver sur GPU."
+    },
+    "QA04": {
+      "status": "Partiel",
+      "note": "11 suites CPU : 48 cas appliqués puis état de visibilité et matériaux restauré. Pas de validation des pixels ni d’artefacts de shader."
+    },
+    "QA05": {
+      "status": "Partiel",
+      "note": "Contrôle CPU du podium et des accès latéraux réussi. Parcours complet en clavier, tactile et anomalies mobilières reste à exécuter sur appareil."
+    },
+    "QA15": {
+      "status": "Partiel",
+      "note": "Rapport qa-network-v0.2.json : quatre vrais clients HTTP indépendants, trois arrivées concurrentes. Ne vaut pas quatre fenêtres 3D rendues."
+    },
+    "QA16": {
+      "status": "Réussi",
+      "note": "Test D1 v0.2 : quatre membres uniques conservés et cinquième connexion refusée ; contrôles de capacité et autorisation réussis."
+    },
+    "QA17": {
+      "status": "Réussi",
+      "note": "Règles et HTTP v0.2 : projections privées avant chaque verdict, absence de seed/réponse et de perceptions d’autrui."
+    },
+    "QA18": {
+      "status": "Réussi",
+      "note": "Tests de règles et D1 : jeton, plafond de salle et actions réservées au responsable contrôlés côté serveur."
+    },
+    "QA19": {
+      "status": "Réussi",
+      "note": "Test de domaine : désaccord maintient le tour ouvert ; modification du vote possible jusqu’à unanimité."
+    },
+    "QA20": {
+      "status": "Réussi",
+      "note": "Tests de domaine et neuf consensus HTTP concurrents : un seul résultat partagé et un seul point par résolution."
+    },
+    "QA21": {
+      "status": "Réussi",
+      "note": "Rapport D1 v0.2 : neuf tours de consensus concurrents terminent la campagne sans double comptage."
+    },
+    "QA22": {
+      "status": "Partiel",
+      "note": "Tests des règles : victoire en lieu unique et campagne. HTTP : campagne de neuf réussites. Écrans 3D et parcours matériel restent à éprouver."
+    },
+    "QA23": {
+      "status": "Partiel",
+      "note": "Test de règles : erreur après le palier hôtel conserve 3 et le métro courant ; remise à zéro en lieu unique. Tous les parcours UI de frontière restent ouverts."
+    },
+    "QA24": {
+      "status": "Partiel",
+      "note": "Tests de règles : troisième erreur standard termine ; détendu reste jouable au-delà. Présentation matérielle du bilan non validée ici."
+    },
+    "QA25": {
+      "status": "Partiel",
+      "note": "Tests v0.2 : témoin absent suspend le verdict et départ nettoie les votes ; HTTP leave révoque le jeton. Essais Internet prolongés encore ouverts."
+    },
+    "QA29": {
+      "status": "Réussi",
+      "note": "Test de règles : mêmes seeds/configurations produisent les mêmes tours, avec passages conformes et anormaux."
+    },
+    "QA31": {
+      "status": "Partiel",
+      "note": "Tests radio : résultats d’étalonnage déterministes indépendants du micro et du réseau. Partie complète jouée par un testeur sans audition encore à faire."
+    },
+    "QA36": {
+      "status": "Réussi",
+      "note": "Générateur v0.2.1 : 120 IDs uniques, 54 runtime, 66 prévus ; versions cohérentes, compteurs et pools recalculés, modifications temporaires restaurées et feuilles touchées rendues."
+    },
+    "QA41": {
+      "status": "Réussi",
+      "note": "Tests de domaine et D1 v0.2 : hôtel → métro après trois bonnes décisions, référence propre et synchronisée avant l’inspection."
+    },
+    "QA42": {
+      "status": "Réussi",
+      "note": "Tests de domaine et D1 v0.2 : métro → clinique au palier 6, référence propre et remise à zéro du secteur courant."
+    },
+    "QA43": {
+      "status": "Réussi",
+      "note": "Test de couverture : 54 entrées uniques et toutes observées sur 900 seeds, deux à quatre joueurs et trois niveaux ; chaque tirage appartient au pool du lieu."
+    },
+    "QA44": {
+      "status": "Réussi",
+      "note": "Test de règles : sauvegarde v0.1 migrée vers single hotel sans perdre la série ; données malformées rejetées."
+    },
+    "QA45": {
+      "status": "Réussi",
+      "note": "Tests radio et D1 : expéditeur autorisé, destinataire privé, epochs périmées rejetées, accusés protégés et configuration ICE authentifiée."
+    },
+    "QA46": {
+      "status": "Partiel",
+      "note": "Campagne quatre clients HTTP traversée avec lieux/références synchronisés ; mode unique couvert dans les règles. Vérification graphique multi-appareils restante."
+    },
+    "QA47": {
+      "status": "Partiel",
+      "note": "19 tests radio réussis avec doubles de périphériques : permission explicite, démarrage muet et arrêt des flux reçus après invalidation. Aucun microphone physique ni indicateur matériel observé."
+    },
+    "QA48": {
+      "status": "Partiel",
+      "note": "Tests radio : PTT autorisé, blur, page cachée et disposal ferment l’émission simulée. Tactile, manette et réception sur microphones physiques à éprouver."
+    },
+    "QA51": {
+      "status": "Partiel",
+      "note": "19 tests radio incluent une origine LAN non sécurisée : indisponibilité technique annoncée, aucun prompt micro ni altération de preuve. Certificat LAN réel non testé."
+    },
+    "QA53": {
+      "status": "Partiel",
+      "note": "Tests radio : les six profils ont des preuves locales déterministes et relevés distincts. L’écoute réelle de chaque signal synthétique reste nécessaire."
+    },
+    "QA54": {
+      "status": "Partiel",
+      "note": "Les tests établissent l’indépendance de la preuve au consentement et au transport. Scénario complet de coupure pendant une session vocale physique restant."
+    },
+    "QA55": {
+      "status": "Partiel",
+      "note": "Correctif v0.2.1 : les demandes micro invalidées ne peuvent plus installer un flux tardif ; les pistes reçues sont arrêtées. Nettoyage vérifié avec doubles de périphériques. Queues sonores et matériel restent à écouter."
+    },
+    "QA56": {
+      "status": "À tester sur GPU",
+      "note": "Sélection CPU de la couche de corps absente vérifiée, sans récursion. La surface réfléchie et les pixels du décor n’ont pas été observés sur GPU."
+    },
+    "QA57": {
+      "status": "À tester sur GPU",
+      "note": "11e suite CPU : retard du corps réfléchi proche d’une seconde et parcours des trois lieux réussis. Retard perçu et lisibilité du mouvement restent à capturer sur GPU réel."
+    },
+    "QA58": {
+      "status": "À tester sur GPU",
+      "note": "Geste autonome intégré et effet inclus dans les 48 cas appliqués/reset. Comparaison visuelle de la main et du corps encore à enregistrer."
+    },
+    "QA60": {
+      "status": "À tester sur GPU",
+      "note": "Six surfaces planaires, deux actives par lieu ; pass sans récursion contrôlé en CPU. Exactitude visuelle, transparence et coût GPU non mesurés."
+    },
+    "QA68": {
+      "status": "Partiel",
+      "note": "Les relevés déterministes sont couverts par tests ; focus, compréhension et jouabilité sans audition demandent encore une recette utilisateur."
+    },
+    "QA73": {
+      "status": "Partiel",
+      "note": "Test de couverture des 54 IDs : paired_arrow et paired_clock distribuent deux valeurs privées distinctes sans effets révélateurs. Lecture des panneaux sur GPU restante."
+    },
+    "QA74": {
+      "status": "À tester sur GPU",
+      "note": "Les huit cas font partie des 48 effets visuels appliqués/reset et repères raycast en CPU. Leur apparence finale sur écran n’est pas certifiée."
+    },
+    "QA49": {
+      "status": "Partiel",
+      "note": "Deux onglets réels : activation de l’écoute sans prompt microphone et calibration écrite réussies. Offre/réponse présentes et négociation stable, mais zéro candidat ICE ; aucun flux audio connecté."
+    },
+    "QA75": {
+      "status": "Réussi",
+      "note": "GLTFExporter → GLTFLoader réussi : 52 444 triangles, 51 meshes, 12 nœuds articulés, trois clips et sommets finis. Manifeste public/models/inspecteur-parallaxe.manifest.json ; aucun rendu GPU certifié."
+    },
+    "QA76": {
+      "status": "Partiel",
+      "note": "Deux onglets réels : salon, écoute sans permission micro, calibration écrite et échange offre/réponse réussis ; négociation stable. ICE terminé avec zéro candidat local/distant : liaison audio non établie. Aucun flux vocal ni micro physique validé."
+    },
+    "QA77": {
+      "status": "Réussi",
+      "note": "Deux tests réussis : désactiver toute la radio ou le micro seul avant résolution. La piste tardive est stoppée ; le micro reste éteint et l’écoute choisie est conservée. Promesses et flux simulés."
+    },
+    "QA78": {
+      "status": "Réussi",
+      "note": "Test réussi : un flux retourné après destruction de la radio est stoppé et la session reste inactive. Cette protection existante passait déjà avant le correctif et reste conservée. Aucun périphérique physique utilisé."
+    },
+    "QA79": {
+      "status": "Réussi",
+      "note": "Quatre tests réussis : ancien accord, ancien refus, ancienne finalisation et ancien échec d’écoute ne remplacent ni ne coupent le flux / la demande / l’écoute récents. Nouvel état PTT préservé et demande courante non dupliquée. API simulées."
+    },
+    "QA80": {
+      "status": "Réussi",
+      "note": "4/4 tests de radio-actions : arrêt libère l’attente ; ancienne réponse ignorée, refus courant signalé ; changement de salon / démontage invalide les callbacks ; appel dans le geste utilisateur et échec synchrone nettoyé. Typecheck réussi. Aucun test DOM, micro physique ou GPU."
+    },
+    "QA81": {
+      "status": "Réussi",
+      "note": "v0.2.1 : typecheck, build local, build hébergé et test portable réussis. Deux clients HTTP authentifiés : référence, inspection, perceptions privées, unanimité et sortie ; serveur compilé lancé sans node_modules. Les archives finales et GitHub CI restent à contrôler après assemblage / publication."
+    }
+  },
+  "browserRadioQA": "Essai v0.2 conservé : Deux onglets réels : salon, écoute sans permission micro, calibration écrite et échange offre/réponse réussis ; négociation stable. ICE terminé avec zéro candidat local/distant : liaison audio non établie. Aucun flux vocal ni micro physique validé.",
+  "radioTests": 19,
+  "radioControllerTests": 4,
+  "rulesTests": 17,
+  "rulesEvidenceVersion": "0.2.0",
+  "patchSummary": "Correctif 0.2.1 : flux micro tardifs arrêtés après extinction / sortie ; réactivation récente préservée ; commande de radio débloquée sans attendre une ancienne permission.",
+  "radioPermissionQA": "19/19 tests radio réussis, dont 7 nouveaux : extinction, micro seul, anciennes réponses, nouvelle demande et sortie. Avant correction : 6 échecs / 1 succès ; après : 7/7. Pistes et API simulées ; aucun microphone physique ni transmission mesurée.",
+  "radioCancellationEvidence": "docs/qa-radio-cancellation-v0.2.1.json",
+  "radioControllerQA": "4/4 tests de radio-actions : arrêt libère l’attente ; ancienne réponse ignorée, refus courant signalé ; changement de salon / démontage invalide les callbacks ; appel dans le geste utilisateur et échec synchrone nettoyé. Typecheck réussi. Aucun test DOM, micro physique ou GPU.",
+  "radioControllerEvidence": "docs/qa-radio-ui-v0.2.1.json",
+  "deliveryQA": "v0.2.1 : typecheck, build local, build hébergé et test portable réussis. Deux clients HTTP authentifiés : référence, inspection, perceptions privées, unanimité et sortie ; serveur compilé lancé sans node_modules. Les archives finales et GitHub CI restent à contrôler après assemblage / publication.",
+  "deliveryEvidence": "docs/qa-final-v0.2.1.json"
+}

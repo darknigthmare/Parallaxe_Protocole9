@@ -1,0 +1,31 @@
+{
+  "game": "PARALLAXE — Protocole 9",
+  "version": "0.2",
+  "date": "2026-10-26",
+  "environment": "Managed browser preview, two independent game tabs",
+  "players": 2,
+  "microphoneRequested": false,
+  "turnConfigured": false,
+  "observedInBothTabs": {
+    "signalingState": "stable",
+    "iceGatheringState": "complete",
+    "iceConnectionState": "new",
+    "localDescription": true,
+    "remoteDescription": true,
+    "localCandidateCount": 0,
+    "remoteCandidateCount": 0
+  },
+  "verified": [
+    "Both participants enabled radio playback through explicit UI actions.",
+    "Authenticated signaling exchanged real WebRTC offers and answers.",
+    "The UI exposed accurate transport diagnostics without requiring microphone access."
+  ],
+  "notVerified": [
+    "A connected WebRTC peer connection.",
+    "Voice or data-channel transport between the tabs.",
+    "Physical microphone capture, intelligibility, latency or hardware interoperability.",
+    "A deployed TURN relay or communication between distinct external networks."
+  ],
+  "outcome": "Signaling verified; voice transport remains unverified because this browser provided zero ICE candidates.",
+  "policy": "No additional microphone permission was requested and no browser policy was bypassed. Further attempts were stopped."
+}

@@ -1,0 +1,4039 @@
+{
+  "version": "0.2.1",
+  "date": "2026-10-26",
+  "sheets": {
+    "Boucle": {
+      "title": "La boucle de Protocole 9",
+      "subtitle": "Campagne : trois validations par lieu. Lieu au choix : neuf validations consécutives.",
+      "headers": [
+        "ID",
+        "Étape / règle",
+        "Action ou condition",
+        "Déclencheur",
+        "Résultat",
+        "Portée",
+        "Précision"
+      ],
+      "widths": [
+        12,
+        25,
+        57,
+        38,
+        54,
+        27,
+        62
+      ],
+      "statusCol": 5,
+      "rows": [
+        [
+          "L01",
+          "Salon",
+          "Créer ou rejoindre une salle à code ; choisir campagne ou lieu, difficulté et pseudonyme.",
+          "2 à 4 membres",
+          "Participants, mode et lieu de départ sont partagés.",
+          "Implémenté — QA partielle",
+          "Le serveur confirme la salle ; le menu ne prétend pas être connecté avant cette réponse."
+        ],
+        [
+          "L02",
+          "Référence",
+          "Explorer une version normale avant la première inspection et à chaque nouveau lieu de campagne.",
+          "Début puis paliers 3 et 6",
+          "Aucun point ni anomalie pendant ce passage.",
+          "Implémenté — QA partielle",
+          "Réapprendre les objets du lieu, le reflet synchrone, le relais égal et le test radio 1 / 2 / 3."
+        ],
+        [
+          "L03",
+          "Tirage",
+          "Le serveur tire dans le catalogue compatible avec le lieu et attribue une perception à chaque membre.",
+          "Début d’une inspection",
+          "Même espace ; effets privés visuels, relationnels ou radio.",
+          "Implémenté — QA partielle",
+          "68 % de tours anormaux, 32 % conformes. Valeurs initiales à équilibrer par playtests."
+        ],
+        [
+          "L04",
+          "Observation",
+          "Décrire le fait observé, son emplacement et son état. Se servir de repères communs.",
+          "Exploration libre",
+          "Les joueurs peuvent vérifier la même zone.",
+          "Présent",
+          "Aucun diagnostic automatique ne révèle la réponse avant les votes."
+        ],
+        [
+          "L05",
+          "Communication",
+          "Comparer des observations par talkie vocal, texte, repères et relevé d’étalonnage.",
+          "Pendant l’inspection",
+          "Le groupe échange emplacement, fait observé et comparaison.",
+          "Implémenté — QA partielle",
+          "L’écoute et le texte restent utilisables sans ouvrir le microphone. Les problèmes de liaison ont leur propre message."
+        ],
+        [
+          "L06",
+          "Vote",
+          "Chaque membre choisit « Anomalie » ou « Conforme ».",
+          "Inspection en cours",
+          "Les votes restent modifiables tant qu’ils sont divergents.",
+          "Présent",
+          "Un signalement vrai pour un seul observateur suffit à rendre le tour anormal."
+        ],
+        [
+          "L07",
+          "Désaccord",
+          "Les joueurs revoient leurs observations. Aucun vote majoritaire n’impose une décision.",
+          "Votes divergents",
+          "L’inspection se poursuit jusqu’à un accord.",
+          "Présent",
+          "Deux participants présents au minimum pour résoudre un tour coopératif."
+        ],
+        [
+          "L08",
+          "Résolution",
+          "Le serveur compare le vote unanime à la vérité du tour.",
+          "Accord de tous les participants présents",
+          "Le résultat et l’explication sont dévoilés.",
+          "Présent",
+          "Le client ne peut pas choisir lui-même la vérité ou le score."
+        ],
+        [
+          "L09",
+          "Diagnostic correct",
+          "Ajouter une validation dans le secteur courant.",
+          "Vote correct",
+          "Campagne : trois validations dans chacun des trois lieux. Lieu au choix : série de neuf.",
+          "Implémenté — QA partielle",
+          "Un tour conforme bien reconnu compte autant qu’une anomalie. Le point n’est accordé qu’une fois."
+        ],
+        [
+          "L10",
+          "Diagnostic incorrect",
+          "Ajouter une erreur ; remettre la progression du lieu courant à zéro.",
+          "Vote incorrect",
+          "Campagne : conserver les paliers de 3 ou 6 déjà acquis. Lieu au choix : revenir à 0.",
+          "Implémenté — QA partielle",
+          "La troisième erreur termine le mode standard. Les validations du secteur en cours ne forment plus une série."
+        ],
+        [
+          "L11",
+          "Sortie",
+          "Terminer après neuf validations totales : trois par secteur ou neuf consécutives dans un seul lieu.",
+          "Dernière validation",
+          "Victoire et bilan de la session.",
+          "Implémenté — QA partielle",
+          "Aucune durée de partie garantie ; l’exploration et les erreurs la déterminent."
+        ],
+        [
+          "L12",
+          "Échec standard",
+          "Terminer la session au troisième diagnostic incorrect.",
+          "Erreurs = 3",
+          "Bilan, relecture des erreurs et nouvelle tentative.",
+          "Présent",
+          "Les erreurs ne réduisent pas des points d’expérience payants."
+        ],
+        [
+          "L13",
+          "Mode détendu",
+          "Conserver les règles de progression du mode choisi, avec erreurs illimitées.",
+          "Difficulté détendue",
+          "Apprendre sans fin de session forcée.",
+          "Implémenté — QA partielle",
+          "Une erreur remet seulement le secteur courant à zéro en campagne ; tout le compteur en lieu unique."
+        ],
+        [
+          "L14",
+          "Entraînement solo",
+          "Explorer puis basculer entre les perceptions A et B.",
+          "Un seul joueur",
+          "Comprendre la coopération par comparaison successive.",
+          "Présent",
+          "Le changement de vue n’est pas proposé aux clients d’une salle coop."
+        ],
+        [
+          "L15",
+          "Renouvellement",
+          "Éviter les cinq dernières anomalies déjà tirées.",
+          "Tirage avec anomalie",
+          "Réduire les répétitions immédiates.",
+          "Présent",
+          "Le catalogue reste fini et peut être revu après plusieurs tours."
+        ],
+        [
+          "L16",
+          "Distribution à 2",
+          "Attribuer l’anomalie à exactement un témoin et garder une vue normale.",
+          "Salle de deux joueurs",
+          "La communication reste nécessaire.",
+          "Présent",
+          "Les trois effets relationnels attribuent plutôt des codes, flèches ou heures SYNCHRO plausibles mais contradictoires."
+        ],
+        [
+          "L17",
+          "Distribution à 3–4",
+          "Généralement un témoin, parfois deux. Conserver au moins un témoin normal.",
+          "35 % des tours anormaux peuvent avoir deux témoins",
+          "Empêcher une règle fiable du type « la majorité a raison ».",
+          "Présent",
+          "Il s’agit d’une distribution initiale à équilibrer en tests."
+        ],
+        [
+          "L18",
+          "Double anomalie",
+          "Combiner deux effets compatibles, avec preuves séparées.",
+          "Mode avancé futur",
+          "Approfondir la discussion sans supprimer les tours normaux.",
+          "Prévu",
+          "Ne pas combiner une obscurité totale avec un indice uniquement visuel minuscule."
+        ],
+        [
+          "L19",
+          "Menace active",
+          "Une présence réagit au regard et exige une stratégie collective simple.",
+          "Extension future",
+          "Un joueur guide pendant que l’autre maintient le regard.",
+          "Prévu",
+          "Chaque menace doit avoir un indice précurseur et une issue sûre."
+        ],
+        [
+          "L20",
+          "Méta progression",
+          "Conserver une archive locale des anomalies rencontrées et les réglages.",
+          "Révélation et fin de session",
+          "Relire les preuves déjà découvertes.",
+          "Partiel",
+          "La collection existe ; cosmétiques, enquête persistante et déblocage d’autres cartes restent à produire."
+        ],
+        [
+          "L21",
+          "Campagne",
+          "Saint-Clair → Terminus 09 → Aile blanche.",
+          "Nouvelle partie campagne",
+          "Trois inspections correctes consécutives par secteur, neuf au total.",
+          "Implémenté — QA partielle",
+          "Une référence propre précède chacun des trois secteurs ; aucune inspection ne change de lieu à mi-tour."
+        ],
+        [
+          "L22",
+          "Palier de lieu",
+          "Après la troisième réussite du secteur, afficher le résultat puis ouvrir le lieu suivant en référence.",
+          "Paliers 3 et 6",
+          "Le changement de décor est une transition de règle lisible.",
+          "Implémenté — QA partielle",
+          "Le compteur global demeure au palier acquis ; toutes les perceptions rejoignent le même lieu."
+        ],
+        [
+          "L23",
+          "Lieu au choix",
+          "Choisir l’un des trois lieux et y jouer toute la session.",
+          "Mode single",
+          "Neuf diagnostics consécutifs ; chaque erreur remet la série à zéro.",
+          "Implémenté — QA partielle",
+          "Utile pour apprendre une baseline ou rejouer un catalogue local."
+        ],
+        [
+          "L24",
+          "Étalonnage radio",
+          "Déclencher trois tonalités connues et lire le relevé privé.",
+          "Bouton Étalonner",
+          "Détecter les six anomalies radio même sans voix entrante ni microphone.",
+          "Implémenté — QA partielle",
+          "Le relevé décrit un phénomène concret ; le joueur choisit son diagnostic."
+        ],
+        [
+          "L25",
+          "Reflet de référence",
+          "Regarder son corps et celui des équipiers dans le miroir.",
+          "Référence puis inspection",
+          "Observer synchronisation, nombre de corps et gestes.",
+          "Implémenté — QA partielle",
+          "Ne pas compter un saut de réseau ou une animation interrompue comme preuve ; vérifier l’effet persistant."
+        ],
+        [
+          "L26",
+          "Sauvegarde solo",
+          "Reprendre une session v0.2 ; convertir les anciennes sauvegardes v0.1 en hôtel au choix.",
+          "Chargement local",
+          "Conserver le sens de l’ancienne série de neuf.",
+          "Implémenté — QA partielle",
+          "Une sauvegarde malformée doit être rejetée proprement ; pas de transfert d’une vérité privée en coop."
+        ],
+        [
+          "L27",
+          "Débrief explicite",
+          "Afficher l’objet, le phénomène et la comparaison après la résolution.",
+          "Unanimité atteinte",
+          "Apprendre la cause de la bonne ou mauvaise décision.",
+          "Implémenté — QA partielle",
+          "Le diagnostic ne doit pas rester expliqué par « vous avez eu tort » sans fait observable."
+        ]
+      ]
+    },
+    "Coopération": {
+      "title": "Coopération et données de partie",
+      "subtitle": "La position est partagée, la perception reste personnelle et le diagnostic exige un accord.",
+      "headers": [
+        "ID",
+        "Système",
+        "Fonctionnement",
+        "Données",
+        "Portée",
+        "Critère de réception",
+        "Précaution technique ou de jeu"
+      ],
+      "widths": [
+        12,
+        27,
+        58,
+        31,
+        30,
+        58,
+        62
+      ],
+      "statusCol": 4,
+      "rows": [
+        [
+          "C01",
+          "Salon partagé",
+          "Création d’une salle avec code de connexion et identité de membre.",
+          "Code de salle",
+          "Présent",
+          "Une réponse serveur confirme la création.",
+          "Refuser nom vide, caractères de contrôle et code invalide."
+        ],
+        [
+          "C02",
+          "Capacité",
+          "Deux à quatre joueurs dans une partie coopérative.",
+          "Liste des membres",
+          "Présent",
+          "Aucun cinquième membre ne peut rejoindre.",
+          "Vérifier les requêtes de connexion simultanées."
+        ],
+        [
+          "C03",
+          "Identité privée",
+          "Jeton de membre aléatoire et autorisation sur chaque action.",
+          "Jeton conservé côté client",
+          "Présent",
+          "Un code de salle seul ne permet pas de voler le rôle d’un autre.",
+          "Ne pas afficher les jetons dans le chat, les logs ou les liens."
+        ],
+        [
+          "C04",
+          "Vérité autoritaire",
+          "Le serveur conserve l’anomalie et calcule la résolution.",
+          "État privé de partie",
+          "Présent",
+          "Impossible de gagner en envoyant un faux score.",
+          "Valider action, phase et membre avant mutation."
+        ],
+        [
+          "C05",
+          "Perceptions séparées",
+          "Chaque réponse ne renvoie que la couche autorisée du demandeur.",
+          "Effets personnels",
+          "Présent",
+          "Les autres perceptions ne sont pas exposées avant le débrief.",
+          "Inspecter les réponses réseau de deux clients réels."
+        ],
+        [
+          "C06",
+          "Positions communes",
+          "Les avatars et repères partagent le même espace.",
+          "Positions et orientation",
+          "Présent",
+          "Le témoin peut nommer une zone précise et y retrouver son partenaire.",
+          "Borner les coordonnées, interpoler l’affichage et tolérer le délai."
+        ],
+        [
+          "C07",
+          "Radio texte",
+          "Partager des observations courtes dans la salle.",
+          "Messages limités",
+          "Présent",
+          "Le message apparaît pour les autres membres.",
+          "Échapper le texte et limiter fréquence, taille et historique."
+        ],
+        [
+          "C08",
+          "Repères",
+          "Pointer un objet ou une zone plutôt que dire « là ».",
+          "Cible et auteur du ping",
+          "Présent",
+          "Le partenaire peut identifier l’objet cité.",
+          "Les repères ne révèlent pas eux-mêmes si l’objet est anormal."
+        ],
+        [
+          "C09",
+          "Accord unanime",
+          "Tous les membres présents votent la même décision.",
+          "Votes des participants",
+          "Présent",
+          "Une divergence garde le tour ouvert.",
+          "La majorité numérique ne prouve jamais qu’un témoin a tort."
+        ],
+        [
+          "C10",
+          "Concurrence",
+          "Versionner les mutations de salle et comparer avant écriture.",
+          "Version de l’état",
+          "Présent",
+          "Deux votes simultanés ne résolvent qu’une fois le tour.",
+          "Rejouer une mutation après conflit seulement si elle reste valide."
+        ],
+        [
+          "C11",
+          "Déconnexion",
+          "Détecter les absents après 45 secondes ; suspendre le quorum et permettre la reprise.",
+          "Présence et jeton du membre",
+          "Implémenté — QA partielle",
+          "{{networkQA}}",
+          "Un départ explicite retire le membre ; le transfert de responsable ne révèle pas les autres perceptions."
+        ],
+        [
+          "C12",
+          "Données personnelles",
+          "Utiliser uniquement le pseudonyme et les flux vocaux volontairement ouverts pour communiquer.",
+          "Micro explicite ; aucune caméra",
+          "Implémenté — QA partielle",
+          "Aucune voix de joueur clonée et aucun enregistrement audio applicatif.",
+          "Les effets transforment la réception en direct et des tonalités originales. Aucune photo personnelle n’alimente les apparitions."
+        ],
+        [
+          "C13",
+          "Voix intégrée",
+          "Connexions WebRTC entre 2 à 4 joueurs, émission volontaire et écoute sans microphone.",
+          "Signalisation autorisée ; flux pairs",
+          "Implémenté — QA partielle",
+          "PTT, témoin d’émission, volume et coupure sont visibles dans le panneau radio.",
+          "Les essais de microphones, casques, iOS/Android et réseaux réels restent nécessaires."
+        ],
+        [
+          "C14",
+          "Voix déformée",
+          "Appliquer une couleur de talkie normale puis, selon la perception, un effet de réception.",
+          "Traitement WebAudio individuel",
+          "Implémenté — QA partielle",
+          "Les six effets radio sont également révélés par l’étalonnage déterministe.",
+          "Le partenaire continue de transmettre sa vraie voix ; aucune phrase personnelle n’est copiée ou rejouée à son insu."
+        ],
+        [
+          "C15",
+          "Photo de preuve",
+          "Permettre un instantané du décor personnel avec repère et horodatage.",
+          "Image du jeu seulement",
+          "Prévu",
+          "Montrer après vote ce que chacun a réellement vu.",
+          "Une photo partagée avant vote modifie la difficulté et doit être un mode choisi."
+        ],
+        [
+          "C16",
+          "Partie privée",
+          "Restreindre l’accès à l’hébergement aux personnes autorisées.",
+          "Audience du site",
+          "À vérifier",
+          "Le lien privé seul ne garantit pas l’accès d’un ami.",
+          "L’accès à l’hébergement et le code de salle sont deux autorisations distinctes."
+        ],
+        [
+          "C17",
+          "Session longue",
+          "Expiration des anciennes salles et historique borné.",
+          "TTL et plafonds",
+          "À vérifier",
+          "Éviter une accumulation infinie des salons abandonnés.",
+          "Valider reprise et nettoyage sans supprimer une partie active."
+        ],
+        [
+          "C18",
+          "Réseau faible",
+          "Afficher clairement absence de réponse et état de connexion.",
+          "Délai et erreurs de requête",
+          "À vérifier",
+          "Le joueur distingue une panne réseau d’une anomalie du décor.",
+          "Ne jamais compter un vote local comme confirmé avant réponse du serveur."
+        ],
+        [
+          "C19",
+          "Signalisation",
+          "Acheminer offre, réponse et candidats ICE uniquement aux membres visés.",
+          "SDP / ICE bornés",
+          "Implémenté — QA partielle",
+          "Aucun membre extérieur à la salle ne lit une offre d’un autre salon.",
+          "Le serveur de jeu n’est pas un serveur d’enregistrement audio."
+        ],
+        [
+          "C20",
+          "Transport vocal",
+          "Relier chaque paire de joueurs ; quatre joueurs impliquent six liaisons entre pairs.",
+          "WebRTC audio",
+          "Implémenté — QA partielle",
+          "Connexion, écoute, émission et déconnexion ont un état explicite.",
+          "Deux onglets ont négocié offre/réponse sans candidats ICE. La réception audio effective reste non validée dans cet environnement."
+        ],
+        [
+          "C21",
+          "HTTPS",
+          "Servir la voix depuis un contexte sécurisé ; localhost reste utilisable pour les essais.",
+          "Origine du navigateur",
+          "Implémenté — QA partielle",
+          "Une IP locale en HTTP affiche une explication et conserve texte / étalonnage.",
+          "Les certificats et clés LAN sont optionnels et doivent être fournis par l’hébergeur."
+        ],
+        [
+          "C22",
+          "Relais TURN",
+          "Accepter une configuration ICE incluant un relais TURN pour les réseaux restrictifs.",
+          "URL TURN et secret REST serveur ; identifiants temporaires",
+          "Implémenté — QA partielle",
+          "Identifiants calculés côté serveur ; le client ne reçoit pas le secret de signature.",
+          "Configuration et tests automatisés présents ; service TURN réel et trajet relay encore à éprouver."
+        ],
+        [
+          "C23",
+          "Panne ≠ preuve",
+          "Séparer état de transport, permission micro et résultat fictionnel de l’étalonnage.",
+          "Canaux d’état distincts",
+          "Implémenté — QA partielle",
+          "Une panne du pair laisse intacte la vérité du tour.",
+          "Toujours proposer texte et relevé de calibration pour garder la session solvable."
+        ],
+        [
+          "C24",
+          "Transition collective",
+          "Changer de lieu et de référence sur l’état autoritaire.",
+          "Mode / stage / levelId",
+          "Implémenté — QA partielle",
+          "Tous les membres rejoignent le même secteur et reçoivent leur couche personnelle.",
+          "Nettoyer les effets du lieu précédent avant la nouvelle référence."
+        ],
+        [
+          "C25",
+          "Visibilité des corps",
+          "Partager poses et identités ; générer les distorsions de corps seulement dans la vue autorisée.",
+          "Positions / orientation / état PTT",
+          "Implémenté — QA partielle",
+          "Un mannequin ou un double visuel ne crée pas de faux membre dans le salon.",
+          "Le vrai roster et les noms de l’interface demeurent fiables."
+        ]
+      ]
+    },
+    "Lieux": {
+      "title": "Zones, repères et extensions",
+      "subtitle": "Trois architectures présentes en v0.2. Chaque extension future garde un statut explicite.",
+      "headers": [
+        "ID",
+        "Lieu",
+        "Zone",
+        "Organisation",
+        "Repères à mémoriser",
+        "Anomalies / usage",
+        "Statut",
+        "Consigne de level design"
+      ],
+      "widths": [
+        12,
+        23,
+        28,
+        53,
+        53,
+        46,
+        31,
+        62
+      ],
+      "statusCol": 6,
+      "rows": [
+        [
+          "Z01",
+          "Saint-Clair",
+          "Sas d’entrée",
+          "Point de départ commun et orientation vers l’axe du couloir.",
+          "Repère de référence, panneau de règles, seuil lisible.",
+          "L02, L14",
+          "Présent",
+          "Une zone calme donne le temps de mémoriser et régler la vue."
+        ],
+        [
+          "Z02",
+          "Saint-Clair",
+          "Réception",
+          "Petit espace latéral à mobilier distinct.",
+          "Téléphone, surface de bureau, luminaire.",
+          "phone_float",
+          "Présent",
+          "Les accessoires ne doivent pas masquer les plaques de porte."
+        ],
+        [
+          "Z03",
+          "Saint-Clair",
+          "Galerie gauche",
+          "Alignement de panneaux et tableaux à hauteur humaine.",
+          "Tableau, inscription, cadre.",
+          "portrait_eyes, portrait_empty, wall_message",
+          "Présent",
+          "Contraste suffisant pour reconnaître un tableau vide."
+        ],
+        [
+          "Z04",
+          "Saint-Clair",
+          "Chambres",
+          "Quatre portes repérables par numéro et côté.",
+          "901, 902, 903, 904. Poignées et seuils distincts.",
+          "door_number, door_open, blood_handprint",
+          "Présent",
+          "Un numéro est un repère de communication, pas seulement un décor."
+        ],
+        [
+          "Z05",
+          "Saint-Clair",
+          "Coin salon",
+          "Sièges espacés avec vue sous le mobilier.",
+          "Fauteuil et plante.",
+          "chair_float, duplicate_chair, plant_tall",
+          "Présent",
+          "Pouvoir comparer le contact au sol depuis plusieurs angles."
+        ],
+        [
+          "Z06",
+          "Saint-Clair",
+          "Service",
+          "Station de chariot hors trajectoire centrale.",
+          "Chariot et bagage.",
+          "trolley_missing",
+          "Présent",
+          "Conserver une zone de passage pour quatre avatars."
+        ],
+        [
+          "Z07",
+          "Saint-Clair",
+          "Façade vitrée",
+          "Vitre pluvieuse et miroir plan disposant d’un rendu réfléchi.",
+          "Corps local, équipiers, décor réfléchi.",
+          "reflection_delay, reflection_absent, reflection_independent",
+          "Implémenté — QA partielle",
+          "La surface reflète le monde ; l’absence du corps doit conserver le décor. Rendu GPU à vérifier."
+        ],
+        [
+          "Z08",
+          "Saint-Clair",
+          "Terminal de sortie",
+          "Fond lisible depuis le parcours, avec zone de diagnostic.",
+          "Issue, RELAIS à quatre chiffres, panneau SYNCHRO et horloge 03:09.",
+          "relay_mismatch, paired_arrow, paired_clock, shadow_figure, exit_false",
+          "Présent",
+          "La décision commune doit être accessible malgré les effets d’ambiance."
+        ],
+        [
+          "Z09",
+          "Chalet",
+          "Usine de modules",
+          "Chalets successifs transportés dans un hangar d’inspection.",
+          "Foyer, table, étage, fenêtre.",
+          "cabine_table_size, cabine_chimney_face",
+          "Conçu — non implémenté",
+          "Quatrième lieu proposé ; prévoir assets originaux et baseline spécifique."
+        ],
+        [
+          "Z10",
+          "Terminus 09",
+          "Quai hors service",
+          "Quai vide, limites des voies, signal, afficheur et panneau de réseau.",
+          "QUAI 09 / SERVICE TERMINÉ ; rails droits ; signal vert.",
+          "metro_train, metro_destination, metro_signal, metro_tracks",
+          "Implémenté — QA partielle",
+          "Une rame est une anomalie. Une géométrie de métro présente ne valide pas encore le rendu sur matériel."
+        ],
+        [
+          "Z11",
+          "Aile blanche",
+          "Unité de nuit",
+          "Un lit, moniteur, paravent et fauteuil roulant dans une aile vide.",
+          "Lit au sol ; FC 072 / RYTHME SINUSAL ; paravent sans présence.",
+          "clinic_bed, clinic_monitor, clinic_curtain, clinic_wheelchair",
+          "Implémenté — QA partielle",
+          "Ne pas enseigner trois lits comme référence ; le second lit éventuel est une anomalie."
+        ],
+        [
+          "Z12",
+          "Observatoire",
+          "Annexe côtière",
+          "Salle de veille et grande baie sur un paysage nocturne.",
+          "Constellations, météo, planète inattendue.",
+          "paired_stars, observatory_earth",
+          "Conçu — non implémenté",
+          "Prévoir comparaison sur une station de regard commune."
+        ],
+        [
+          "Z13",
+          "Archives",
+          "Dépôt des témoins",
+          "Rayonnages, microfilms et salle de classement.",
+          "Tampons, dates et fiches contradictoires.",
+          "paired_stamp, paired_newspaper",
+          "Conçu — non implémenté",
+          "Favoriser les différences de sens et les preuves narratives."
+        ],
+        [
+          "Z14",
+          "Finale",
+          "Salle de concordance",
+          "Salle réunissant symboliquement les perceptions de l’équipe.",
+          "Table centrale, neuf témoins lumineux.",
+          "Dénouement étendu",
+          "Conçu — non implémenté",
+          "Nouveau lieu à produire. Le bilan de victoire actuel ne vaut pas cette carte."
+        ],
+        [
+          "Z15",
+          "Commun",
+          "Station de radio",
+          "Dispositif d’étalonnage et repères compatibles avec les trois architectures.",
+          "1 / 2 / 3 ; retour au silence.",
+          "radio_echo, radio_chop, radio_static, radio_detune, radio_wrong_channel, radio_aftertone",
+          "Implémenté — QA partielle",
+          "Le test est local et déterministe ; il ne dépend pas de la qualité du microphone."
+        ],
+        [
+          "Z16",
+          "Commun",
+          "Surface de réflexion",
+          "Miroir à hauteur de corps et zone où s’immobiliser pour comparer.",
+          "Un corps par inspecteur ; gestes synchrones.",
+          "reflection_delay, reflection_absent, reflection_independent",
+          "Implémenté — QA partielle",
+          "Prévoir recul suffisant, lumière stable et cadre visible pour distinguer écran, mur et miroir."
+        ],
+        [
+          "Z17",
+          "Terminus 09",
+          "Ligne de sécurité",
+          "Bord du quai et axes des rails repérables depuis une position sûre.",
+          "Deux rails droits et parallèles au sol.",
+          "metro_tracks, metro_shadow_train",
+          "Implémenté — QA partielle",
+          "Aucun indice ne doit imposer de marcher sur la voie. Conserver les collisions partagées."
+        ],
+        [
+          "Z18",
+          "Terminus 09",
+          "Afficheur",
+          "Écran visible depuis le parcours ; baseline lisible pendant la référence.",
+          "QUAI 09 / SERVICE TERMINÉ.",
+          "metro_destination",
+          "Implémenté — QA partielle",
+          "Le changement est un fait de contenu ; une panne de police ou de texture est un défaut QA."
+        ],
+        [
+          "Z19",
+          "Aile blanche",
+          "Poste clinique",
+          "Moniteur et lit repérables par la même ancre de communication.",
+          "FC 072 / RYTHME SINUSAL ; lit vide au sol.",
+          "clinic_monitor, clinic_bed",
+          "Implémenté — QA partielle",
+          "La fiction ne constitue aucun conseil médical ; les indications servent uniquement de référence de jeu."
+        ],
+        [
+          "Z20",
+          "Aile blanche",
+          "Paravent",
+          "Écran médical et espace vide de référence derrière lui.",
+          "Pas de silhouette ni de respiration du tissu.",
+          "clinic_curtain, curtain_breath",
+          "Implémenté — QA partielle",
+          "Séparer silhouette et mouvement respirant par des preuves visibles différentes."
+        ],
+        [
+          "Z21",
+          "Commun",
+          "Fin de secteur",
+          "Zone de sortie accessible même sous brouillard ou obscurité.",
+          "Panneau de résultat et prochaine destination.",
+          "Transition de campagne",
+          "Implémenté — QA partielle",
+          "Aucun vote implicite par le franchissement d’une porte ; conserver le choix explicite du groupe."
+        ]
+      ]
+    },
+    "Direction artistique": {
+      "title": "Direction artistique et production 3D",
+      "subtitle": "Géométrie procédurale actuelle ; objectifs haute définition et vérifications matérielles séparés.",
+      "headers": [
+        "ID",
+        "Élément",
+        "Traitement",
+        "Contraintes",
+        "Statut",
+        "Critère visuel / performance",
+        "Limite ou étape suivante"
+      ],
+      "widths": [
+        12,
+        26,
+        57,
+        51,
+        31,
+        52,
+        64
+      ],
+      "statusCol": 4,
+      "rows": [
+        [
+          "A01",
+          "Direction",
+          "Trois atmosphères : hôtel laiton/bois, métro céramique/métal, clinique matière pâle/verre.",
+          "Cohérence des repères ; silhouettes lisibles.",
+          "Implémenté — QA partielle",
+          "Chaque lieu se reconnaît avant la première anomalie.",
+          "Les couleurs ne constituent jamais la seule preuve accessible."
+        ],
+        [
+          "A02",
+          "Architecture",
+          "Modules de mur, plinthes, chambranles, moulures et joints.",
+          "Bords chanfreinés pour accrocher la lumière.",
+          "Présent",
+          "Pas de joints ouverts ni de z-fighting",
+          "La scène procédurale remplace temporairement une production d’assets sculptés."
+        ],
+        [
+          "A03",
+          "Fauteuil",
+          "Coussins arrondis, coutures suggérées, pieds et garnitures distinctes.",
+          "Conserver une silhouette claire et un contact au sol lisible.",
+          "Présent",
+          "Lévitation visible sans ombre avancée",
+          "High poly concerne une géométrie détaillée. Un grand nombre de triangles seul ne garantit pas le réalisme."
+        ],
+        [
+          "A04",
+          "Plantes",
+          "Tiges, feuilles courbes et pot séparés.",
+          "Variantes mortes et hautes sans mélanger les collisions.",
+          "Présent",
+          "Pas de traversée visible du plafond",
+          "Réduire la complexité lointaine avant de supprimer des indices."
+        ],
+        [
+          "A05",
+          "Chariot",
+          "Tubes courbés, poignées, roues et valise indépendante.",
+          "Métal, cuir et caoutchouc différenciés.",
+          "Présent",
+          "Disparition totale du groupe visuel",
+          "Ne pas laisser la valise flotter quand le chariot disparaît."
+        ],
+        [
+          "A06",
+          "Portes",
+          "Battants, plaques lisibles et poignées indépendantes.",
+          "Numéros 901–904, variante 909.",
+          "Présent",
+          "Lecture à distance normale",
+          "La typographie est créée pour le projet, sans récupérer les affiches d’autres jeux."
+        ],
+        [
+          "A07",
+          "Horloge",
+          "Boîtier rond subdivisé et aiguilles indépendantes.",
+          "03:09 comme repère, trotteuse normale ou inverse.",
+          "Présent",
+          "Sens lisible sur trois secondes",
+          "La petite aiguille ne doit pas être confondue avec la trotteuse."
+        ],
+        [
+          "A08",
+          "Tableau",
+          "Œuvre abstraite originale créée par code.",
+          "Variantes vide et yeux intégrées au même cadre.",
+          "Présent",
+          "Le tableau est visible sans zoom extrême",
+          "La vue normale doit être montrée pendant la référence."
+        ],
+        [
+          "A09",
+          "Miroir",
+          "Rendu planaire du décor, du corps local et des équipiers.",
+          "Désynchronisation ou masquage propre à la perception.",
+          "Implémenté — QA partielle",
+          "Le décor reste réfléchi quand seul le corps disparaît.",
+          "Reflection pass temps réel ; pas de promesse de ray tracing ni de validation de pixels GPU."
+        ],
+        [
+          "A10",
+          "Verre",
+          "Vitres réfléchissantes planaires et lumière propre à chaque architecture.",
+          "Couleur, opacité et reflet maîtrisés.",
+          "Implémenté — QA partielle",
+          "Lire silhouette et reflet sans surface noire involontaire.",
+          "Tester angles extrêmes, appareil mobile, transparence et ordre de rendu."
+        ],
+        [
+          "A11",
+          "Éclairage",
+          "Lumières chaudes, ombres, sources visibles et lampe personnelle.",
+          "Exposition cinéma et séparation du fond.",
+          "Présent",
+          "Objets inspectables sans surexposition",
+          "Tester l’équilibre sur écrans lumineux et sombres."
+        ],
+        [
+          "A12",
+          "Matières",
+          "Textures procédurales bois, pierre, tissu et métal.",
+          "Rugosité différenciée et détails de surface.",
+          "Présent",
+          "Pas d’étirement excessif du grain",
+          "Textures PBR photographiques 2K/4K sous licence restent une étape de production."
+        ],
+        [
+          "A13",
+          "Atmosphère",
+          "Brume, poussière et pluie sans masquer les indices.",
+          "Intensité localisée par observateur.",
+          "Présent",
+          "Pas de gêne persistante à la lecture",
+          "Limiter les particules sur mobile."
+        ],
+        [
+          "A14",
+          "Personnages",
+          "Inspecteurs originaux procéduraux, corps articulés, équipements et gestes de talkie.",
+          "Modèle visible de soi, des partenaires et dans les reflets.",
+          "Implémenté — QA partielle",
+          "Marche, contact au sol et orientation cohérents.",
+          "Des personnages sculptés et texturés photoréalistes restent une production future."
+        ],
+        [
+          "A15",
+          "Qualités",
+          "Profils bas, moyen et haut.",
+          "Résolution de rendu et ombres adaptées.",
+          "Implémenté — QA partielle",
+          "Aucune anomalie supprimée par la qualité",
+          "Une qualité basse doit conserver toutes les preuves nécessaires."
+        ],
+        [
+          "A16",
+          "Cible PC",
+          "Viser 60 images/s à 1080p sur une configuration de référence à définir.",
+          "Mesurer CPU, GPU, draw calls et triangles dans le build.",
+          "Conçu — non implémenté",
+          "Profil matériel et parcours QA publiés",
+          "Objectif de production, pas résultat certifié."
+        ],
+        [
+          "A17",
+          "Cible mobile",
+          "Viser une inspection confortable avec rendu adaptatif.",
+          "Commandes tactiles et limitation du coût des ombres.",
+          "À vérifier",
+          "Mesure réelle sur iPhone et Android",
+          "Le test desktop seul ne prouve pas la performance mobile."
+        ],
+        [
+          "A18",
+          "Sculpt haute définition",
+          "Sculpter objets héro, tissus et visages originaux.",
+          "Créer références, sculpt, retopologie et bake.",
+          "Conçu — non implémenté",
+          "Validation des silhouettes proches",
+          "Un projet natif Unreal Engine 5 n’est pas inclus dans la première version web."
+        ],
+        [
+          "A19",
+          "Pipeline PBR",
+          "Base color, roughness, metalness, normal, AO et variantes.",
+          "Étalonner les valeurs et partager une échelle de texels.",
+          "Conçu — non implémenté",
+          "Matériaux cohérents sous plusieurs lumières",
+          "Prévoir les sources et licences dans le registre des assets."
+        ],
+        [
+          "A20",
+          "Animation personnage",
+          "Locomotion et articulation procédurales ; états PTT, rigidité, double et salut de reflet.",
+          "Animation lisible et baseline reproductible.",
+          "Partiel",
+          "Pas de déformation non finie ni de résidu après reset.",
+          "Mocap autorisée, retarget, IK des pieds et animation faciale de qualité finale restent à produire."
+        ],
+        [
+          "A21",
+          "LOD",
+          "Niveaux de détail et culling sans changement de preuve.",
+          "Conserver plaques, yeux et traces jusqu’à distance utile.",
+          "Conçu — non implémenté",
+          "Les transitions ne ressemblent pas à une anomalie",
+          "Pas de pop visible pendant l’inspection."
+        ],
+        [
+          "A22",
+          "Post-traitement",
+          "Exposition, vignette discrète et contraste contrôlé.",
+          "Fournir options de confort.",
+          "À vérifier",
+          "Lisibilité et absence de flash rapide",
+          "Grain, aberration et motion blur ne sont pas des prérequis au réalisme."
+        ],
+        [
+          "A23",
+          "Assets sources",
+          "Conserver sources modifiables, exports et documentation.",
+          "Nom stable par ID moteur.",
+          "Présent",
+          "Chaque effet est retrouvé dans le code",
+          "Le catalogue Excel pointe vers l’identifiant moteur, pas un statut inventé."
+        ],
+        [
+          "A24",
+          "Packaging natif",
+          "Étudier build PC, launcher, manette et installation.",
+          "Choisir moteur et chaîne après validation du prototype.",
+          "Conçu — non implémenté",
+          "Exécutable signé et testé sur machine propre",
+          "Une archive source web ne vaut pas un exécutable Windows ni un jeu commercial final."
+        ],
+        [
+          "A25",
+          "Géométrie contrôlée",
+          "{{geometrySummary}}",
+          "{{geometryQA}}",
+          "Contrôle structurel partiel",
+          "Contrôle de données et raycasts ; aucune mesure FPS implicite.",
+          "Le navigateur de contrôle ne fournit pas de renderer WebGL actif. Les shaders, reflets et images restent à éprouver sur GPU."
+        ],
+        [
+          "A26",
+          "Échelle commune",
+          "Travailler en mètres, fixer hauteur caméra, portes et corps avant sculpt.",
+          "Documenter un mannequin de mesure et les limites de collision.",
+          "Conçu — non implémenté",
+          "Aucune variation d’échelle accidentelle ne ressemble à une anomalie.",
+          "La valeur finale de texel density découlera des distances réelles d’inspection."
+        ],
+        [
+          "A27",
+          "Sources sculptées",
+          "Produire en priorité radio, visage/visière, miroir, lit et afficheur métro.",
+          "Sculpt source haute définition séparé du maillage temps réel.",
+          "Conçu — non implémenté",
+          "Chaque détail améliore silhouette ou lumière au cadrage utile.",
+          "Le nombre de polygones source est un moyen ; le rendu validé est le critère."
+        ],
+        [
+          "A28",
+          "Textures 2K / 4K",
+          "Prévoir 4K sur héros très proches, 2K mutualisé sur accessoires et atlas modulaires.",
+          "Budgets proposés, à mesurer ; pas de chargement 4K universel.",
+          "Conçu — non implémenté",
+          "Texel density cohérente, mips corrects et mémoire publiée par profil.",
+          "Réserver les images 8K aux sources ou cas prouvés ; ne pas promettre de gain visible automatique."
+        ],
+        [
+          "A29",
+          "Bake et UV",
+          "Bake normal/AO/curvature sur cages propres ; vérifier îlots, padding et miroirs UV.",
+          "Conserver les variantes d’anomalie sur le même espace UV si pertinent.",
+          "Conçu — non implémenté",
+          "Pas de couture brillante ou normal inversée prise pour une preuve.",
+          "Fichiers source, presets et paramètres de bake versionnés."
+        ],
+        [
+          "A30",
+          "Rig de production",
+          "Chaîne racine, bassin, jambes, torse, bras, mains et tête ; sockets de talkie.",
+          "Orientation identique au runtime et animations exportables.",
+          "Conçu — non implémenté",
+          "Main sur l’appareil, épaules stables, pieds sans glissement.",
+          "Le rig procédural courant sert de contrat de jeu, pas de rig facial final."
+        ],
+        [
+          "A31",
+          "Profilage reflet",
+          "Mesurer pass principal, miroir et vitres sur un trajet identique.",
+          "Comparer résolutions des cibles et nombre de surfaces actives.",
+          "À tester sur GPU",
+          "Aucun indice perdu en profil bas ; coût GPU mesuré par passe.",
+          "Réduire fréquence ou résolution de reflet seulement si la baseline reste synchrone et lisible."
+        ],
+        [
+          "A32",
+          "Conservation des preuves",
+          "Identifier les meshes et matières qui portent chaque anomalie.",
+          "Pas de culling ou LOD supprimant une preuve utile.",
+          "Conçu — non implémenté",
+          "Tests A/B de chaque qualité avec captures du même repère.",
+          "La feuille Anomalies fournit les IDs moteur et les comparaisons à vérifier."
+        ],
+        [
+          "A33",
+          "Sources et licence",
+          "Dossier source par asset : auteur, licence, date, source, exports et variantes.",
+          "Aucun modèle ou texture extrait des jeux d’inspiration.",
+          "Partiel",
+          "Sources procédurales incluses ; registre des futures ressources externes à compléter.",
+          "Les générations ou achats futurs demandent la conservation des droits et versions."
+        ],
+        [
+          "A34",
+          "Palette de peur",
+          "Peur 1–2 : détail ; 3 : mouvement organique ; 4–5 : présence et contradiction corporelle.",
+          "Pas de flash rapide ni volume excessif nécessaire au diagnostic.",
+          "Conception définie",
+          "Rythme calme entre apparitions ; débrief factuel.",
+          "L’intensité est une intention de design, à confirmer en playtests de confort."
+        ]
+      ]
+    },
+    "Audio": {
+      "title": "Ambiances, bruitages et mixage",
+      "subtitle": "La voix et l’étalonnage disposent d’une feuille Radio ; cette feuille porte le paysage sonore.",
+      "headers": [
+        "ID",
+        "Usage",
+        "Traitement",
+        "Origine / système",
+        "Statut",
+        "Accessibilité",
+        "Règle de mixage ou de jeu"
+      ],
+      "widths": [
+        12,
+        24,
+        57,
+        35,
+        31,
+        38,
+        66
+      ],
+      "statusCol": 4,
+      "rows": [
+        [
+          "S01",
+          "Ambiance des lieux",
+          "Souffle d’hôtel, résonance de station, ventilation clinique ; textures synthétiques originales.",
+          "Ambiances procédurales par lieu",
+          "Implémenté — QA partielle",
+          "Volume ambiance et mute",
+          "Le paysage sonore doit laisser la voix compréhensible ; mix sur casque et haut-parleurs à écouter."
+        ],
+        [
+          "S02",
+          "Pas",
+          "Cadence de marche et timbre adaptés aux matières des trois lieux.",
+          "Retour de locomotion procédural",
+          "Implémenté — QA partielle",
+          "Volume général et mute",
+          "Des pas normaux ne doivent pas être l’unique signal de présence d’un joueur."
+        ],
+        [
+          "S03",
+          "Interface",
+          "Clic discret et confirmation de vote.",
+          "Sons synthétiques originaux",
+          "Implémenté — QA partielle",
+          "Indicateur visuel équivalent",
+          "Aucun son ne doit révéler à lui seul la vérité avant la résolution."
+        ],
+        [
+          "S04",
+          "Réussite",
+          "Courte résolution harmonique après diagnostic correct.",
+          "Son de bilan",
+          "Implémenté — QA partielle",
+          "Texte de réussite",
+          "Volume modéré et pas de victoire sonore prématurée."
+        ],
+        [
+          "S05",
+          "Erreur",
+          "Grave court après diagnostic incorrect.",
+          "Son de bilan",
+          "Implémenté — QA partielle",
+          "Texte d’erreur",
+          "Pas de pic sonore punitif nécessaire."
+        ],
+        [
+          "S06",
+          "Relais",
+          "L’afficheur est lisible visuellement.",
+          "Aucun décodage sonore requis",
+          "Présent",
+          "Lecture à voix haute ou chat",
+          "La communication est humaine. Pas de reconnaissance vocale obligatoire."
+        ],
+        [
+          "S07",
+          "Talkie",
+          "Bande limitée, compression, saturation légère et ouverture/fermeture de porteuse.",
+          "WebAudio ; voix réelle transmise",
+          "Implémenté — QA partielle",
+          "Texte et relevé de calibration",
+          "Les réglages exacts restent des choix de mix à auditer sur appareils. Voir feuille Radio."
+        ],
+        [
+          "S08",
+          "Anomalies sonores",
+          "Six anomalies de réception radio et leur séquence d’étalonnage équivalente.",
+          "Effets privés sur réception",
+          "Implémenté — QA partielle",
+          "Relevé factuel 1 / 2 / 3 et variantes",
+          "Les coups, respirations de décor et voix narratives du catalogue restent conçus, sauf ID explicitement présent."
+        ],
+        [
+          "S09",
+          "Voice chat",
+          "PTT, écoute sans micro, volume et coupure ; pairs WebRTC.",
+          "Microphone après action explicite",
+          "Implémenté — QA partielle",
+          "Radio texte et calibration sans micro",
+          "Pas de reconnaissance vocale requise, pas d’enregistrement applicatif et pas de clonage de voix."
+        ],
+        [
+          "S10",
+          "Bande originale",
+          "Pistes originales pour menu et dénouements.",
+          "Musique composée",
+          "Conçu — non implémenté",
+          "Volume musique indépendant",
+          "Prévoir droits et fichiers sources avant diffusion."
+        ],
+        [
+          "S11",
+          "Mixage final",
+          "Mesurer niveau intégré et pics sur sessions réelles.",
+          "Mastering par plateforme",
+          "Conçu — non implémenté",
+          "Limiteur et contrôle dynamique",
+          "Les cibles finales seront définies et mesurées, pas supposées."
+        ],
+        [
+          "S12",
+          "Version confort",
+          "Limiter sursauts audio et favoriser tension lente.",
+          "Option de peur réduite",
+          "Conçu — non implémenté",
+          "Alternative textuelle et visuelle",
+          "L’option ne doit pas supprimer les informations de diagnostic."
+        ],
+        [
+          "S13",
+          "Étalonnage",
+          "Trois sons courts connus, puis silence ; variante personnelle si anomalie radio.",
+          "Oscillateurs et bruit synthétique",
+          "Implémenté — QA partielle",
+          "Transcription factuelle indépendante de l’audition",
+          "Le bouton reste utile si le pair est muet ou le micro refusé."
+        ],
+        [
+          "S14",
+          "Intelligibilité",
+          "Mesurer compréhension de phrases brèves à deux puis quatre joueurs.",
+          "Parcours de test humain",
+          "À tester sur appareils",
+          "Réduire ambiance et augmenter réception au besoin",
+          "Aucun niveau cible de loudness certifié avant une mesure du signal réel."
+        ],
+        [
+          "S15",
+          "Écho acoustique",
+          "Tester casque, micro intégré et haut-parleurs séparément.",
+          "Traitement navigateur + PTT",
+          "À tester sur appareils",
+          "Recommander le casque lorsque le retour acoustique gêne",
+          "Un écho matériel ne doit jamais être traité comme preuve : l’étalonnage du jeu distingue le phénomène prévu."
+        ],
+        [
+          "S16",
+          "Reprise audio",
+          "Déverrouiller l’écoute par un geste utilisateur si le navigateur l’exige.",
+          "AudioContext / lecture entrante",
+          "Implémenté — QA partielle",
+          "Bouton d’écoute et état clairement affichés",
+          "Tester retour d’onglet, verrouillage mobile et reprise après appel système."
+        ],
+        [
+          "S17",
+          "Dialogue fictionnel",
+          "Écrire de futures voix de bâtiment indépendantes des joueurs.",
+          "Texte et comédiens autorisés",
+          "Conçu — non implémenté",
+          "Sous-titres privés et volume narration",
+          "Le message système et le vrai roster demeurent fiables ; pas d’imitation d’un partenaire réel."
+        ]
+      ]
+    },
+    "Commandes": {
+      "title": "Commandes et accessibilité",
+      "subtitle": "Les commandes implémentées restent à vérifier sur périphériques physiques.",
+      "headers": [
+        "ID",
+        "Action",
+        "Support",
+        "Commande",
+        "Statut",
+        "Résultat attendu",
+        "Critère de confort"
+      ],
+      "widths": [
+        12,
+        28,
+        24,
+        43,
+        31,
+        55,
+        63
+      ],
+      "statusCol": 4,
+      "rows": [
+        [
+          "K01",
+          "Se déplacer",
+          "Clavier PC",
+          "ZQSD / WASD",
+          "Présent",
+          "Marcher dans un espace 3D commun.",
+          "Prendre en charge AZERTY et QWERTY."
+        ],
+        [
+          "K02",
+          "Regarder",
+          "Souris",
+          "Mouvement de souris / glisser",
+          "Présent",
+          "Orienter la caméra et regarder plafond ou sol.",
+          "Échapper au verrouillage avec Échap."
+        ],
+        [
+          "K03",
+          "Accélérer",
+          "Clavier PC",
+          "Maj",
+          "Implémenté — QA partielle",
+          "Marcher plus vite si le confort ne coupe pas le sprint.",
+          "Tester vitesse, collisions et main tenant la radio."
+        ],
+        [
+          "K04",
+          "Interagir / repérer",
+          "Clavier PC",
+          "E",
+          "Implémenté — QA partielle",
+          "Désigner un repère au centre de la vue.",
+          "Le nom de l’objet reste stable même si l’objet est invisible dans une perception."
+        ],
+        [
+          "K05",
+          "Lampe",
+          "Clavier / bouton",
+          "F",
+          "Présent",
+          "Éclairer personnellement les surfaces.",
+          "La lampe ne répare pas une anomalie d’éclairage."
+        ],
+        [
+          "K06",
+          "Voter",
+          "Clavier / interface",
+          "V puis Anomalie / Conforme",
+          "Présent",
+          "Choisir le diagnostic, réviser en cas de désaccord.",
+          "Décision uniquement validée après accord et réponse autoritaire."
+        ],
+        [
+          "K07",
+          "Comparer A/B",
+          "Entraînement solo",
+          "Tab",
+          "Présent",
+          "Passer d’une perception à l’autre.",
+          "Fonction interdite dans une salle coopérative."
+        ],
+        [
+          "K08",
+          "Radio texte",
+          "Interface",
+          "Champ de message",
+          "Présent",
+          "Communiquer un repère et une description.",
+          "Navigation clavier et texte échappé."
+        ],
+        [
+          "K09",
+          "Pause",
+          "Clavier",
+          "Échap",
+          "Implémenté — QA partielle",
+          "Libérer la souris et ouvrir les options.",
+          "La pause locale ne fige pas les membres d’une salle en ligne ; couper l’émission au relâchement."
+        ],
+        [
+          "K10",
+          "Tactile",
+          "Écran mobile",
+          "Joystick gauche ; glisser à droite ; boutons de jeu et talkie",
+          "Implémenté — QA partielle",
+          "Déplacement, regard, vote et émission sans clavier.",
+          "Vrais appareils à tester : multitouch, paysage, zones sûres et relâchement hors bouton."
+        ],
+        [
+          "K11",
+          "Qualité",
+          "Réglages",
+          "Bas / Moyen / Haut",
+          "À vérifier",
+          "Adapter résolution et coût du rendu.",
+          "Aucun indice d’anomalie ne doit dépendre d’une qualité exclusive."
+        ],
+        [
+          "K12",
+          "Sensibilité",
+          "Réglages",
+          "Curseur de sensibilité",
+          "À vérifier",
+          "Adapter les mouvements de caméra.",
+          "Bornes permettant une rotation complète sans à-coup."
+        ],
+        [
+          "K13",
+          "Plein écran",
+          "Interface",
+          "Bouton plein écran",
+          "À vérifier",
+          "Faire occuper l’écran au jeu.",
+          "L’action dépend des capacités du navigateur."
+        ],
+        [
+          "K14",
+          "Options de confort",
+          "Réglages actuels et futurs",
+          "Animation UI réduite, sprint coupé ; FOV et remappage prévus",
+          "Partiel",
+          "Le réglage actuel réduit les animations de l’interface et désactive le sprint.",
+          "FOV réglable et remappage complet restent à produire."
+        ],
+        [
+          "K15",
+          "Manette",
+          "PC",
+          "Sticks ; A interaction, X vote, Y lampe, LB talkie, View carnet, Menu pause",
+          "Implémenté — QA partielle",
+          "Actions de jeu reliées aux boutons ; les menus utilisent encore l’interface.",
+          "La prise en charge annoncée ne vaut pas navigation intégrale des menus au contrôleur."
+        ],
+        [
+          "K16",
+          "Relevé radio",
+          "Étalonnage",
+          "Bouton Étalonner puis texte privé",
+          "Implémenté — QA partielle",
+          "Décrire rythme, répétition, coupure ou code reçu sans audition.",
+          "Le relevé donne les faits observés ; le joueur conserve le choix de diagnostic."
+        ],
+        [
+          "K17",
+          "Carnet",
+          "Clavier / interface",
+          "J",
+          "Présent",
+          "Consulter la référence et les notes de repères.",
+          "Les données d’un autre observateur ne doivent pas être dévoilées automatiquement."
+        ],
+        [
+          "K18",
+          "Ouvrir le microphone",
+          "Panneau radio",
+          "Activer le micro, puis autorisation du navigateur",
+          "Implémenté — QA partielle",
+          "Ouvrir une piste audio seulement après cette action explicite.",
+          "Refus possible ; l’écoute, le chat et la calibration demeurent disponibles."
+        ],
+        [
+          "K19",
+          "Émettre",
+          "Clavier / tactile / manette",
+          "T maintenu / bouton talkie maintenu / LB maintenu",
+          "Implémenté — QA partielle",
+          "Transmettre tant que la commande est maintenue et le micro autorisé.",
+          "Couper à keyup, relâchement tactile, perte de focus ou sortie de salle."
+        ],
+        [
+          "K20",
+          "Écouter sans parler",
+          "Panneau radio",
+          "Activer l’écoute",
+          "Implémenté — QA partielle",
+          "Recevoir les partenaires sans autoriser son propre microphone.",
+          "Le navigateur peut exiger un geste pour démarrer l’audio."
+        ],
+        [
+          "K21",
+          "Réception",
+          "Réglages radio",
+          "Volume et coupure",
+          "Implémenté — QA partielle",
+          "Adapter le son sans changer la vérité du passage.",
+          "La calibration écrite reste disponible à volume nul."
+        ],
+        [
+          "K22",
+          "Lisibilité du catalogue",
+          "Carnet et Excel",
+          "Repères et textes lisibles ; ID moteur stable",
+          "Implémenté — QA partielle",
+          "Retrouver une preuve sans mémoriser un terme technique.",
+          "Éviter de livrer au joueur le code d’effet avant le débrief."
+        ],
+        [
+          "K23",
+          "Remappage complet",
+          "Réglages futurs",
+          "Choix libre des touches et des boutons",
+          "Conçu — non implémenté",
+          "Adapter les commandes à différents besoins moteurs.",
+          "Enregistrer les choix, détecter conflits et prévoir réinitialisation."
+        ],
+        [
+          "K24",
+          "Confort visuel avancé",
+          "Réglages futurs",
+          "FOV, bobbing, contraste, taille UI et intensité des effets",
+          "Conçu — non implémenté",
+          "Réduire gêne et fatigue en conservant les preuves.",
+          "Vérifier les anomalies de mouvement et de lumière dans chaque option."
+        ]
+      ]
+    },
+    "Narration": {
+      "title": "Univers, progression et fins",
+      "subtitle": "Fiction originale. Les fins jouables et les scènes futures sont distinguées.",
+      "headers": [
+        "ID",
+        "Élément",
+        "Contenu",
+        "Sens pour le joueur",
+        "Support",
+        "Statut",
+        "Consigne d’écriture"
+      ],
+      "widths": [
+        12,
+        26,
+        64,
+        63,
+        34,
+        31,
+        61
+      ],
+      "statusCol": 5,
+      "rows": [
+        [
+          "N01",
+          "Prémisse",
+          "Des inspecteurs traversent un hôtel, une station vide et une aile clinique dont les versions divergent.",
+          "Le protocole compare les témoins au lieu de décider lequel doit être cru.",
+          "Menu, références et niveaux",
+          "Implémenté — QA partielle",
+          "Les personnages restent ordinaires et désarmés. La coopération vient d’une méthode d’observation."
+        ],
+        [
+          "N02",
+          "Mandat",
+          "Valider trois inspections dans chacun des trois secteurs pour obtenir neuf preuves de concordance.",
+          "L’équipe peut reprendre le secteur en cours sans effacer ceux déjà certifiés.",
+          "Campagne ; mode lieu unique alternatif",
+          "Implémenté — QA partielle",
+          "Le lieu unique conserve une série de neuf. Présenter clairement le mode choisi."
+        ],
+        [
+          "N03",
+          "Règle de confiance",
+          "Un joueur voit une menace tandis qu’un autre ne voit rien. Les deux témoignages peuvent être sincères.",
+          "Ne pas traiter un témoin isolé comme menteur.",
+          "Distribution des vues",
+          "Présent",
+          "Éviter une mécanique qui punit socialement une personne sans preuve."
+        ],
+        [
+          "N04",
+          "Le relais",
+          "RELAIS, flèche et heure SYNCHRO sont ordinaires seuls, mais doivent correspondre entre inspecteurs.",
+          "Ce qui manque n’est pas toujours une image. Cela peut être un accord entre deux vérités.",
+          "relay_mismatch, paired_arrow, paired_clock",
+          "Présent",
+          "Valeurs variables entre passages ; égalité entre témoins dans un même passage enseignée pendant la référence."
+        ],
+        [
+          "N05",
+          "Victoire actuelle",
+          "Le protocole valide le neuvième diagnostic et affiche le bilan de l’équipe.",
+          "Les observations ont convergé malgré des perceptions incompatibles.",
+          "Écran de fin",
+          "Implémenté — QA partielle",
+          "Le bilan actuel ne vaut pas réalisation des trois cinématiques proposées ci-dessous."
+        ],
+        [
+          "N06",
+          "Échec actuel",
+          "Trois erreurs épuisent la tolérance du protocole standard.",
+          "La partie peut être recommencée avec de nouveaux tirages.",
+          "Écran de fin",
+          "Présent",
+          "Le mode détendu conserve les erreurs sans couper la session."
+        ],
+        [
+          "N07",
+          "Fin Concordance",
+          "Après victoire future sans fracture de confiance, l’équipe rejoint une salle éclairée au matin.",
+          "Les dossiers confirment que personne ne voyait la totalité du lieu.",
+          "Cinématique et salle finale",
+          "Conçu — non implémenté",
+          "Plans distincts des écrans d’introduction."
+        ],
+        [
+          "N08",
+          "Fin Dossier 09",
+          "Après collecte future de témoignages, des fiches décrivent une équipe précédente dans le même ordre.",
+          "Le protocole se transmet, le bâtiment se souvient des méthodes.",
+          "Dossiers et scène d’archives",
+          "Conçu — non implémenté",
+          "Ne pas conditionner la vérité uniquement à un score caché opaque."
+        ],
+        [
+          "N09",
+          "Fin Dernier témoin",
+          "Une issue future révèle que la cabine de contrôle contient les objets décrits par chaque joueur.",
+          "Les versions personnelles avaient toutes une existence partielle.",
+          "Scène alternative",
+          "Conçu — non implémenté",
+          "L’équipe doit rester réunie au dénouement coopératif."
+        ],
+        [
+          "N10",
+          "Fragments narratifs",
+          "Documents du personnel, relevés météo, archives de sorties, fiches de conformité.",
+          "Révéler progressivement les règles sans expliquer chaque apparition.",
+          "Collectibles futurs",
+          "Conçu — non implémenté",
+          "Chaque texte doit être court, spécifique et relisible après la session."
+        ],
+        [
+          "N11",
+          "Antagonisme",
+          "Le lieu suggère de ne pas croire les autres, mais la mécanique récompense la vérification mutuelle.",
+          "L’horreur vient de la contradiction du décor et du besoin de confiance.",
+          "Messages muraux et extensions",
+          "Partiel",
+          "Aucun joueur n’est secrètement sabotant dans le mode de base."
+        ],
+        [
+          "N12",
+          "Campagne de trois lieux",
+          "Saint-Clair → Terminus 09 → Aile blanche ; référence neuve à chaque passage de secteur.",
+          "Objet immobile, signal et corps réfléchi élargissent les formes de preuve.",
+          "Campagne 3 × 3",
+          "Implémenté — QA partielle",
+          "Le chalet, l’observatoire, les archives et l’enquête persistante restent des extensions."
+        ],
+        [
+          "N13",
+          "Saint-Clair",
+          "L’hôtel sans neuvième étage. Les portes portent pourtant les numéros 901 à 904.",
+          "Un espace familier crée la première contradiction.",
+          "Nom et sous-titre du lieu",
+          "Implémenté — QA partielle",
+          "Ne pas confondre cette prémisse avec une preuve automatique à chaque tour."
+        ],
+        [
+          "N14",
+          "Terminus 09",
+          "Le dernier quai. Le service est terminé et le quai doit rester vide.",
+          "Une présence qui arrive après la fermeture devient un fait vérifiable.",
+          "Nom, panneau et architecture",
+          "Implémenté — QA partielle",
+          "QUAI 09 / SERVICE TERMINÉ est la référence, pas une anomalie."
+        ],
+        [
+          "N15",
+          "Aile blanche",
+          "La clinique de nuit. Un lit, un rythme régulier et un écran sans patient.",
+          "Le soin est absent mais les objets semblent attendre quelqu’un.",
+          "Nom, moniteur et décor",
+          "Implémenté — QA partielle",
+          "Horreur d’absence ; aucune représentation graphique de blessure nécessaire."
+        ],
+        [
+          "N16",
+          "Parler pour vérifier",
+          "Le talkie permet de demander : où es-tu, que lis-tu, que fait ton reflet ?",
+          "La réponse utile est précise, courte et vérifiable.",
+          "Voix, texte, calibration",
+          "Implémenté — QA partielle",
+          "La mécanique ne récompense pas le mensonge entre joueurs ; les voix ne sont pas clonées."
+        ],
+        [
+          "N17",
+          "Corps incertain",
+          "Un salut que personne n’a fait, une présence en trop ou un corps absent du miroir.",
+          "La preuve porte sur une relation entre geste, position et reflet.",
+          "Anomalies de personnage",
+          "Implémenté — QA partielle",
+          "L’interface conserve l’identité réelle des membres ; un double reste fictionnel."
+        ],
+        [
+          "N18",
+          "Écriture des indices",
+          "Donner à chaque phénomène une baseline, un contraste et une phrase de débrief.",
+          "La peur reste compréhensible après la révélation.",
+          "Catalogue de 120 fiches",
+          "Conception définie",
+          "Ne jamais remplacer la preuve par une phrase vague du type « ambiance bizarre »."
+        ]
+      ]
+    },
+    "Production": {
+      "title": "Production et travaux restants",
+      "subtitle": "P0 : intégrité de jeu. P1 : qualité. P2 : extension ou distribution. Aucun budget estimé sans devis.",
+      "headers": [
+        "ID",
+        "Priorité",
+        "Lot",
+        "Travail",
+        "Statut",
+        "Discipline",
+        "Dépendance",
+        "Condition de clôture"
+      ],
+      "widths": [
+        12,
+        12,
+        25,
+        66,
+        31,
+        26,
+        33,
+        66
+      ],
+      "statusCol": 4,
+      "rows": [
+        [
+          "P01",
+          "P0",
+          "Boucle",
+          "Référence, inspection, vote, résultat, victoire et défaite.",
+          "Présent",
+          "Systèmes",
+          "L01–L17",
+          "Traverser une partie complète sans recharger la page."
+        ],
+        [
+          "P02",
+          "P0",
+          "Coop",
+          "Salle réelle, code, connexion de plusieurs clients.",
+          "Présent",
+          "Réseau",
+          "C01–C03",
+          "Deux navigateurs indépendants rejoignent la même salle."
+        ],
+        [
+          "P03",
+          "P0",
+          "Confidentialité",
+          "Distribuer les perceptions sans exposer les autres vues.",
+          "Présent",
+          "Réseau",
+          "C04–C05",
+          "Une inspection réseau ne contient pas la vérité avant le résultat."
+        ],
+        [
+          "P04",
+          "P0",
+          "Contenu",
+          "Intégrer les {{runtimeCount}} anomalies présentes au catalogue runtime {{build}}.",
+          "Implémenté — QA partielle",
+          "3D / radio / gameplay",
+          "Catalogue runtime",
+          "Identifiant, règles de tirage, perception, preuve et nettoyage présents pour chaque entrée."
+        ],
+        [
+          "P05",
+          "P0",
+          "Concept central",
+          "Intégrer le relais aux codes contradictoires.",
+          "Présent",
+          "Gameplay",
+          "PX-025",
+          "Deux vues ordinaires ne permettent de conclure qu’en comparant."
+        ],
+        [
+          "P06",
+          "P0",
+          "Vote",
+          "Gérer les votes divergents, changement de choix et unanimité.",
+          "Présent",
+          "Systèmes",
+          "C09",
+          "Aucun score modifié tant que les joueurs ne sont pas d’accord."
+        ],
+        [
+          "P07",
+          "P0",
+          "Concurrence",
+          "Empêcher double résolution lors de votes simultanés.",
+          "Présent",
+          "Réseau",
+          "C10",
+          "Une manche résolue produit exactement une modification de série."
+        ],
+        [
+          "P08",
+          "P0",
+          "Entrée",
+          "Tutoriel et état normal clairement identifiés.",
+          "Présent",
+          "UX jeu",
+          "L02",
+          "Un nouvel utilisateur explique correctement la règle du relais."
+        ],
+        [
+          "P09",
+          "P0",
+          "QA visuelle",
+          "Inspecter toutes les anomalies et reflets dans les deux perceptions et les trois lieux.",
+          "À tester sur GPU",
+          "QA",
+          "QA02, QA04, QA09, QA53–QA60",
+          "Captures GPU réelles et résultat concordants avec le catalogue."
+        ],
+        [
+          "P10",
+          "P0",
+          "QA coop",
+          "Terminer campagne et lieu unique avec plusieurs clients réels.",
+          "À vérifier",
+          "QA",
+          "QA15–QA25, QA41–QA46",
+          "{{networkQA}}"
+        ],
+        [
+          "P11",
+          "P0",
+          "Reconnexion",
+          "Reprendre après coupure, départ ou perte du responsable.",
+          "Implémenté — QA partielle",
+          "Réseau",
+          "C11",
+          "État et perception conservés ; vérification Internet et voix sur appareils encore nécessaire."
+        ],
+        [
+          "P12",
+          "P0",
+          "Performance",
+          "Mesurer matériel et profil par qualité.",
+          "À vérifier",
+          "Technique",
+          "A15–A17",
+          "Publier les mesures plutôt qu’un chiffre de FPS supposé."
+        ],
+        [
+          "P13",
+          "P1",
+          "Mobile",
+          "Valider commandes tactiles en paysage.",
+          "À vérifier",
+          "UX / QA",
+          "K10",
+          "Inspection, votes et radio utilisables sur vrais téléphones."
+        ],
+        [
+          "P14",
+          "P1",
+          "Audio",
+          "Valider mixage ambiance, pas et bilans.",
+          "À vérifier",
+          "Son",
+          "S01–S05",
+          "Pas de pic soudain ou de couverture excessive de la voix."
+        ],
+        [
+          "P15",
+          "P1",
+          "Accessibilité",
+          "Ajouter FOV, bobbing, sous-titres et remappage.",
+          "Conçu — non implémenté",
+          "UX",
+          "K14–K16",
+          "Chaque indice demeure détectable avec les options de confort."
+        ],
+        [
+          "P16",
+          "P1",
+          "Voix",
+          "Talkies WebRTC, PTT, écoute sans micro et réglages de réception.",
+          "Implémenté — QA partielle",
+          "Réseau / audio",
+          "Feuille Radio",
+          "Code et contrôles ciblés présents ; certification des appareils, réseau NAT/TURN et mix restent ouverts."
+        ],
+        [
+          "P17",
+          "P1",
+          "Relations",
+          "Produire douze anomalies nécessitant des témoignages complémentaires.",
+          "Conçu — non implémenté",
+          "Gameplay",
+          "Catalogue relationnel",
+          "Les joueurs ne peuvent pas répondre avec une seule capture isolée."
+        ],
+        [
+          "P18",
+          "P1",
+          "Audio privé",
+          "Six transformations de réception et étalonnage accessible sans micro.",
+          "Implémenté — QA partielle",
+          "Audio / gameplay",
+          "radio_echo à radio_aftertone",
+          "Relevé cohérent avec l’effet, sans dépendre d’une panne technique ni du silence d’un partenaire."
+        ],
+        [
+          "P19",
+          "P1",
+          "Artistique",
+          "Sculpter et texturer les objets héro en haute définition.",
+          "Conçu — non implémenté",
+          "Art 3D",
+          "A18–A19",
+          "Assets originaux, optimisation et provenance documentées."
+        ],
+        [
+          "P20",
+          "P1",
+          "Humains",
+          "Corps procéduraux articulés, équipement, locomotion et gestes de talkie.",
+          "Implémenté — QA partielle",
+          "Personnages",
+          "Feuille Personnages",
+          "Corps local, équipiers et reflets disponibles ; humains sculptés photoréalistes dans un lot distinct."
+        ],
+        [
+          "P21",
+          "P1",
+          "Miroirs",
+          "Reflets planaires de la scène et des inspecteurs ; effets individuels.",
+          "Implémenté — QA partielle",
+          "Rendu",
+          "A09, A31",
+          "Cohérence structurelle et nettoyage ; exactitude visuelle et coût à confirmer sur GPU."
+        ],
+        [
+          "P22",
+          "P1",
+          "Menaces",
+          "Ajouter une entité active à stratégie collective.",
+          "Conçu — non implémenté",
+          "Gameplay",
+          "L19",
+          "Indice préalable, compteur clair et issue sûre."
+        ],
+        [
+          "P23",
+          "P1",
+          "Équilibrage",
+          "Playtests de durée, difficultés et taux d’erreur.",
+          "Conçu — non implémenté",
+          "Design / QA",
+          "L03,L15–L17",
+          "Données issues de sessions de deux, trois et quatre personnes."
+        ],
+        [
+          "P24",
+          "P1",
+          "Progression",
+          "Dossiers de preuves et déblocages cosmétiques.",
+          "Conçu — non implémenté",
+          "Systèmes",
+          "L20",
+          "Récompenses sans avantage révélant la vérité."
+        ],
+        [
+          "P25",
+          "P2",
+          "Chalet",
+          "Créer module industriel de chalet inspectable.",
+          "Conçu — non implémenté",
+          "Level design",
+          "Z09",
+          "Nouvelle baseline, parcours complet et catalogue propre."
+        ],
+        [
+          "P26",
+          "P1",
+          "Métro",
+          "Architecture Terminus 09 avec quai, rails, signal, écran et anomalies dédiées.",
+          "Implémenté — QA partielle",
+          "Level design",
+          "Niveaux 02 / Z10",
+          "Référence quai vide, signal vert, rails droits et SERVICE TERMINÉ ; parcours matériel encore à tester."
+        ],
+        [
+          "P27",
+          "P1",
+          "Clinique",
+          "Architecture Aile blanche avec lit, moniteur, paravent et fauteuil.",
+          "Implémenté — QA partielle",
+          "Level design",
+          "Niveaux 03 / Z11",
+          "Référence un lit, FC 072 / RYTHME SINUSAL et aucun mouvement de fauteuil."
+        ],
+        [
+          "P28",
+          "P2",
+          "Observatoire",
+          "Créer annexe vitrée et extérieur cosmique.",
+          "Conçu — non implémenté",
+          "Level design",
+          "Z12",
+          "Ciel et météo liés aux témoignages."
+        ],
+        [
+          "P29",
+          "P2",
+          "Archives",
+          "Créer dépôt de dossiers et microfilms.",
+          "Conçu — non implémenté",
+          "Level design",
+          "Z13",
+          "Preuves textuelles lisibles et localisées."
+        ],
+        [
+          "P30",
+          "P2",
+          "Finales",
+          "Produire les trois dénouements narratifs étendus.",
+          "Conçu — non implémenté",
+          "Narration / cinéma",
+          "N07–N09",
+          "Images et textes distincts de l’introduction."
+        ],
+        [
+          "P31",
+          "P1",
+          "Campagne",
+          "Trois lieux × trois validations, paliers conservés et nouvelles références.",
+          "Implémenté — QA partielle",
+          "Systèmes",
+          "L21–L23",
+          "Campagne complète, erreur après palier, sauvegarde solo et synchronisation coop cohérentes."
+        ],
+        [
+          "P32",
+          "P2",
+          "Installation",
+          "Packager un exécutable PC et un installateur.",
+          "Conçu — non implémenté",
+          "Build",
+          "A24",
+          "Test sur machine propre hors environnement de développement."
+        ],
+        [
+          "P33",
+          "P2",
+          "Steam",
+          "Préparer intégration invitations, succès et publication.",
+          "Conçu — non implémenté",
+          "Plateforme",
+          "Après validation native",
+          "Dépend d’un compte éditeur et d’un processus de publication distinct."
+        ],
+        [
+          "P34",
+          "P2",
+          "Qualité commerciale",
+          "Campagne QA longue, localisation, crash reports et conformité des assets.",
+          "Conçu — non implémenté",
+          "Production",
+          "Tous systèmes",
+          "Un prototype jouable n’est pas une validation commerciale complète."
+        ],
+        [
+          "P35",
+          "P1",
+          "Export",
+          "Fournir source, édition autonome, instructions et Excel {{build}} synchronisé.",
+          "À vérifier",
+          "Livraison",
+          "Version {{build}}",
+          "Builds local / hébergé et test portable à deux clients HTTP réussis. Classeur synchronisé. Intégrité des nouvelles archives et GitHub CI à vérifier après assemblage / publication ; rapport docs/qa-final-v0.2.1.json."
+        ],
+        [
+          "P36",
+          "P1",
+          "Accès amis",
+          "Vérifier l’accès à l’hébergement pour chaque invité.",
+          "À vérifier",
+          "Publication",
+          "C16",
+          "L’autorisation du site précède l’usage du code de salle."
+        ],
+        [
+          "P37",
+          "P0",
+          "Équité radio",
+          "Conserver les tests de preuve indépendants des erreurs micro/réseau.",
+          "Implémenté — QA partielle",
+          "Design / audio",
+          "R18–R22",
+          "Refus micro, silence du pair et volume nul ne changent pas la vérité ni la solvabilité."
+        ],
+        [
+          "P38",
+          "P0",
+          "Autorisation micro",
+          "Activer uniquement par action explicite et arrêter les pistes à la sortie.",
+          "Implémenté — QA partielle",
+          "Audio / vie privée",
+          "R01, R04",
+          "Aucun prompt automatique au menu ; pistes et connexions libérées en quittant."
+        ],
+        [
+          "P39",
+          "P0",
+          "Signalisation privée",
+          "Borner, authentifier et cibler SDP et candidats ICE.",
+          "Implémenté — QA partielle",
+          "Réseau",
+          "C19",
+          "Pas de lecture par membre non destinataire, contenu malformé rejeté."
+        ],
+        [
+          "P40",
+          "P0",
+          "TURN réel",
+          "Déployer et vérifier un relais pour deux réseaux restrictifs.",
+          "À exécuter",
+          "Infrastructure",
+          "C22",
+          "Session forcée en transport relay avec audio reçu ; durée et coût mesurés."
+        ],
+        [
+          "P41",
+          "P0",
+          "Microphones physiques",
+          "Essayer deux puis quatre casques et microphones sur navigateurs distincts.",
+          "À tester sur appareils",
+          "QA audio",
+          "QA47–QA52",
+          "Réception, PTT, mute, reconnexion et retour d’arrière-plan observés physiquement."
+        ],
+        [
+          "P42",
+          "P1",
+          "Calibrations",
+          "Vérifier les six formes sonores et leur relevé écrit.",
+          "Implémenté — QA partielle",
+          "Audio / QA",
+          "R12–R17",
+          "Code déterministe présent ; écoute humaine et confort de niveau restent à confirmer."
+        ],
+        [
+          "P43",
+          "P1",
+          "Reflets corporels",
+          "Retard, absence, salut autonome, mannequin, double et ombre.",
+          "Implémenté — QA partielle",
+          "3D / gameplay",
+          "Catalogue Personnages",
+          "Chaque effet a une baseline lisible, une preuve persistante et un reset complet."
+        ],
+        [
+          "P44",
+          "P1",
+          "Manette",
+          "Actions de jeu : A, X, Y, LB, View et Menu en plus des sticks.",
+          "Implémenté — QA partielle",
+          "Entrées",
+          "K15",
+          "Essais physiques ; navigation complète du menu reste un lot ultérieur."
+        ],
+        [
+          "P45",
+          "P1",
+          "Ambiances des lieux",
+          "Timbres de ventilation et pas propres aux trois lieux.",
+          "Implémenté — QA partielle",
+          "Son",
+          "S01, S02",
+          "Transitions sans doublon de boucle ; mix matériel à auditer."
+        ],
+        [
+          "P46",
+          "P1",
+          "Assets haute définition",
+          "Créer sources sculpt, UV, bake, textures 2K/4K et LOD pour les héros.",
+          "Conçu — non implémenté",
+          "Art 3D",
+          "A26–A33",
+          "Sources, licence, export, profils et captures de validation livrés."
+        ],
+        [
+          "P47",
+          "P1",
+          "Corps de qualité finale",
+          "Produire rig, mains, poids, IK, textures et animations humaines abouties.",
+          "Conçu — non implémenté",
+          "Character art",
+          "Personnages H13–H18",
+          "Aucune déformation parasite dans miroir et première personne ; lisibilité du talkie."
+        ],
+        [
+          "P48",
+          "P1",
+          "Intégration UX",
+          "Présenter objectifs, paliers, écoute et états techniques sans divulguer la vérité.",
+          "Implémenté — QA partielle",
+          "Interface",
+          "L21–L27, Radio",
+          "Nouveau joueur sait lancer, écouter, comparer et voter sans lire le code."
+        ],
+        [
+          "P49",
+          "P1",
+          "Sauvegardes",
+          "Migrer v0.1 ; reprendre v0.2 et rejeter les données invalides.",
+          "Implémenté — QA partielle",
+          "Systèmes",
+          "L26",
+          "Aucune sauvegarde ne contourne le mode ou le lieu autorisé."
+        ],
+        [
+          "P50",
+          "P1",
+          "Playtests peur",
+          "Éprouver rythme, intensité, ambiguïtés et équité des nouvelles preuves.",
+          "À exécuter",
+          "Design / recherche",
+          "Catalogue 120",
+          "Sessions consenties avec deux, trois et quatre personnes ; observations et corrections tracées."
+        ],
+        [
+          "P51",
+          "P2",
+          "Concepts restants",
+          "Prioriser les {{plannedCount}} fiches encore conçues selon valeur de coopération et coût.",
+          "Conçu — non implémenté",
+          "Production",
+          "Filtre Statut dans Anomalies",
+          "Promouvoir seulement après code, preuve, assets, accessibilité et vérifications."
+        ],
+        [
+          "P52",
+          "P2",
+          "Navigation manette",
+          "Menus, sélection de salle, clavier virtuel et réglages au contrôleur.",
+          "Conçu — non implémenté",
+          "UX / entrées",
+          "K15",
+          "Parcours complet sans souris, avec focus visible et retour cohérent."
+        ],
+        [
+          "P53",
+          "P1",
+          "Huit fiches promues",
+          "Plafond, mur, valise, paravent, second lit, ombre de rame, flèche et heure SYNCHRO.",
+          "Implémenté — QA partielle",
+          "3D / gameplay",
+          "PX-027, 032, 051, 052, 056, 066, 078, 079",
+          "Conserver les IDs de conception ; chaque effet utilise la bonne architecture et un reset propre."
+        ],
+        [
+          "P54",
+          "P1",
+          "Modèle exportable",
+          "Livrer inspecteur original en GLB, trois animations et manifeste de validation.",
+          "Implémenté — QA partielle",
+          "3D / assets",
+          "H21 ; scripts/export-inspector.mjs",
+          "GLTFExporter puis GLTFLoader réussis ; matériaux de base et articulation rigide explicités. Visuel GPU restant."
+        ],
+        [
+          "P55",
+          "P0",
+          "Cycle du microphone",
+          "Fermer les flux retournés après extinction / sortie et protéger une réactivation plus récente.",
+          "Implémenté — QA partielle",
+          "Audio / cycle asynchrone",
+          "Radio R28–R29 ; QA77–QA79",
+          "{{radioPermissionQA}}"
+        ],
+        [
+          "P56",
+          "P0",
+          "Commande de radio",
+          "Libérer l’état d’attente de l’interface à l’extinction et isoler chaque nouvelle opération.",
+          "Implémenté — QA partielle",
+          "UI / contrôleur",
+          "Radio R30 ; QA80",
+          "{{radioControllerQA}}"
+        ]
+      ]
+    },
+    "QA": {
+      "title": "Plan de vérification et preuves",
+      "subtitle": "Un résultat réussi porte sur la couverture indiquée ; le matériel et le GPU restent des vérifications distinctes.",
+      "headers": [
+        "ID",
+        "Priorité",
+        "Parcours",
+        "Action de test",
+        "Résultat attendu",
+        "Résultat actuel",
+        "Couverture",
+        "Preuve / précision"
+      ],
+      "widths": [
+        12,
+        12,
+        25,
+        60,
+        60,
+        30,
+        34,
+        65
+      ],
+      "statusCol": 5,
+      "rows": [
+        [
+          "QA01",
+          "P0",
+          "Référence",
+          "Démarrer chacun des trois lieux, puis franchir un palier de campagne.",
+          "Aucune anomalie ni point pendant chaque nouvelle référence.",
+          "À exécuter",
+          "Solo et coop",
+          "Comparer le catalogue de baseline du lieu, corps/reflet, relais et radio."
+        ],
+        [
+          "QA02",
+          "P0",
+          "Visibilité",
+          "Forcer chaque anomalie disponible dans chaque lieu compatible.",
+          "Modification visible ou relevé radio conforme dans la vue affectée ; témoin normal.",
+          "À tester sur GPU",
+          "Trois profils graphiques",
+          "Les tests CPU ne prouvent pas la couleur, l’éclairage, les pixels du miroir ou le framerate."
+        ],
+        [
+          "QA03",
+          "P0",
+          "Relais",
+          "Comparer les codes dans un passage normal puis relay_mismatch.",
+          "Codes identiques au normal, différents dans le tour relationnel.",
+          "À exécuter",
+          "Deux clients",
+          "Un changement entre deux tours ne constitue pas une anomalie."
+        ],
+        [
+          "QA04",
+          "P0",
+          "Réinitialisation",
+          "Passer d’un tour à effet à un tour normal.",
+          "Aucune silhouette, trace, fog ou lumière résiduelle.",
+          "À exécuter",
+          "Toutes anomalies",
+          "Vérifier matériaux, positions, visibilité et animations."
+        ],
+        [
+          "QA05",
+          "P0",
+          "Collisions",
+          "Longer murs, portes, chariot et fauteuils.",
+          "Pas de traversée ni de blocage permanent.",
+          "À exécuter",
+          "Clavier et tactile",
+          "Tester aussi après duplication ou disparition d’un objet."
+        ],
+        [
+          "QA06",
+          "P0",
+          "Caméra",
+          "Lever et baisser le regard aux angles extrêmes.",
+          "Plafond et sol accessibles sans retournement incontrôlé.",
+          "À exécuter",
+          "Clavier et tactile",
+          "Vérifier ceiling_eyes et floor_trail."
+        ],
+        [
+          "QA07",
+          "P1",
+          "Éclairage",
+          "Activer blackout et red_light avec lampe.",
+          "Le joueur peut se repérer et voter.",
+          "À exécuter",
+          "Toutes qualités",
+          "La lumière de référence revient au passage suivant."
+        ],
+        [
+          "QA08",
+          "P1",
+          "Typographie",
+          "Lire plaques, relais, sortie et message mural.",
+          "Texte lisible à distance normale et zoom système.",
+          "À exécuter",
+          "1080p et mobile",
+          "Pas de glyphes coupés ou de texte inversé involontairement."
+        ],
+        [
+          "QA09",
+          "P0",
+          "Miroir",
+          "Inspecter reflets synchrones puis retard, absence et salut autonome.",
+          "Le corps se distingue du décor et chaque variante conserve sa preuve.",
+          "À tester sur GPU",
+          "Corps local et équipiers",
+          "Tester angles, sources lumineuses, profil bas et partage de scène réfléchi."
+        ],
+        [
+          "QA10",
+          "P1",
+          "Mobilier",
+          "Observer chair_float et phone_float de près.",
+          "Contact au sol/support clairement rompu.",
+          "À exécuter",
+          "Toutes qualités",
+          "Pas de chute hors scène ni d’objet masquant le vote."
+        ],
+        [
+          "QA11",
+          "P1",
+          "Peur",
+          "Observer silhouettes et yeux avec options disponibles.",
+          "Pas de flash rapide ou volume soudain nécessaire à la preuve.",
+          "À exécuter",
+          "Session confort",
+          "Vérifier l’intensité réelle avec plusieurs testeurs."
+        ],
+        [
+          "QA12",
+          "P1",
+          "Brouillard",
+          "Parcourir le couloir affecté par corridor_fog.",
+          "Issue et chemin restent retrouvables.",
+          "À exécuter",
+          "Clavier et tactile",
+          "Le témoin clair peut décrire les repères."
+        ],
+        [
+          "QA13",
+          "P1",
+          "LOD",
+          "Observer les indices à plusieurs distances.",
+          "Aucun indice ne disparaît avant d’être raisonnablement inspectable.",
+          "À exécuter",
+          "Toutes qualités",
+          "Vérifier yeux, empreinte et petites plaques."
+        ],
+        [
+          "QA14",
+          "P1",
+          "Baseline",
+          "Demander à un nouveau joueur de décrire les règles.",
+          "Il explique un témoin isolé, le relais et les tours normaux.",
+          "À exécuter",
+          "Playtest découverte",
+          "Ne pas lui donner la solution en dehors du tutoriel."
+        ],
+        [
+          "QA15",
+          "P0",
+          "Salle",
+          "Créer et rejoindre depuis deux profils indépendants.",
+          "Les deux membres apparaissent réellement.",
+          "À exécuter",
+          "Deux navigateurs",
+          "Un affichage local simulé ne suffit pas."
+        ],
+        [
+          "QA16",
+          "P0",
+          "Capacité",
+          "Tenter cinq connexions dont deux simultanées.",
+          "La salle ne dépasse pas quatre membres.",
+          "À exécuter",
+          "Clients multiples",
+          "Conserver réponse d’erreur du cinquième."
+        ],
+        [
+          "QA17",
+          "P0",
+          "Perceptions",
+          "Inspecter les réponses réseau de chaque membre.",
+          "Pas de vérité globale ni de vue d’autrui avant le débrief.",
+          "À exécuter",
+          "DevTools / requêtes",
+          "Le code source client ne contient pas le tirage secret en ligne."
+        ],
+        [
+          "QA18",
+          "P0",
+          "Authentification",
+          "Envoyer un vote avec jeton absent ou autre membre.",
+          "Action rejetée, score inchangé.",
+          "À exécuter",
+          "Requêtes contrôlées",
+          "Tester aussi start, next, pose et leave."
+        ],
+        [
+          "QA19",
+          "P0",
+          "Votes divergents",
+          "Un joueur vote Conforme et l’autre Anomalie.",
+          "Le tour reste ouvert, aucun point attribué.",
+          "À exécuter",
+          "Deux clients",
+          "Les votes restent révisables."
+        ],
+        [
+          "QA20",
+          "P0",
+          "Unanimité",
+          "Corriger le vote divergent pour aligner les deux choix.",
+          "Le tour se résout une fois et le résultat est partagé.",
+          "À exécuter",
+          "Deux clients",
+          "La vérité reste définie par le serveur."
+        ],
+        [
+          "QA21",
+          "P0",
+          "Concurrence",
+          "Envoyer deux votes ou transitions au même instant.",
+          "Une seule mutation de score ou de tour.",
+          "À exécuter",
+          "Test automatisé",
+          "Vérifier le compteur de version."
+        ],
+        [
+          "QA22",
+          "P0",
+          "Victoire",
+          "Terminer campagne 3 × 3 puis lieu unique en série de neuf.",
+          "Fin au neuvième diagnostic ; références non comptées.",
+          "À exécuter",
+          "Règles et interfaces",
+          "Ne pas appliquer la remise à zéro globale du lieu unique à la campagne."
+        ],
+        [
+          "QA23",
+          "P0",
+          "Erreur",
+          "Faire une erreur après 2, 4 puis 7 validations de campagne.",
+          "Retour au palier 0, 3 ou 6 ; erreurs +1.",
+          "À exécuter",
+          "Standard et détendu",
+          "En lieu unique, la même erreur remet toujours la série à zéro."
+        ],
+        [
+          "QA24",
+          "P0",
+          "Défaite",
+          "Faire trois erreurs en standard.",
+          "Session terminée. Aucun quatrième tour actif.",
+          "À exécuter",
+          "Règles et UI",
+          "La même séquence continue en mode détendu."
+        ],
+        [
+          "QA25",
+          "P0",
+          "Déconnexion",
+          "Fermer un onglet puis reconnecter avec la même identité.",
+          "État récupérable, aucun vote fantôme bloquant.",
+          "À exécuter",
+          "Deux et quatre clients",
+          "Tester le responsable de salle et un simple membre."
+        ],
+        [
+          "QA26",
+          "P1",
+          "Chat",
+          "Envoyer texte long, caractères spéciaux et HTML.",
+          "Texte borné, affiché sans exécution.",
+          "À exécuter",
+          "Deux clients",
+          "Éviter de conserver un historique infini."
+        ],
+        [
+          "QA27",
+          "P1",
+          "Ping",
+          "Pointer un objet visible dans des vues différentes.",
+          "Le repère désigne le même emplacement partagé.",
+          "À exécuter",
+          "Deux clients",
+          "Ne pas transmettre automatiquement le diagnostic."
+        ],
+        [
+          "QA28",
+          "P1",
+          "Réseau lent",
+          "Introduire latence, erreurs transitoires et perte de réponse.",
+          "État de connexion lisible, pas de faux succès.",
+          "À exécuter",
+          "Simulation réseau",
+          "L’action finale doit être confirmée par le serveur."
+        ],
+        [
+          "QA29",
+          "P1",
+          "Graine",
+          "Rejouer le même seed avec configuration identique.",
+          "Tirages et attribution déterministes.",
+          "À exécuter",
+          "Test automatisé",
+          "Ne pas exposer le seed secret aux adversaires du test réseau."
+        ],
+        [
+          "QA30",
+          "P1",
+          "Variété",
+          "Échantillonner plusieurs séries longues de tirages.",
+          "Aucune répétition parmi les cinq dernières anomalies.",
+          "À exécuter",
+          "Test automatisé",
+          "Une fréquence observée sur peu de tours n’est pas une preuve du 68 %."
+        ],
+        [
+          "QA31",
+          "P0",
+          "Sans audition",
+          "Couper le son et le micro ; résoudre chaque type radio à l’aide du relevé.",
+          "Les six tests restent interprétables et les autres preuves accessibles.",
+          "À exécuter",
+          "Deux clients / solo A-B",
+          "La transcription décrit des faits sans attribuer automatiquement le vote."
+        ],
+        [
+          "QA32",
+          "P1",
+          "Mobile",
+          "Finir une inspection avec commandes tactiles.",
+          "Déplacement, regard, vote et pause utilisables.",
+          "À exécuter",
+          "Vrais téléphones",
+          "Un émulateur de viewport seul ne prouve pas les gestes."
+        ],
+        [
+          "QA33",
+          "P1",
+          "Redimensionnement",
+          "Changer taille, orientation et plein écran.",
+          "Canvas correctement redimensionné et UI accessible.",
+          "À exécuter",
+          "Desktop et mobile",
+          "Pas de clic masqué par les zones sûres système."
+        ],
+        [
+          "QA34",
+          "P1",
+          "Rendu prolongé",
+          "Jouer 30 minutes et changer souvent d’anomalie.",
+          "Mémoire stable et absence de ralentissement cumulatif.",
+          "À exécuter",
+          "Profil mesuré",
+          "Libérer géométries, textures et listeners au démontage."
+        ],
+        [
+          "QA35",
+          "P1",
+          "Performances",
+          "Mesurer FPS et temps de frame sur matériel identifié.",
+          "Rapport réel par qualité et résolution.",
+          "À exécuter",
+          "PC cible à définir",
+          "Aucun statut 60 FPS validé sans mesure."
+        ],
+        [
+          "QA36",
+          "P1",
+          "Fichier Excel",
+          "Contrôler IDs, couverture runtime, compteurs, statuts, tableaux et rendu.",
+          "120 fiches ; {{runtimeCount}} en code ; {{plannedCount}} futures ; 15 feuilles ; 80 parcours QA.",
+          "À exécuter",
+          "Artifact Tool / XLSX",
+          "Tester une modification de statut puis restaurer ; aucune erreur de formule."
+        ],
+        [
+          "QA37",
+          "P1",
+          "Accès amis",
+          "Ouvrir le déploiement avec un invité autorisé.",
+          "La page charge puis le code de salle fonctionne.",
+          "À exécuter",
+          "Compte invité",
+          "Ne pas confondre accès privé au site et autorisation de salle."
+        ],
+        [
+          "QA38",
+          "P2",
+          "Distribution PC",
+          "Installer sur machine Windows propre.",
+          "Exécutable lancé sans environnement de développement.",
+          "À exécuter",
+          "Futur build natif",
+          "Pas applicable à la version web actuelle."
+        ],
+        [
+          "QA39",
+          "P2",
+          "Extensions futures",
+          "Tester chalet, observatoire, archives et finales après leur production.",
+          "Chaque lieu a référence, repères, preuve et boucle complète.",
+          "À exécuter",
+          "Cartes futures",
+          "Métro et clinique sont déjà des lieux v0.2 ; ils ont leurs propres tests actuels."
+        ],
+        [
+          "QA40",
+          "P2",
+          "Commercialisation",
+          "Valider licences, plateformes, localisation et certification.",
+          "Validation documentée avant vente.",
+          "À exécuter",
+          "Futur lot publication",
+          "La première livraison ne porte pas le statut jeu commercial terminé."
+        ],
+        [
+          "QA41",
+          "P0",
+          "Campagne",
+          "Faire trois réussites à Saint-Clair puis appeler la transition.",
+          "Terminus 09 s’ouvre en référence ; score 3 ; aucune anomalie active.",
+          "À exécuter",
+          "Règles / HTTP coop",
+          "Conserver preuve de l’ordre des états et de la synchro multi-client."
+        ],
+        [
+          "QA42",
+          "P0",
+          "Deuxième palier",
+          "Faire trois réussites au métro puis transition.",
+          "Aile blanche s’ouvre en référence ; score 6 ; secteur courant remis à zéro.",
+          "À exécuter",
+          "Règles / HTTP coop",
+          "Le chat et les identités restent ; les anciens effets disparaissent."
+        ],
+        [
+          "QA43",
+          "P0",
+          "Catalogue par lieu",
+          "Échantillonner les tirages de chaque architecture.",
+          "Aucune porte d’hôtel tirée au métro ni lit clinique tiré à l’hôtel.",
+          "À exécuter",
+          "Catalog / règles",
+          "Les effets communs sont autorisés partout ; les pools ne s’additionnent pas en unique."
+        ],
+        [
+          "QA44",
+          "P0",
+          "Sauvegarde",
+          "Charger sauvegarde v0.1, v0.2 et objets volontairement malformés.",
+          "Migration single hotel ; reprise correcte ; rejet propre des données invalides.",
+          "À exécuter",
+          "Tests de domaine",
+          "Conserver cas aux frontières : phase, stage, levelId et streak."
+        ],
+        [
+          "QA45",
+          "P0",
+          "Signalisation",
+          "Envoyer offre/ICE à membre autorisé puis à cible étrangère ou inexistante.",
+          "Seul le destinataire de la salle peut recevoir ; payload borné.",
+          "À exécuter",
+          "Tests de session / HTTP",
+          "Ne pas confondre arrivée SDP avec transport vocal réussi."
+        ],
+        [
+          "QA46",
+          "P0",
+          "Mode partagé",
+          "Créer une campagne puis un lieu unique avec quatre clients.",
+          "Tous reçoivent le même mode, lieu et palier.",
+          "À exécuter",
+          "HTTP réel",
+          "Aucune action locale ne change la carte du seul client."
+        ],
+        [
+          "QA47",
+          "P0",
+          "Permission micro",
+          "Ouvrir le menu, rejoindre, écouter puis cliquer Activer micro.",
+          "Aucune capture avant le clic ; refus possible et explication visible.",
+          "À tester sur appareils",
+          "Chrome / Firefox / Safari",
+          "Observer l’indicateur réel du navigateur et la libération des pistes."
+        ],
+        [
+          "QA48",
+          "P0",
+          "PTT",
+          "Maintenir puis relâcher T, LB et le bouton tactile.",
+          "Voix reçue uniquement pendant l’émission autorisée.",
+          "À tester sur appareils",
+          "Casques et microphones réels",
+          "Tester relâchement hors bouton, perte de focus, changement d’onglet et pause."
+        ],
+        [
+          "QA49",
+          "P0",
+          "Écoute seule",
+          "Refuser son propre micro et activer uniquement l’écoute.",
+          "Le partenaire peut être entendu ; aucune piste micro locale n’est ouverte.",
+          "À tester sur appareils",
+          "Deux navigateurs physiques",
+          "Le texte et l’étalonnage demeurent utilisables si l’autoplay est bloqué."
+        ],
+        [
+          "QA50",
+          "P0",
+          "Mesh 4 voix",
+          "Connecter quatre joueurs, émettre successivement et simultanément.",
+          "Six liaisons cohérentes ; pas de voix dupliquée ni boucle locale.",
+          "À tester sur appareils",
+          "Quatre microphones / casques",
+          "Mesurer intelligibilité et temps de rétablissement après départ."
+        ],
+        [
+          "QA51",
+          "P0",
+          "HTTPS et LAN",
+          "Tester localhost, IP LAN HTTP et LAN HTTPS avec certificat accepté.",
+          "Micro autorisé seulement en contexte sécurisé ; message explicite sinon.",
+          "À tester sur appareils",
+          "Navigateurs / certificats",
+          "La seule présence d’options cert/key n’est pas une preuve de déploiement HTTPS réussi."
+        ],
+        [
+          "QA52",
+          "P0",
+          "TURN",
+          "Tester deux NAT distincts et forcer iceTransportPolicy relay en recette.",
+          "Audio réellement reçu via candidat relay ; credentials valides.",
+          "À exécuter",
+          "Relais TURN déployé",
+          "Aucun secret dans dépôt ; budget et expiration à définir pour la production."
+        ],
+        [
+          "QA53",
+          "P0",
+          "Radio 1–2–3",
+          "Étalonner avec effet absent puis chacun des six IDs radio.",
+          "Trace écrite et signal synthétique correspondent au contrat de chaque variante.",
+          "À exécuter",
+          "Code / WebAudio / écoute humaine",
+          "Les tests de texte ne certifient pas seuls le rendu audio sur haut-parleur."
+        ],
+        [
+          "QA54",
+          "P0",
+          "Panne distincte",
+          "Couper le réseau vocal, refuser le micro et garder le tour normal.",
+          "Aucune erreur technique ne transforme la vérité du passage.",
+          "À exécuter",
+          "Injection de panne / texte",
+          "Le relevé déterministe reste normal et la panne possède son propre état."
+        ],
+        [
+          "QA55",
+          "P0",
+          "Reset audio",
+          "Alterner les six effets puis un tour normal et quitter.",
+          "Pas de delay, bruit, modulation ou porteuse résiduelle ; nœuds libérés.",
+          "À exécuter",
+          "WebAudio et inspection code",
+          "Écouter après transitions et après reconnexion."
+        ],
+        [
+          "QA56",
+          "P0",
+          "Reflet absent",
+          "Activer reflection_absent et regarder la surface.",
+          "Seul le corps local manque ; murs, accessoires et cadre restent réfléchis.",
+          "À tester sur GPU",
+          "Trois lieux / profils",
+          "Une texture noire totale ne constitue pas le comportement attendu."
+        ],
+        [
+          "QA57",
+          "P0",
+          "Reflet retardé",
+          "Marcher puis s’arrêter devant le miroir.",
+          "Retard d’environ une seconde stable dans la vue affectée ; témoin synchrone.",
+          "À tester sur GPU",
+          "Capture vidéo réelle",
+          "Le retard fictionnel ne doit pas dépendre d’une latence réseau subie."
+        ],
+        [
+          "QA58",
+          "P0",
+          "Reflet autonome",
+          "Rester immobile devant reflection_independent.",
+          "Le reflet salue de la main droite et bouge légèrement la tête indépendamment.",
+          "À tester sur GPU",
+          "Capture vidéo réelle",
+          "La main corporelle normale ne reproduit pas le geste."
+        ],
+        [
+          "QA59",
+          "P1",
+          "Inspecteurs",
+          "Observer modèle local, équipiers, mannequin, double et ombre.",
+          "Identité et nombre réels dans l’UI conservés ; anomalie privée dans la scène.",
+          "À tester sur GPU",
+          "Deux et quatre clients",
+          "Pas de faux membre, collision punitive ou animation résiduelle."
+        ],
+        [
+          "QA60",
+          "P1",
+          "Surfaces réfléchies",
+          "Changer qualité, angle et orientation sur miroirs et vitres.",
+          "Pas de texture vide, retournement non voulu, clipping ou fuite de couche privée.",
+          "À tester sur GPU",
+          "GPU desktop et mobile",
+          "Mesurer aussi le coût des passes supplémentaires."
+        ],
+        [
+          "QA61",
+          "P1",
+          "Métro normal",
+          "Lire panneau, rails et signal lors de la référence.",
+          "Quai vide ; QUAI 09 / SERVICE TERMINÉ ; signal vert ; rails droits.",
+          "À tester sur GPU",
+          "Baseline visuelle et carnet",
+          "Le nom Terminus 09 doit être cohérent dans menu, niveau et Excel."
+        ],
+        [
+          "QA62",
+          "P1",
+          "Clinique normale",
+          "Inspecter lit, moniteur, paravent et fauteuil.",
+          "Un lit au sol ; FC 072 / RYTHME SINUSAL ; aucun mouvement ni silhouette.",
+          "À tester sur GPU",
+          "Baseline visuelle et carnet",
+          "Le nom Aile blanche doit être cohérent dans tous les écrans."
+        ],
+        [
+          "QA63",
+          "P1",
+          "Ambiances",
+          "Passer hôtel → métro → clinique avec la même écoute.",
+          "Ambiance et pas changent ; aucune boucle sonore précédente ne reste superposée.",
+          "À tester sur appareils",
+          "Casque / haut-parleurs",
+          "L’ambiance ne couvre pas les mots des partenaires."
+        ],
+        [
+          "QA64",
+          "P1",
+          "Commandes manette",
+          "Essayer sticks et A / X / Y / LB / View / Menu.",
+          "Chaque action arrive une fois ; relâcher LB coupe PTT.",
+          "À tester sur appareils",
+          "Manette physique",
+          "La navigation des menus non implémentée est documentée explicitement."
+        ],
+        [
+          "QA65",
+          "P1",
+          "Multitouch",
+          "Se déplacer, regarder et maintenir talkie ensemble.",
+          "Pas de commande coincée ni perte du bouton de vote.",
+          "À tester sur appareils",
+          "iOS et Android réels",
+          "Tester annulation système et changement d’orientation."
+        ],
+        [
+          "QA66",
+          "P1",
+          "Charge des reflets",
+          "Enregistrer temps CPU/GPU, draw calls et mémoire avec quatre corps.",
+          "Profil matériel documenté ; aucune cible 60 FPS annoncée sans mesure.",
+          "À tester sur GPU",
+          "Parcours reproductible",
+          "Les comptes de triangles incluent ou excluent les effets cachés explicitement."
+        ],
+        [
+          "QA67",
+          "P1",
+          "Peurs corporelles",
+          "Jouer les changements de corps et gestes avec un groupe nouveau.",
+          "Les témoins décrivent le fait sans confondre faux membre et interface fiable.",
+          "À exécuter",
+          "Playtest de compréhension",
+          "Ajuster lumière et durée selon erreurs observées, pas seulement l’intention."
+        ],
+        [
+          "QA68",
+          "P1",
+          "Accessibilité radio",
+          "Jouer sans audition, puis au clavier seul dans les panneaux.",
+          "Trace lisible, focus visible, diagnostic encore volontaire.",
+          "À exécuter",
+          "Test utilisateur et UI",
+          "Une transcription auto ne doit pas dévoiler l’ID de l’anomalie avant verdict."
+        ],
+        [
+          "QA69",
+          "P1",
+          "Provenance",
+          "Auditer sources procédurales et dépendances redistribuées.",
+          "Aucun asset extrait d’un jeu ; notices et licences incluses.",
+          "À exécuter",
+          "Source et archive",
+          "Le registre devra évoluer si des assets externes sont ajoutés."
+        ],
+        [
+          "QA70",
+          "P1",
+          "GitHub / livraison",
+          "Cloner le dépôt livré puis suivre les instructions de lancement.",
+          "Source, Excel, JSON et édition autonome correspondent à la même version.",
+          "À exécuter",
+          "Clone propre",
+          "Ne pas inclure tokens, certificats privés, caches ou node_modules."
+        ],
+        [
+          "QA71",
+          "P1",
+          "Session prolongée voix",
+          "Jouer 30 minutes en changeant salle et lieu.",
+          "Pas de pistes, PeerConnections ou AudioNodes abandonnés.",
+          "À tester sur appareils",
+          "Profil mémoire / écoute",
+          "Inclure retour de veille et déconnexion d’un périphérique audio."
+        ],
+        [
+          "QA72",
+          "P2",
+          "Qualité finale",
+          "Valider assets sculptés, lumière, animation, mix et navigation sur cibles choisies.",
+          "Critères mesurés et signés avant commercialisation.",
+          "À exécuter",
+          "Production future",
+          "Le présent build ne constitue pas une certification Steam ou console."
+        ],
+        [
+          "QA73",
+          "P0",
+          "Relations SYNCHRO",
+          "Comparer flèche et heure sur deux clients normaux puis affectés.",
+          "Valeurs égales au normal, différentes si leur effet relationnel est actif.",
+          "À exécuter",
+          "Règles / HTTP / GPU",
+          "Un changement entre deux passages est normal ; SYNCHRO ne doit pas être confondu avec l’horloge 03:09."
+        ],
+        [
+          "QA74",
+          "P1",
+          "Huit promotions",
+          "Observer plafond, mur, bagage, tissu, lit et ombre de rame ; comparer les panneaux.",
+          "Preuve persistante propre à chaque fiche ; aucun objet d’un autre lieu ne fuit.",
+          "À tester sur GPU",
+          "Trois lieux et profils",
+          "Les tests CPU vérifient les transformations, pas leur rendu final sur un écran."
+        ],
+        [
+          "QA75",
+          "P1",
+          "Export GLB",
+          "Exporter l’inspecteur puis relire le binaire avec GLTFLoader.",
+          "Géométrie finie, articulations présentes et trois clips chargeables.",
+          "Réussi",
+          "GLB original / CPU",
+          "{{evidenceSummary}}"
+        ],
+        [
+          "QA76",
+          "P0",
+          "Négociation navigateur",
+          "Ouvrir deux onglets réels et activer l’écoute sans microphone.",
+          "Offre/réponse, candidats ICE puis liaison connectée ; aucune permission micro requise pour écouter.",
+          "Partiel",
+          "Deux onglets réels",
+          "{{browserRadioQA}}"
+        ],
+        [
+          "QA77",
+          "P0",
+          "Permission après arrêt",
+          "Différer getUserMedia, éteindre la radio ou couper le micro seul puis résoudre l’autorisation avec un flux.",
+          "Chaque piste tardive est stoppée ; aucun flux local retenu. L’écoute seule reste active si elle a été conservée.",
+          "Réussi",
+          "Tests radio à promesse différée",
+          "Preuve d’exécution injectée depuis build-status.json."
+        ],
+        [
+          "QA78",
+          "P0",
+          "Permission après sortie",
+          "Différer getUserMedia, détruire la radio / quitter puis résoudre la permission.",
+          "Le résultat obsolète est fermé et ne ressuscite pas la session retirée.",
+          "Réussi",
+          "Test radio à promesse différée",
+          "Preuve d’exécution injectée depuis build-status.json."
+        ],
+        [
+          "QA79",
+          "P0",
+          "Réactivation concurrente",
+          "Désactiver, relancer puis résoudre/refuser l’ancienne demande ou son activation d’écoute dans différents ordres.",
+          "Flux récent, demande courante et écoute préservés ; ancien succès arrêté, ancien refus ou finaliseur sans effet sur l’état récent.",
+          "Réussi",
+          "Quatre tests radio de réactivation",
+          "Preuve d’exécution injectée depuis build-status.json."
+        ],
+        [
+          "QA80",
+          "P0",
+          "Attente de l’interface",
+          "Lancer une permission différée, éteindre, réactiver puis terminer l’ancienne opération.",
+          "Nouvelle activation disponible ; les résultats anciens ne modifient pas l’état d’attente de l’opération récente.",
+          "Réussi",
+          "Tests du contrôleur UI",
+          "Preuve d’exécution injectée depuis build-status.json."
+        ],
+        [
+          "QA81",
+          "P0",
+          "Builds et édition portable",
+          "Compiler les éditions locale et hébergée ; lancer le serveur portable compilé avec deux clients HTTP, sans node_modules.",
+          "HTML servi ; modules serveur privés ; références et consensus justes ; départ des deux membres.",
+          "Réussi",
+          "Build / HTTP portable",
+          "Preuve d’exécution injectée depuis build-status.json."
+        ]
+      ]
+    },
+    "Références": {
+      "title": "Sources, définitions et mode d’emploi",
+      "subtitle": "Sources primaires, code du projet, propositions originales et sens précis des statuts.",
+      "headers": [
+        "ID",
+        "Type",
+        "Référence / terme",
+        "Apport / définition",
+        "Lien / origine",
+        "Consultation",
+        "Portée et limite"
+      ],
+      "widths": [
+        12,
+        25,
+        41,
+        66,
+        64,
+        18,
+        70
+      ],
+      "statusCol": null,
+      "rows": [
+        [
+          "R01",
+          "Inspiration de règle",
+          "The Exit 8, page officielle PLAYISM",
+          "Observation d’un passage répétitif et choix en fonction de la présence d’une anomalie.",
+          "https://playism.com/en/game/the-exit-8/",
+          "2026-10-26",
+          "Référence consultée. Ne fournit ni assets ni contenu original de PARALLAXE."
+        ],
+        [
+          "R02",
+          "Inspiration d’inspection",
+          "The Cabin Factory, présentation du studio",
+          "Inspection de cabines pour juger si elles sont hantées.",
+          "https://www.internationalcatstudios.com/",
+          "2026-10-26",
+          "Interprétation probable de « cabin examinator » dans la demande. À corriger si une autre référence était visée."
+        ],
+        [
+          "R03",
+          "Demande utilisateur",
+          "Brief et extension du 26 octobre 2026",
+          "Coop 3D, perceptions divergentes, talkies réels, corps/reflets, plusieurs lieux, Excel et sources GitHub.",
+          "Brief de la conversation",
+          "2026-10-26",
+          "Les noms, anomalies, scènes et règles de PARALLAXE sont des créations originales proposées pour ce projet."
+        ],
+        [
+          "R04",
+          "Source de vérité code",
+          "Catalogue runtime {{build}}",
+          "{{runtimeCount}} identifiants intégrés ; titres, baseline, intensité, difficulté et lieux proviennent du code.",
+          "src/game/catalog.ts",
+          "2026-10-26",
+          "Le classeur affiche explicitement la QA partielle ; présence dans le code ne vaut pas validation matérielle."
+        ],
+        [
+          "R05",
+          "Règles actuelles",
+          "Machine de jeu {{build}}",
+          "Campagne 3 × 3 avec paliers ; lieu unique 9 consécutifs ; 68 % d’anomalies ; 3 erreurs standard.",
+          "src/game/rules.ts",
+          "2026-10-26",
+          "La référence de chaque lieu ne rapporte aucun point ; le mode détendu retire seulement la limite d’erreurs."
+        ],
+        [
+          "R06",
+          "Conception étendue",
+          "Catalogue de 120 fiches",
+          "{{plannedCount}} fiches restent conçues sans implémentation. IDs PX d’origine conservés ; nouvelles fiches ajoutées.",
+          "docs/anomalies-design.json",
+          "2026-10-26",
+          "Une promotion de statut n’ajoute pas une fiche doublon pour la même anomalie."
+        ],
+        [
+          "R07",
+          "Définition",
+          "Perception personnelle",
+          "Couche visuelle ou sonore reçue par un observateur, distincte de la position commune.",
+          "Conception originale",
+          "2026-10-26",
+          "Un témoin peut voir une anomalie que les autres ne voient pas."
+        ],
+        [
+          "R08",
+          "Définition",
+          "Anomalie relationnelle",
+          "Écart détectable seulement en comparant deux informations individuellement plausibles.",
+          "Conception originale",
+          "2026-10-26",
+          "Le relais à codes divergents est la première réalisation de cette règle."
+        ],
+        [
+          "R09",
+          "Définition",
+          "Référence",
+          "Version normale montrée en début de lieu ; invariants du décor, du corps, du relais et de la radio.",
+          "Conception originale",
+          "2026-10-26",
+          "Le code de relais peut changer entre tours. Son égalité entre joueurs demeure la règle."
+        ],
+        [
+          "R10",
+          "Statut",
+          "Présent / Implémenté — QA partielle",
+          "Le code ou le rendu existe. Des contrôles ciblés ont été faits, avec les limites indiquées.",
+          "Vocabulaire de suivi",
+          "2026-10-26",
+          "Ne vaut pas validation exhaustive, performance certifiée ni jeu commercial terminé."
+        ],
+        [
+          "R11",
+          "Statut",
+          "Conçu — non implémenté",
+          "Idée détaillée, critère de réception et assets identifiés, sans effet jouable correspondant.",
+          "Vocabulaire de suivi",
+          "2026-10-26",
+          "À filtrer pour préparer les prochains lots de développement."
+        ],
+        [
+          "R12",
+          "Statut",
+          "À vérifier",
+          "Vérification de l’intégration ou des conditions réelles encore manquante.",
+          "Vocabulaire de suivi",
+          "2026-10-26",
+          "Ne pas convertir automatiquement ce statut en validé."
+        ],
+        [
+          "R13",
+          "Échelle",
+          "Peur 1 à 5",
+          "1 : détail discret. 2 : étrangeté. 3 : malaise. 4 : présence inquiétante. 5 : confrontation visuelle forte.",
+          "Échelle de conception",
+          "2026-10-26",
+          "Appréciation de design, pas classification officielle par âge."
+        ],
+        [
+          "R14",
+          "Échelle",
+          "Difficulté 1 à 3",
+          "1 : changement évident. 2 : inspection attentive. 3 : comparaison ou observation composée.",
+          "Échelle de conception",
+          "2026-10-26",
+          "À calibrer par playtests, pas une mesure scientifique."
+        ],
+        [
+          "R15",
+          "Périmètre",
+          "3D actuelle et haute définition future",
+          "Three.js, géométrie procédurale, corps articulés et reflets planaires ; pipeline d’assets haute définition planifié.",
+          "Choix de production",
+          "2026-10-26",
+          "Pas de promesse d’humains photoréalistes, de ray tracing ni d’exécutable Unreal Engine dans le build web livré."
+        ],
+        [
+          "R16",
+          "Mise à jour",
+          "Statuts et formules",
+          "Filtrer Anomalies ; modifier Statut et Production pour actualiser la Synthèse. Les pools par lieu se calculent.",
+          "Mode d’emploi du classeur",
+          "2026-10-26",
+          "La génération étend les plages à 120 fiches. Pour ajouter manuellement des lignes, étendre table et formules ou régénérer depuis JSON."
+        ],
+        [
+          "R17",
+          "API primaire",
+          "MDN — getUserMedia",
+          "Le microphone exige permission utilisateur et contexte sécurisé ; HTTPS et localhost sont les cas pertinents ici.",
+          "https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia",
+          "2026-10-26",
+          "Documentation de plateforme. Le comportement des navigateurs doit aussi être testé sur les appareils visés."
+        ],
+        [
+          "R18",
+          "API primaire",
+          "MDN — RTCPeerConnection",
+          "L’interface établit, maintient et ferme une liaison WebRTC avec un autre pair.",
+          "https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection",
+          "2026-10-26",
+          "Le projet ajoute sa signalisation, ses autorisations et son traitement audio autour de cette API."
+        ],
+        [
+          "R19",
+          "Guide primaire",
+          "WebRTC — TURN server",
+          "Un relais TURN permet de relayer le trafic quand le chemin direct entre pairs n’est pas possible.",
+          "https://webrtc.org/getting-started/turn-server",
+          "2026-10-26",
+          "Une URL configurable ne constitue pas un service déployé ; un essai Internet avec relais reste nécessaire."
+        ],
+        [
+          "R20",
+          "Source radio",
+          "Voix et étalonnage",
+          "Code de la vraie voix, des transformations de réception et du relevé factuel.",
+          "src/game/radio.ts",
+          "2026-10-26",
+          "Vérifier le chemin exact et les tests dans le dépôt de cette version. Pas d’enregistrement audio applicatif."
+        ],
+        [
+          "R21",
+          "Source niveaux",
+          "Baselines et noms officiels",
+          "Saint-Clair / Terminus 09 / Aile blanche ; règles de référence spécifiques.",
+          "src/game/levels.ts",
+          "2026-10-26",
+          "Le panneau métro et le moniteur clinique sont des références fixes de jeu."
+        ],
+        [
+          "R22",
+          "Preuves techniques",
+          "Bilan de vérification",
+          "{{evidenceSummary}}",
+          "docs/QA.md",
+          "2026-10-26",
+          "Les essais déclarés se limitent à leur périmètre ; aucune validation GPU ou microphone physique sans preuve."
+        ],
+        [
+          "R23",
+          "Source de fabrication",
+          "Données du classeur",
+          "Tables éditoriales, catalogue de conception, copie du runtime et état du build.",
+          "docs/workbook-v02.json ; docs/runtime-catalog.json ; docs/build-status.json",
+          "2026-10-26",
+          "Le générateur scripts/build-design-workbook.mjs reconstruit le classeur et ses contrôles."
+        ],
+        [
+          "R24",
+          "Statut",
+          "À tester sur GPU / appareils",
+          "Implémentation disponible mais shaders, images, performances ou matériel physique non vérifiés ici.",
+          "Vocabulaire de suivi",
+          "2026-10-26",
+          "Un test CPU, une compilation ou un signal reçu ne remplace pas la preuve matérielle correspondante."
+        ],
+        [
+          "R25",
+          "Conception",
+          "Horreur équitable",
+          "Une anomalie doit être persistante, localisable, comparable et soluble sans subir de danger réel.",
+          "Choix de design original",
+          "2026-10-26",
+          "Pas de panne réseau indiscernable, aucun clonage vocal et aucune capture personnelle utilisés comme surprise."
+        ],
+        [
+          "R26",
+          "Asset original",
+          "Inspecteur GLB et manifeste",
+          "52 444 triangles, 12 articulations rigides, trois animations ; relecture GLTFLoader réussie.",
+          "public/models/inspecteur-parallaxe.glb ; public/models/inspecteur-parallaxe.manifest.json",
+          "2026-10-26",
+          "Modèle procédural original ; pas de skinning, pas de lettrage badge embarqué et pas de validation GPU."
+        ],
+        [
+          "R27",
+          "Correctif vérifié",
+          "Autorisation micro tardive · 0.2.1",
+          "Invalider les demandes obsolètes, arrêter leurs flux retournés et préserver la réactivation la plus récente.",
+          "docs/qa-radio-cancellation-v0.2.1.json ; tests/radio.test.mjs",
+          "2026-10-26",
+          "{{radioPermissionQA}}"
+        ],
+        [
+          "R28",
+          "Contrôleur vérifié",
+          "État d’attente de la radio · 0.2.1",
+          "Annuler l’opération UI retirée afin qu’une permission encore ouverte ne bloque pas la commande suivante.",
+          "docs/qa-radio-ui-v0.2.1.json ; tests/radio-actions.test.mjs",
+          "2026-10-26",
+          "{{radioControllerQA}}"
+        ],
+        [
+          "R29",
+          "Livraison vérifiée",
+          "Compilation et serveur portable · 0.2.1",
+          "Typecheck, builds local / hébergé et parcours HTTP portable à deux clients exécutés.",
+          "docs/qa-final-v0.2.1.json ; .github/workflows/ci.yml",
+          "2026-10-26",
+          "{{deliveryQA}}"
+        ]
+      ]
+    },
+    "Radio": {
+      "title": "Talkies : voix, preuves et équité",
+      "subtitle": "Vraie voix entre joueurs, traitement individuel et calibration accessible. Recette matériel / TURN encore distincte.",
+      "headers": [
+        "ID",
+        "Système / preuve",
+        "Comportement attendu",
+        "Référence ou comparaison",
+        "Statut",
+        "Accès / réglage",
+        "Condition de réception",
+        "Limite / garde-fou"
+      ],
+      "widths": [
+        12,
+        27,
+        59,
+        56,
+        31,
+        36,
+        61,
+        66
+      ],
+      "statusCol": 4,
+      "rows": [
+        [
+          "R01",
+          "Micro volontaire",
+          "Le bouton Activer le micro ouvre la demande navigateur ; aucun accès au lancement.",
+          "Pas de piste avant accord explicite.",
+          "Implémenté — QA partielle",
+          "Panneau radio",
+          "Refus, appareil absent et révocation affichés sans bloquer le vote.",
+          "La caméra n’est pas demandée ; aucune donnée vocale n’est utilisée pour créer une copie de joueur."
+        ],
+        [
+          "R02",
+          "Écoute seule",
+          "Recevoir la voix des partenaires sans ouvrir son propre microphone.",
+          "L’écoute et l’émission sont deux états distincts.",
+          "Implémenté — QA partielle",
+          "Activer l’écoute",
+          "Un joueur sans micro peut entendre, écrire et voter.",
+          "Les restrictions autoplay peuvent nécessiter ce geste avant la lecture."
+        ],
+        [
+          "R03",
+          "PTT",
+          "Transmettre tant que T, LB ou le bouton tactile est maintenu, avec limite de sécurité de 30 secondes par appui.",
+          "Relâcher = émission coupée.",
+          "Implémenté — QA partielle",
+          "T / LB / talkie tactile",
+          "Les partenaires reçoivent la voix pendant l’émission ; état actif visible.",
+          "Relâcher, perdre le focus, masquer la page, fermer la radio ou ouvrir une modale coupe la transmission."
+        ],
+        [
+          "R04",
+          "Sortie propre",
+          "Arrêter les pistes et connexions en quittant ; invalider aussi toute demande de microphone encore en attente.",
+          "Aucun micro utilisé après sortie.",
+          "Implémenté — QA partielle",
+          "Quitter / déconnecter",
+          "Un flux qui arrive après fermeture est arrêté immédiatement, sans être affecté à la radio.",
+          "La boîte de permission du navigateur peut répondre plus tard ; la protection porte sur le traitement du résultat. Matériel physique non éprouvé."
+        ],
+        [
+          "R05",
+          "Vraie liaison",
+          "Former un réseau WebRTC de pairs pour 2 à 4 joueurs.",
+          "Chaque paire transporte l’audio autorisé.",
+          "Implémenté — QA partielle",
+          "Connexion de salle",
+          "Émission intelligible reçue sur un autre appareil.",
+          "Deux onglets : offre/réponse échangées, mais zéro candidat ICE dans l’environnement de test ; aucun audio connecté. Matériel et réseaux réels à éprouver."
+        ],
+        [
+          "R06",
+          "Signalisation",
+          "Le serveur autorise et distribue offres, réponses et candidats ciblés.",
+          "État technique séparé de la vérité de jeu.",
+          "Implémenté — QA partielle",
+          "Automatique après activation",
+          "Rejeter membre étranger, cible invalide et message trop grand.",
+          "Le serveur de jeu ne stocke pas de fichier vocal."
+        ],
+        [
+          "R07",
+          "Couleur talkie",
+          "Passe-haut 330 Hz, passe-bas 3 300 Hz, compression et saturation légère sur la réception.",
+          "La parole reste reconnaissable ; coloration identique au normal.",
+          "Implémenté — QA partielle",
+          "Traitement de réception",
+          "Comprendre une description courte au volume raisonnable.",
+          "Valeurs implémentées, pas certification de mix : vérifier intelligibilité et confort sur appareils physiques."
+        ],
+        [
+          "R08",
+          "Squelch",
+          "Clic discret et porteuse à ouverture/fermeture d’émission.",
+          "Un début et une fin cohérents, sans pic agressif.",
+          "Implémenté — QA partielle",
+          "PTT",
+          "Le signal normal ne ressemble pas à radio_aftertone.",
+          "Pas de son nécessaire à un vote si le relevé écrit est utilisé."
+        ],
+        [
+          "R09",
+          "Réception réglable",
+          "Contrôler volume et coupure de la voix entrante.",
+          "Le réglage ne modifie pas la vérité du passage.",
+          "Implémenté — QA partielle",
+          "Panneau radio",
+          "Couper puis rétablir sans recréer une piste micro.",
+          "Le mute n’est jamais une anomalie ; le test écrit demeure disponible."
+        ],
+        [
+          "R10",
+          "Témoin d’émission",
+          "Montrer qui émet et l’état du talkie.",
+          "Le roster réel conserve le même membre.",
+          "Implémenté — QA partielle",
+          "Indicateur et geste du corps",
+          "Le geste de talkie est cohérent avec l’état transmis.",
+          "Une silhouette ou un double ne crée pas de fausse connexion vocale."
+        ],
+        [
+          "R11",
+          "Étalonnage normal",
+          "Produire trois tonalités distinctes puis s’arrêter.",
+          "Relevé : 1 / 2 / 3 ; retour au silence.",
+          "Implémenté — QA partielle",
+          "Bouton Étalonner",
+          "Même référence pour tous, sans microphone ni voix entrante requis.",
+          "Un défaut matériel reste affiché séparément du résultat fictionnel."
+        ],
+        [
+          "R12",
+          "radio_echo",
+          "Répéter les tonalités par un écho additionnel ; affecter aussi la réception.",
+          "A relève répétitions ; B reçoit 1 / 2 / 3 une fois.",
+          "Implémenté — QA partielle",
+          "Étalonnage / voix reçue",
+          "Le relevé décrit la répétition et permet de comparer.",
+          "Un écho acoustique réel n’est pas une preuve : refaire l’étalonnage local."
+        ],
+        [
+          "R13",
+          "radio_chop",
+          "Supprimer la deuxième tonalité du motif ; découper la réception.",
+          "A : 1 / silence / 3 ; B : 1 / 2 / 3.",
+          "Implémenté — QA partielle",
+          "Étalonnage / voix reçue",
+          "La coupure se reproduit à la même place du test.",
+          "La perte aléatoire de paquets réseau ne change pas ce relevé déterministe."
+        ],
+        [
+          "R14",
+          "radio_static",
+          "Ajouter un souffle inhabituel au test et à la réception.",
+          "A relève un bruit superposé ; B conserve le motif propre.",
+          "Implémenté — QA partielle",
+          "Étalonnage / voix reçue",
+          "La texture anormale figure dans la transcription privée.",
+          "Limiter le niveau ; aucune écoute forte nécessaire."
+        ],
+        [
+          "R15",
+          "radio_detune",
+          "Ajouter une modulation métallique au signal.",
+          "A relève timbre modulé ; B entend les tons stables.",
+          "Implémenté — QA partielle",
+          "Étalonnage / voix reçue",
+          "Effet constant et réversible au tour suivant.",
+          "Ce n’est pas une copie de voix ni une identité synthétique attribuée au partenaire."
+        ],
+        [
+          "R16",
+          "radio_wrong_channel",
+          "Remplacer le code du test par 9 / 9 / 0.",
+          "A : 9 / 9 / 0 ; B : 1 / 2 / 3.",
+          "Implémenté — QA partielle",
+          "Étalonnage / réception",
+          "Les deux joueurs peuvent énoncer le code réellement reçu.",
+          "Le numéro de salle et les informations système ne sont pas falsifiés."
+        ],
+        [
+          "R17",
+          "radio_aftertone",
+          "Laisser une porteuse anormale après le dernier son.",
+          "A relève une continuation ; B revient au silence.",
+          "Implémenté — QA partielle",
+          "Étalonnage / réception",
+          "La fin de motif reste un repère temporel clair.",
+          "Pas de boucle infinie ni de son persistant après reset."
+        ],
+        [
+          "R18",
+          "Transcription privée",
+          "Afficher faits, rythme et code du test pour le seul observateur.",
+          "Décrire ce qui arrive, sans écrire le bon vote.",
+          "Implémenté — QA partielle",
+          "Relevé visible",
+          "La session est soluble avec son à zéro et micro refusé.",
+          "Les autres relevés ne sont pas envoyés automatiquement avant résolution."
+        ],
+        [
+          "R19",
+          "Erreurs distinctes",
+          "Afficher permission refusée, liaison échouée ou contexte non sécurisé comme états techniques.",
+          "Une panne ne constitue jamais une anomalie.",
+          "Implémenté — QA partielle",
+          "Panneau radio",
+          "La vérité du tour et le résultat d’étalonnage restent inchangés.",
+          "Toujours conserver texte, ping et vote si la voix ne fonctionne pas."
+        ],
+        [
+          "R20",
+          "HTTPS",
+          "Autoriser le micro en contexte sécurisé, dont localhost pour les essais.",
+          "IP LAN en HTTP : micro indisponible, jeu et texte possibles.",
+          "Implémenté — QA partielle",
+          "URL de lancement",
+          "Message explicite, aucune demande infinie d’autorisation.",
+          "Les navigateurs et certificats doivent être testés réellement."
+        ],
+        [
+          "R21",
+          "TURN",
+          "Prévoir un serveur de relais configuré pour les réseaux sans chemin direct.",
+          "ICE fourni aux membres authentifiés ; identifiants TURN temporaires d’une heure calculés côté serveur.",
+          "À exécuter",
+          "Déploiement / configuration",
+          "Audio reçu via un candidat relay entre deux réseaux distincts.",
+          "Secret de signature exclusivement serveur. Un service TURN exploité et testé reste nécessaire."
+        ],
+        [
+          "R22",
+          "LAN sécurisé",
+          "Accepter certificat et clé si l’hébergeur veut du HTTPS local.",
+          "Certificat reconnu par les clients.",
+          "Implémenté — QA partielle",
+          "Options cert / key",
+          "Connexion de deux appareils sur Wi-Fi avec contexte sûr.",
+          "Ne jamais versionner une clé privée ni la confondre avec un asset de jeu."
+        ],
+        [
+          "R23",
+          "Pas d’enregistrement",
+          "Transmettre la voix en direct ; ne pas écrire de fichier audio applicatif.",
+          "Pas de stockage ou de clonage de voix des joueurs.",
+          "Implémenté — QA partielle",
+          "Comportement du code",
+          "Inspecter le code et le trafic applicatif prévu.",
+          "Les outils externes du joueur et les politiques de l’hébergeur sont hors de cette mécanique."
+        ],
+        [
+          "R24",
+          "Recette casque",
+          "Tester voix normale et six effets à volume raisonnable.",
+          "Compréhension, absence de saturation dure et repos auditif.",
+          "À tester sur appareils",
+          "Casque / haut-parleurs",
+          "Deux puis quatre microphones physiques, plusieurs navigateurs.",
+          "{{radioTests}} tests radio et la négociation partielle de la v0.2 ne constituent pas un essai de microphones physiques ou d’écoute de flux vocal."
+        ],
+        [
+          "R25",
+          "Canaux séparés",
+          "Envisager plus tard canaux d’équipe et proximité avec règle de comparaison claire.",
+          "État de canal explicite et reproductible.",
+          "Conçu — non implémenté",
+          "Extension de jeu",
+          "Aucune équipe bloquée si les partenaires sont sur deux canaux.",
+          "Ne pas annoncer cette extension comme disponible en v0.2."
+        ],
+        [
+          "R26",
+          "Protocoles parlés",
+          "Suggérer « repère / état / comparaison » : miroir / bras levé / ton corps bouge-t-il ?",
+          "Descriptions courtes suivies d’une vérification.",
+          "Conception définie",
+          "Tutoriel / playtest",
+          "Les joueurs distinguent observation, hypothèse et vote.",
+          "Aucune reconnaissance vocale n’analyse ou note leur façon de parler."
+        ],
+        [
+          "R27",
+          "Relais comparés",
+          "Lire RELAIS, direction et heure SYNCHRO à plusieurs avant de conclure.",
+          "Les valeurs peuvent varier entre tours ; elles doivent correspondre entre joueurs.",
+          "Implémenté — QA partielle",
+          "Voix / texte / repères",
+          "Trois contradictions relationnelles ne peuvent être trouvées avec une seule lecture isolée.",
+          "Le test 1 / 2 / 3 est un autre appareil de preuve ; nommer le repère évite de comparer deux écrans différents."
+        ],
+        [
+          "R28",
+          "Autorisation devenue obsolète",
+          "Éteindre le micro ou fermer la radio invalide la demande applicative encore en attente.",
+          "Si le navigateur fournit ensuite un flux, arrêter toutes ses pistes avant toute installation.",
+          "Implémenté — QA partielle",
+          "Désactiver / quitter pendant la permission",
+          "Aucun flux tardif n’est conservé ni ajouté aux pairs ; les pistes sont effectivement stoppées.",
+          "La boîte système n’est pas prétendue annulée. Tests de promesses différées et de pistes simulées, matériel encore à vérifier."
+        ],
+        [
+          "R29",
+          "Réactivation récente",
+          "Chaque activation possède un identifiant de demande ; seul le résultat de la demande courante peut être retenu.",
+          "Ancien succès ou ancien refus après une nouvelle activation : état récent préservé.",
+          "Implémenté — QA partielle",
+          "Désactiver puis réactiver",
+          "L’ancienne réponse ne remplace pas le nouveau flux et ne réaffiche pas une erreur périmée.",
+          "Distinguer arrêt et simple mute : une piste muette doit aussi être arrêtée si sa demande est obsolète."
+        ],
+        [
+          "R30",
+          "Commande libérée",
+          "L’extinction invalide aussi l’opération en cours dans le contrôleur de l’interface.",
+          "La commande redevient disponible sans attendre la fin de l’ancienne permission.",
+          "Implémenté — QA partielle",
+          "Éteindre puis réactiver la radio",
+          "Un ancien résultat ou finaliseur ne bloque ni ne déverrouille à tort la nouvelle opération.",
+          "Contrôleur testé séparément du client vocal ; ces tests ne sont pas un essai de permission sur microphone physique."
+        ]
+      ]
+    },
+    "Personnages": {
+      "title": "Inspecteurs, corps et reflets",
+      "subtitle": "Modèles procéduraux originaux et articulés. Production sculptée haute définition distincte.",
+      "headers": [
+        "ID",
+        "Système / asset",
+        "Baseline ou traitement",
+        "Variation / usage",
+        "Statut",
+        "Critère de réception",
+        "Pipeline / contraintes",
+        "Validation restante"
+      ],
+      "widths": [
+        12,
+        28,
+        60,
+        60,
+        31,
+        60,
+        60,
+        59
+      ],
+      "statusCol": 4,
+      "rows": [
+        [
+          "H01",
+          "Inspecteur local",
+          "Corps proportionné, équipement et membres articulés sous la caméra.",
+          "Le joueur existe dans la scène et les surfaces réfléchies.",
+          "Implémenté — QA partielle",
+          "Corps visible sans masquer les preuves utiles.",
+          "Géométrie originale générée par code ; pas d’asset d’un jeu de référence.",
+          "Rendu, clipping de caméra et morphologie à vérifier sur GPU."
+        ],
+        [
+          "H02",
+          "Coéquipiers",
+          "Corps et orientation placés dans l’espace commun.",
+          "Identité stable associée au vrai membre de salle.",
+          "Implémenté — QA partielle",
+          "Deux clients retrouvent le partenaire près du même repère.",
+          "Interpolation et poses distinctes des couches privées.",
+          "Latence Internet, pieds et transitions sur appareils réels."
+        ],
+        [
+          "H03",
+          "Articulation",
+          "Tête, torse, bras, jambes et équipement suivent une pose de base cohérente.",
+          "Marche et immobilité reconnaissables.",
+          "Implémenté — QA partielle",
+          "Aucune transformée non finie et aucune pièce détachée involontaire.",
+          "Douze nœuds d’articulation avec pièces rigides ; pas de skinning déformable ni de rig facial final.",
+          "Apparence de marche, silhouette et contact au sol à examiner."
+        ],
+        [
+          "H04",
+          "Talkie en main",
+          "Appareil tenu avec un geste associé à l’émission.",
+          "Une commande PTT donne un signal corporel de communication.",
+          "Implémenté — QA partielle",
+          "Main, bras et appareil bougent ensemble.",
+          "Socket stable et pose de repos distincte.",
+          "Réception de l’état PTT et alignement de main sur GPU."
+        ],
+        [
+          "H05",
+          "Reflet normal",
+          "Miroir planaire montrant décor et corps synchrones.",
+          "La référence apprend le nombre de personnes et la relation geste/reflet.",
+          "Implémenté — QA partielle",
+          "Un geste correspond à son reflet, sans retard fictionnel au normal.",
+          "Pass de réflexion temps réel ; aucune affirmation de ray tracing.",
+          "Pixels, angles de caméra, vitres et coût des passes à tester."
+        ],
+        [
+          "H06",
+          "Reflet retardé",
+          "Le corps normal suit immédiatement le joueur.",
+          "reflection_delay : position et orientation reflétées avec environ 1 s de retard.",
+          "Implémenté — QA partielle",
+          "Marcher puis s’arrêter produit un retard stable observable.",
+          "Historique de poses local ; pas de dépendance à la latence Internet.",
+          "Capture vidéo de preuve et retour exact au normal."
+        ],
+        [
+          "H07",
+          "Corps absent",
+          "Le décor et le corps sont présents au normal.",
+          "reflection_absent : seul le corps local disparaît de la réflexion.",
+          "Implémenté — QA partielle",
+          "Le miroir continue de montrer murs et mobilier.",
+          "Masquage de la couche corporelle, pas noir complet de la surface.",
+          "Tester équipier proche et angles rasants."
+        ],
+        [
+          "H08",
+          "Salut autonome",
+          "Bras et tête du reflet reproduisent le corps immobile.",
+          "reflection_independent : salut de la main droite et petit mouvement de tête.",
+          "Implémenté — QA partielle",
+          "Le reflet agit tandis que le corps du joueur ne salue pas.",
+          "Fiche historique PX conservée : Le salut tardif.",
+          "Lisibilité du geste et séparation des deux poses."
+        ],
+        [
+          "H09",
+          "Mannequin",
+          "Inspecteur normal mobile et articulé.",
+          "avatar_mannequin : silhouette rigide et artificielle dans la vue affectée.",
+          "Implémenté — QA partielle",
+          "Partenaire réel encore présent dans le roster et à la même position.",
+          "Variante personnelle de géométrie / matériaux ; pas de changement d’identité serveur.",
+          "Clipping et retour à l’animation normale."
+        ],
+        [
+          "H10",
+          "Double",
+          "Un seul corps par inspecteur réel.",
+          "avatar_double : inspecteur supplémentaire fictionnel.",
+          "Implémenté — QA partielle",
+          "Le nombre de corps visible diffère du groupe attesté.",
+          "Double sans faux membre, vote ni connexion vocale.",
+          "Composition, lumière et absence de collision punitive."
+        ],
+        [
+          "H11",
+          "Ombre autonome",
+          "Ombre reliée au corps et à l’éclairage de référence.",
+          "avatar_shadow : ombre d’inspecteur indépendante.",
+          "Implémenté — QA partielle",
+          "La divergence persiste assez pour être décrite.",
+          "Indice de forme et de mouvement, jamais couleur seule.",
+          "Lisibilité dans les trois profils et les trois lieux."
+        ],
+        [
+          "H12",
+          "Équité corporelle",
+          "Le vrai roster et les états techniques sont fiables.",
+          "Seuls le monde et les effets privés peuvent contredire le corps.",
+          "Conception définie",
+          "Aucune équipe ne vote sur une simple perte réseau d’avatar.",
+          "Preuve stable, référence visible et débrief factuel.",
+          "Playtest pour séparer horreur intentionnelle et bug perçu."
+        ],
+        [
+          "H13",
+          "Sculpt source",
+          "Créer inspecteurs et mains à partir de références autorisées.",
+          "Volumes, vêtements et plis en haute définition.",
+          "Conçu — non implémenté",
+          "Silhouettes lisibles à la distance de conversation.",
+          "Source sculpt distincte de l’export ; proportions verrouillées avant détail.",
+          "Revue artistique et provenance documentées."
+        ],
+        [
+          "H14",
+          "Maillage temps réel",
+          "Retopologie adaptée aux épaules, coudes, genoux et visage.",
+          "LOD protégeant tête, main, badge et contours de preuve.",
+          "Conçu — non implémenté",
+          "Aucune déformation parasite pendant le salut et le PTT.",
+          "Budgets de triangles à fixer après profilage GPU ; pas de nombre arbitraire présenté comme qualité.",
+          "Comparaison visuelle LOD et contrôle de mémoire."
+        ],
+        [
+          "H15",
+          "Textures personnage",
+          "Peau, tissu, métal et visière avec textures PBR originales.",
+          "Sources 4K pour héros proches, réduction selon profil mesuré.",
+          "Conçu — non implémenté",
+          "Rugosité et échelle de détails cohérentes sous les trois lumières.",
+          "Base color, normal, roughness, metalness, AO ; éviter éclairage peint dans l’albédo.",
+          "Compression, mips, saturation et vue miroir."
+        ],
+        [
+          "H16",
+          "Rig final",
+          "Squelette, poids, contraintes et sockets d’équipement.",
+          "Locomotion, idle, regard, talkie et gestes de preuve.",
+          "Conçu — non implémenté",
+          "Mains stables sur appareil ; pieds sans glissement.",
+          "IK et animation faciale seulement si la valeur de jeu justifie le coût.",
+          "Essais sur toutes les variantes et tous les LOD."
+        ],
+        [
+          "H17",
+          "Animation originale",
+          "Clips de marche, arrêt, conversation et gestes inquiétants.",
+          "Rythmes lents lisibles, sans attaque imposée.",
+          "Conçu — non implémenté",
+          "La variante anormale se distingue de l’idle normal.",
+          "Mocap ou animation autorisée, retarget documenté et blend contrôlé.",
+          "Capture vidéo comparative normal / anormal."
+        ],
+        [
+          "H18",
+          "Personnalisation",
+          "Prévoir variations de tenue et badge sans avantage perceptif.",
+          "Cosmétiques collectifs futurs.",
+          "Conçu — non implémenté",
+          "Chaque palette conserve indices, contours et reflet reconnaissables.",
+          "Ne pas vendre de variante qui cache une anomalie ou révèle la vérité.",
+          "Lisibilité et collisions sur toutes les morphologies prévues."
+        ],
+        [
+          "H19",
+          "Source et export",
+          "Source procédurale, contrats de pose et export GLB original fournis avec manifeste.",
+          "GLB et trois clips générés puis relus par GLTFLoader.",
+          "Implémenté — QA partielle",
+          "Un asset est retrouvé depuis la fiche anomalie.",
+          "Nommage, unités, matériaux et licences dans le registre d’assets.",
+          "Rendu GPU et import dans les logiciels de destination restent à vérifier."
+        ],
+        [
+          "H20",
+          "Confort",
+          "Éviter sursaut sonore obligatoire, caméra forcée ou gros plan bloquant.",
+          "L’inquiétude vient du corps qui ne correspond plus.",
+          "Conception définie",
+          "L’utilisateur peut se reculer, comparer et voter.",
+          "Option de peur réduite future sans suppression de la preuve.",
+          "Évaluer avec joueurs sensibles au mouvement et aux corps déformés."
+        ],
+        [
+          "H21",
+          "Inspecteur exportable",
+          "inspecteur-parallaxe.glb : 52 444 triangles, 51 meshes, 12 nœuds articulés ; dimensions 0,6853 × 1,7287 × 0,508 m.",
+          "Trois clips : Marche 0,766 s ; Radio 1,5 s ; Salut 2 s.",
+          "Implémenté — QA partielle",
+          "Export relu par GLTFLoader ; sommets finis et trois clips validés.",
+          "4 826 384 octets. Pièces rigides sans skinning ; PBR de base. Lettrage du badge runtime non embarqué.",
+          "public/models/inspecteur-parallaxe.manifest.json ; rendu GPU et import outil final non validés."
+        ]
+      ]
+    },
+    "Niveaux": {
+      "title": "Campagne : trois lieux, trois preuves chacun",
+      "subtitle": "Les pools partagent des anomalies communes : leurs tailles ne s’additionnent pas en contenu unique.",
+      "headers": [
+        "Ordre",
+        "Lieu officiel",
+        "Sous-titre",
+        "Progression",
+        "Baseline à apprendre",
+        "Objets et preuves propres",
+        "Anomalies en code",
+        "Statut",
+        "Parcours / conception",
+        "Recette restante"
+      ],
+      "widths": [
+        12,
+        25,
+        34,
+        49,
+        66,
+        61,
+        20,
+        31,
+        62,
+        64
+      ],
+      "statusCol": 7,
+      "rows": [
+        [
+          1,
+          "Saint-Clair",
+          "L’hôtel sans neuvième étage",
+          "Campagne : 0 → 3. Une erreur remet le secteur à 0.",
+          "Portes 901–904 fermées ; horloge 03:09 ; plantes vertes ; meubles au sol ; fenêtre vide ; tableau complet ; reflets synchrones.",
+          "Objets de l’hôtel, altérations spatiales, bagage, miroir et effets communs.",
+          "",
+          "Implémenté — QA partielle",
+          "Axe d’inspection avec réception, chambres, galerie, service et façade ; conclure après comparaison du relais et du corps.",
+          "GPU, collisions, reflets et performance à tester. Le carnet doit correspondre aux repères exacts."
+        ],
+        [
+          2,
+          "Terminus 09",
+          "Le dernier quai",
+          "Campagne : palier 3 conservé ; trois réussites pour atteindre 6.",
+          "Quai vide ; QUAI 09 / SERVICE TERMINÉ ; signal vert ; deux rails droits ; corps et reflet synchrones.",
+          "Rame présente, destination impossible, signal altéré, rails orientés et ombre de train.",
+          "",
+          "Implémenté — QA partielle",
+          "Changer réellement d’architecture : espace ouvert de quai, lignes de perspective, écran et surface réfléchissante ; observer depuis la zone sûre.",
+          "Vérifier le panneau sans texte inversé, les voies hors accès et la visibilité des présences."
+        ],
+        [
+          3,
+          "Aile blanche",
+          "La clinique de nuit",
+          "Campagne : palier 6 conservé ; trois réussites pour atteindre 9 et sortir.",
+          "Un lit vide au sol ; FC 072 / RYTHME SINUSAL ; paravent sans présence ; fauteuil roulant immobile ; reflet normal.",
+          "Lit levé ou supplémentaire, moniteur incohérent, paravent habité ou respirant, fauteuil mobile.",
+          "",
+          "Implémenté — QA partielle",
+          "Aile clinique de nuit : espace calme, objets individuels bien dénombrables, proximité corporelle et luminosité froide.",
+          "Vérifier moniteur, tissu, silhouettes et contact au sol sur GPU ; conserver jeu sans audition."
+        ]
+      ]
+    }
+  }
+}

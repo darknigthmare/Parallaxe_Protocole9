@@ -1,0 +1,52 @@
+{
+  "version": "0.2.0",
+  "verifiedAt": "2026-10-26T20:50:39.000555+00:00",
+  "typecheck": "passed",
+  "rules": {
+    "passed": 17,
+    "failed": 0
+  },
+  "radio": {
+    "passed": 12,
+    "failed": 0
+  },
+  "sceneCPU": {
+    "passed": 11,
+    "failed": 0,
+    "effects": 48,
+    "gpuRendering": "unverified"
+  },
+  "buildLocal": "passed",
+  "portable": {
+    "status": "passed",
+    "nodeModulesRequired": false,
+    "clients": 2,
+    "checks": [
+      "HTML served",
+      "server modules hidden",
+      "two authenticated clients join",
+      "reference then inspection",
+      "full private perceptions used for verdict",
+      "unanimity resolves correctly",
+      "both clients leave"
+    ]
+  },
+  "browser": "See qa-radio-browser-v0.2.json; signaling exchange only, no ICE candidates or audio connection",
+  "limitations": [
+    "No GPU rendering or FPS validated",
+    "No physical microphone or human voice-quality listening",
+    "No real TURN or cross-network voice validated"
+  ],
+  "buildHosted": "passed",
+  "archives": {
+    "crc": "passed",
+    "sourceArchiveFiles": 166,
+    "portableArchiveFiles": 40,
+    "xlsxIntegrity": "passed",
+    "pathsAndExclusions": "passed",
+    "sourceZipEmbeddedInPortable": true,
+    "portableSelfEmbedding": false
+  },
+  "extractedPortableTest": "passed with two real HTTP clients",
+  "githubCI": "not run"
+}

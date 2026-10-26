@@ -1,0 +1,39 @@
+name: Vérifier PARALLAXE
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  game:
+    name: Règles, scène, radio et édition portable
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Installer les dépendances verrouillées
+        run: npm ci
+      - name: Vérifier TypeScript
+        run: npx tsc --noEmit
+      - name: Vérifier les règles et les projections privées
+        run: npm test
+      - name: Vérifier les géométries et les changements de lieu
+        run: npm run test:scene
+      - name: Vérifier la radio et les autorisations
+        run: npm run test:radio
+      - name: Vérifier l’annulation des actions de l’interface radio
+        run: npm run test:radio-ui
+      - name: Compiler l’édition indépendante
+        run: npm run build:local
+      - name: Exécuter deux clients contre le serveur portable
+        run: node tests/portable.test.mjs
+

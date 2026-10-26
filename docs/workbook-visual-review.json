@@ -1,0 +1,74 @@
+{
+  "version": "0.2.1",
+  "date": "2026-10-26",
+  "renderedRanges": 9,
+  "reviewedRanges": 9,
+  "sheetsCovered": 6,
+  "sheets": [
+    "Synthèse",
+    "Radio",
+    "Production",
+    "QA",
+    "Références",
+    "Anomalies"
+  ],
+  "issues": [],
+  "method": "Artifact-tool render PNG ; inspection visuelle ciblée des six feuilles modifiées ; contrôle XML en lecture seule et recalcul avec changements temporaires restaurés.",
+  "ranges": [
+    {
+      "sheetName": "Synthèse",
+      "range": "A1:H35",
+      "file": "01-Synthese.png"
+    },
+    {
+      "sheetName": "Radio",
+      "range": "A1:H9",
+      "file": "02-Radio.png"
+    },
+    {
+      "sheetName": "Radio",
+      "range": "A33:H35",
+      "file": "03-Radio.png"
+    },
+    {
+      "sheetName": "Production",
+      "range": "A60:H61",
+      "file": "04-Production.png"
+    },
+    {
+      "sheetName": "QA",
+      "range": "A52:H55",
+      "file": "05-QA.png"
+    },
+    {
+      "sheetName": "QA",
+      "range": "A82:H86",
+      "file": "06-QA.png"
+    },
+    {
+      "sheetName": "Références",
+      "range": "A8:G10",
+      "file": "07-References.png"
+    },
+    {
+      "sheetName": "Références",
+      "range": "A32:G34",
+      "file": "08-References.png"
+    },
+    {
+      "sheetName": "Anomalies",
+      "range": "P100:V105",
+      "file": "09-Anomalies.png"
+    }
+  ],
+  "retainedPriorReview": {
+    "version": "0.2.0",
+    "renderedRanges": 30,
+    "reviewedRanges": 30,
+    "sheetsCovered": 15
+  },
+  "file": "docs/PARALLAXE_Design_Complet.xlsx",
+  "bytes": 132586,
+  "sha256": "07fe3125a511f7ec33aaef2aafeb073213825d53044aa93f88a5b367537dd986",
+  "notes": "Aucune image GPU du jeu ni capture de microphone impliquée dans la vérification du classeur. 19 tests radio et 4 du contrôleur UI documentés séparément ; preuves antérieures v0.2 identifiées."
+}
