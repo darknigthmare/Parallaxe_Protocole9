@@ -32,6 +32,8 @@ jobs:
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
         run: npm run test:radio-ui
+      - name: Vérifier les adresses radio et les identifiants TURN
+        run: npm run test:radio-config
       - name: Compiler l’édition indépendante
         run: npm run build:local
       - name: Exécuter deux clients contre le serveur portable

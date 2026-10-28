@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-28",
+  "base": "b3dbbb3ebfd3ad2ffa8c931712523520d7a96916",
+  "node": "22.16.0",
+  "tests": {
+    "command": "node tests/radio-config.test.mjs",
+    "passed": 59,
+    "failed": 0
+  },
+  "typecheck": {
+    "command": "tsc --noEmit --strict --target ES2022 --module ESNext --lib ES2022,DOM src/game/radio-config.ts",
+    "passed": true,
+    "scope": "module only"
+  },
+  "fullBuildLocal": false,
+  "hardwareValidation": false,
+  "ciNewCommit": "consult PR checks; not inferred from preceding run",
+  "sha256": {
+    "src/game/radio-config.ts": "58a0afcfee9fe813f07936d0d90e32ba72a68c6e083c73ab0c9a6372fbf391eb",
+    "tests/radio-config.test.mjs": "4826db38a9fb1c81ac6b17f0a0e76d4b5ad4ac54b9f6e1ecdb4feea5477ab2a2",
+    "scripts/check-radio-config.mjs": "c40bf463f6c5c6f7a6ae1149cb3a5881982cae97b7f432a2f40fc9bfdc64d6ba"
+  }
+}
