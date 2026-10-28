@@ -19,6 +19,30 @@ export class SessionError extends Error {
 export function activePlayers(room:Room,now:number):Player[] {
   return room.players.filter(p=>!p.left&&now-p.lastSeen<PRESENCE_TIMEOUT);
 }
+/** A queued negotiation belongs to two live, explicitly enabled radio epochs. */
+function currentRadioSignals(room:Room,now:number):RadioSignal[] {
+  return room.signals.filter(signal=>{
+    if(!Number.isFinite(signal.at)||signal.at>now||now-signal.at>=SIGNAL_TTL)return false;
+    const from=room.players.find(p=>p.id===signal.from&&!p.left);
+    const to=room.players.find(p=>p.id===signal.to&&!p.left);
+    return !!from&&!!to&&from.id!==to.id&&from.radioEnabled&&to.radioEnabled
+      &&from.radioEpoch!==''&&to.radioEpoch!==''
+      &&from.radioEpoch===signal.fromEpoch&&to.radioEpoch===signal.toEpoch
+      &&now-from.lastSeen<PRESENCE_TIMEOUT&&now-to.lastSeen<PRESENCE_TIMEOUT;
+  });
+}
+
+/** Invalidate a ballot before refreshing presence, including the returning actor. */
+function invalidateInterruptedBallot(room:Room,now:number):void {
+  if(!room.started||room.run.phase!=='inspect')return;
+  const present=room.players.filter(p=>!p.left);
+  if(!present.some(p=>now-p.lastSeen>=PRESENCE_TIMEOUT)||!present.some(p=>p.vote!==null))return;
+  room.players.forEach(p=>p.vote=null);
+  room.messages.push({id:crypto.randomUUID(),senderId:'control',name:'CONTRÔLE',
+    text:'La liaison d’un inspecteur a été interrompue. Les diagnostics ont été annulés : comparez de nouveau vos observations au retour de toute l’équipe.',at:now});
+  room.messages=room.messages.slice(-40);
+}
+
 export function validateName(value:unknown):string {
   if(typeof value!=='string')throw new SessionError('Choisissez un nom d’inspecteur.');
   const name=value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,24);
@@ -99,10 +123,13 @@ function evaluateConsensus(room:Room,now:number):void {
 }
 export function actRoom(room:Room,playerId:string,action:string,payload:Record<string,unknown>,now:number):Room {
   const next=structuredClone(upgradeRoom(room));
-  next.signals=next.signals.filter(s=>now-s.at<SIGNAL_TTL);
+  // Prune before the heartbeat: reconnection must not revive an obsolete offer.
+  next.signals=currentRadioSignals(next,now);
+  next.pings=next.pings.filter(p=>p.at<=now&&now-p.at<15_000).slice(-8);
   next.revision++;
   const actor=next.players.find(p=>p.id===playerId&&!p.left);
   if(!actor)throw new SessionError('Inspecteur introuvable.',401);
+  invalidateInterruptedBallot(next,now);
   actor.lastSeen=now;
   const host=next.players.find(p=>p.id===next.hostId&&!p.left);
   // After 45 seconds without heartbeat, command passes to a present inspector.
@@ -131,6 +158,9 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
   }else if(action==='vote'){
     if(typeof payload.vote!=='boolean')throw new SessionError('Le diagnostic doit être « anomalie » ou « conforme ».');
     if(!next.started||next.run.phase!=='inspect')return next;
+    // Do not bank a decision while the only witness might be absent.
+    const active=activePlayers(next,now);
+    if(active.length<2||active.length!==next.players.filter(p=>!p.left).length)return next;
     actor.vote=payload.vote;
   }else if(action==='pose'){
     actor.pose=cleanPose(payload.pose);
@@ -189,19 +219,21 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
 /** Only this projection may cross the network: no seed, answer, peer effect or token. */
 export function projectRoom(room:Room,playerId:string,now:number){
   room=upgradeRoom(room);
-  const self=room.players.find(p=>p.id===playerId);
+  const self=room.players.find(p=>p.id===playerId&&!p.left);
   if(!self)throw new SessionError('Inspecteur introuvable.',401);
   const phase=room.started?room.run.phase:'lobby';
-  const last=room.run.lastResult;
+  const last=['reveal','won','lost'].includes(phase)?room.run.lastResult:null;
+  const active=activePlayers(room,now);
+  const paused=room.started&&(active.length<2||active.length!==room.players.filter(p=>!p.left).length);
   return {
     code:room.code,selfId:playerId,hostId:room.hostId,phase,revision:room.revision,
     streak:room.run.streak,strikes:room.run.strikes,loop:room.run.loop,
     difficulty:room.run.difficulty,correctTotal:room.run.correctTotal,
     mode:room.run.mode,levelId:room.run.levelId,stage:room.run.stage,stageProgress:room.run.stageProgress,schemaVersion:2,
-    paused:room.started&&(activePlayers(room,now).length<2||activePlayers(room,now).length!==room.players.filter(p=>!p.left).length),
-    players:room.players.filter(p=>!p.left).map(p=>({id:p.id,name:p.name,slot:p.slot,connected:now-p.lastSeen<PRESENCE_TIMEOUT,vote:p.vote,pose:p.pose,radioEnabled:p.radioEnabled,radioEpoch:p.radioEpoch,talking:p.talking&&now-p.radioTalkAt<10_000})),
+    paused,
+    players:room.players.filter(p=>!p.left).map(p=>({id:p.id,name:p.name,slot:p.slot,connected:now-p.lastSeen<PRESENCE_TIMEOUT,vote:paused&&phase==='inspect'?null:p.vote,pose:p.pose,radioEnabled:p.radioEnabled,radioEpoch:p.radioEpoch,talking:p.radioEnabled&&p.talking&&now-p.lastSeen<PRESENCE_TIMEOUT&&p.radioTalkAt<=now&&now-p.radioTalkAt<10_000})),
     view:room.started?getPersonalView(room.run,self.slot):{effects:[],variant:0,phase:'lobby' as const,loop:0,relayCode:'3142',levelId:room.run.levelId,arrowDirection:'left' as const,syncTime:'03:09'},
-    radioInbox:room.signals.filter(s=>s.to===self.id&&s.toEpoch===self.radioEpoch&&now-s.at<SIGNAL_TTL),
+    radioInbox:currentRadioSignals(room,now).filter(s=>s.to===self.id),
     messages:room.messages,
     pings:room.pings.filter(p=>now-p.at<15_000),
     reveal:last?{correct:last.correct,hasAnomaly:last.hasAnomaly,title:last.title,description:last.description,anomalyId:last.anomalyId,observerNames:room.players.filter(p=>last.observerSlots.includes(p.slot)).map(p=>p.name)}:null,
