@@ -22,7 +22,9 @@
     "test:portable": "node tests/portable.test.mjs",
     "package:release": "node scripts/package-release.mjs",
     "test:radio-ui": "node tests/radio-actions.test.mjs",
-    "test:resilience": "node tests/session-resilience.test.mjs"
+    "test:resilience": "node tests/session-resilience.test.mjs",
+    "test:radio-config": "node tests/radio-config.test.mjs",
+    "check:radio-config": "node scripts/check-radio-config.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
