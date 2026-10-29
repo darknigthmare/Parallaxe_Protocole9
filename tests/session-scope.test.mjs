@@ -20,7 +20,7 @@ function between(start,end){
   assert.ok(a>=0&&b>a,`Game callback boundaries: ${start}`);
   return game.slice(a,b);
 }
-const transport=between('  const suspendTalking=useCallback(','\n  useEffect(()=>{\n    const p=safeRead');
+const transport=between('  const resetJoystick=useCallback(','\n  useEffect(()=>{\n    const p=safeRead');
 const decisions=between('  const beginSolo=','  const switchView=');
 const leaveAndResume=between('  const returnMenu=','  const fullscreen=');
 const open=between('  const startNetwork=','  const runRadioAction=');
@@ -52,6 +52,8 @@ export function harness(fetch){
   const setBusy=v=>state.busy=v,setNetworkDown=v=>state.networkDown=v,setError=v=>state.error=v;
   const setRun=v=>state.run=v,setModal=v=>state.modal=typeof v==='function'?v(state.modal):v;
   const setSlot=()=>{},setNotes=()=>{},setConfirmLeave=()=>{},notify=v=>notices.push(v),safeWrite=()=>{};
+  const touchMove={current:{forward:0,strafe:0}},joystickOrigin={current:null},touchLook={current:null};
+  const setTouchStick=()=>{};
   const keys={current:new Set()},document={exitPointerLock(){}},sessionStorage={setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
   const useCallback=fn=>fn,useEffect=fn=>{cleanups.push(fn());};
   const setInterval=fn=>{const id=++timer;intervals.set(id,fn);return id;},clearInterval=id=>intervals.delete(id);

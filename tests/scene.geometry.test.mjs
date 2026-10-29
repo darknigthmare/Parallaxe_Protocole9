@@ -98,6 +98,7 @@ try {
   globalThis.document = { createElement: () => canvasStub() };
   globalThis.window = { innerWidth: 1440, innerHeight: 900, devicePixelRatio: 2 };
   const { createScene, SCENE_EFFECTS } = await import(pathToFileURL(compiled).href);
+  const { createInspector } = await import(pathToFileURL(path.join(directory, 'avatar.mjs')).href);
   let onReadyCount = 0;
   game = createScene({ clientWidth: 1440, clientHeight: 900 }, { onReady() { onReadyCount++; } });
   game.update(0);
@@ -107,6 +108,37 @@ try {
   scene.traverse(object => allObjects.push(object));
   const roots = id => allObjects.filter(object => object.userData.inspect?.id === id);
   const rootByLabel = label => allObjects.find(object => object.userData.inspect?.label === label);
+
+
+  for (const [name, previous, current] of [
+    ['talkie to idle', { time: 2, speed: 0, talking: true }, { time: 3, speed: 0 }],
+    ['talkie to walking', { time: 2, speed: 0, talking: true }, { time: 3, speed: 2.3 }],
+    ['radio anomaly to normal', { time: 2, speed: 0, radioSignal: true }, { time: 3, speed: 0 }],
+    ['talkie to mannequin', { time: 2, speed: 0, talking: true }, { time: 3, speed: 0, mannequin: true }],
+    ['independent reflection to normal', { time: 2, speed: 0, independent: true }, { time: 3, speed: 0 }],
+  ]) {
+    check(`inspector restores articulated pose: ${name}`, () => {
+      const identity = { id: 'pose-regression', name: 'Pose', slot: 0 };
+      const actual = createInspector(identity, { nameplate: false });
+      const reference = createInspector(identity, { nameplate: false });
+      const rotations = model => [model.head, model.root.getObjectByName('Torso'), ...model.shoulders, ...model.elbows, ...model.hands, ...model.hips, ...model.knees].map(joint => joint.rotation.toArray());
+      try {
+        actual.animate(previous);
+        if (previous.talking || previous.radioSignal) {
+          assert.equal(actual.radio.visible, true, 'The talkie pose must remain functional');
+          assert.equal(actual.shoulders[1].rotation.y, .90);
+        } else {
+          assert.equal(actual.shoulders[1].rotation.x, 2.25, 'The independent gesture must remain functional');
+        }
+        actual.animate(current);
+        reference.animate(current);
+        assert.deepEqual(rotations(actual), rotations(reference), 'A prior gesture must not contaminate the next pose');
+        assert.equal(actual.radio.visible, reference.radio.visible);
+      } finally {
+        actual.dispose(); reference.dispose();
+      }
+    });
+  }
 
   check('all geometry positions, normals and bounds are finite', () => {
     for (const object of allObjects) {
@@ -303,6 +335,41 @@ try {
     assert.ok(lag > 2.1 && lag < 2.6, `Incorrect one-second lag: ${lag} m`);
     game.setInput({ forward: 0, strafe: 0 }); game.setView({ effects: ['reflection_independent'], levelId: 'hotel' }); game.update(.05);
     assert.ok(Math.abs(reflected.getObjectByName('Right shoulder').rotation.x - local.getObjectByName('Right shoulder').rotation.x) > 1.5);
+  });
+
+
+  check('delayed reflection preserves one second at multiple refresh rates', () => {
+    const local = scene.children.find(object => object.userData.localInspector);
+    const reflected = scene.children.find(object => object.userData.reflectionOnly);
+    const patterns = [
+      ['20 Hz', [1 / 20]], ['60 Hz', [1 / 60]], ['120 Hz', [1 / 120]],
+      ['240 Hz', [1 / 240]], ['360 Hz', [1 / 360]],
+      ['variable 30/360/60/240 Hz', [1 / 30, 1 / 360, 1 / 60, 1 / 240]],
+    ];
+    try {
+      for (const [name, pattern] of patterns) {
+        game.setActive(false);
+        game.setView({ effects: [], levelId: 'clinic' });
+        game.setView({ effects: ['reflection_delay'], levelId: 'hotel' });
+        game.setPose({ x: 0, z: 7, yaw: 0, pitch: 0 });
+        game.setActive(true);
+        game.setInput({ forward: 1, strafe: 0 });
+        for (let time = 0, frame = 0; time < 2 - 1e-12; frame++) {
+          const dt = Math.min(pattern[frame % pattern.length], 2 - time);
+          game.update(dt); time += dt;
+        }
+        const lag = reflected.position.z - local.position.z;
+        const tolerance = 2.3 * (Math.max(...pattern) + 1 / 120) + 1e-6;
+        assert.ok(lag >= 2.3 - 1e-6 && lag <= 2.3 + tolerance, `${name}: one-second reflection lag became ${lag} m`);
+      }
+    } finally {
+      game.setActive(false);
+      game.setInput({ forward: 0, strafe: 0 });
+      game.setView({ effects: [], levelId: 'clinic' });
+      game.setView({ effects: [], levelId: 'hotel' });
+      game.setPose({ x: 0, z: 9, yaw: 0, pitch: 0 });
+      game.update(0);
+    }
   });
 
   check('each of the three locations has a walkable loop, a solid podium and two exit approaches', () => {

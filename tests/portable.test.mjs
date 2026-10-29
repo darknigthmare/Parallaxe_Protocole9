@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtemp,cp,mkdir,rm} from 'node:fs/promises';
+import {mkdtemp,cp,mkdir,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {spawn} from 'node:child_process';
@@ -7,16 +7,26 @@ import {createServer} from 'node:net';
 import {isDeepStrictEqual} from 'node:util';
 
 // Exercise the actual compiled deliverable, isolated from all user sessions.
-const temporary=await mkdtemp(join(tmpdir(),'parallaxe-portable-'));
+const packageRootIndex=process.argv.indexOf('--package-root');
+const usesExtractedPackage=packageRootIndex!==-1;
+if(usesExtractedPackage&&!process.argv[packageRootIndex+1])throw new Error('--package-root exige le dossier extrait');
+const temporary=usesExtractedPackage?resolve(process.argv[packageRootIndex+1]):await mkdtemp(join(tmpdir(),'parallaxe-portable-'));
+if(usesExtractedPackage){
+  // A fresh extraction is required; never run QA against existing player sessions.
+  try{await stat(join(temporary,'.parallaxe-data'));throw new Error('Utiliser une extraction neuve sans sessions existantes.');}
+  catch(error){if(error.code!=='ENOENT')throw error;}
+}
 let reservation,child;
 try{
   reservation=createServer();
   await new Promise((resolve,reject)=>{reservation.once('error',reject);reservation.listen(0,'127.0.0.1',resolve);});
   const port=reservation.address().port;
   await new Promise((resolve,reject)=>reservation.close(error=>error?reject(error):resolve()));
-  await mkdir(join(temporary,'scripts'));
-  await cp(resolve('scripts/start-local.mjs'),join(temporary,'scripts/start-local.mjs'));
-  await cp(resolve('standalone-dist'),join(temporary,'standalone-dist'),{recursive:true});
+  if(!usesExtractedPackage){
+    await mkdir(join(temporary,'scripts'));
+    await cp(resolve('scripts/start-local.mjs'),join(temporary,'scripts/start-local.mjs'));
+    await cp(resolve('standalone-dist'),join(temporary,'standalone-dist'),{recursive:true});
+  }
   child=spawn(process.execPath,[join(temporary,'scripts/start-local.mjs'),`--port=${port}`],{cwd:temporary,stdio:['ignore','pipe','pipe']});
   await new Promise((resolve,reject)=>{
     const timer=setTimeout(()=>reject(new Error('Portable server startup timed out')),10000);
@@ -57,5 +67,5 @@ try{
   try{
     if(reservation?.listening)await new Promise((resolve,reject)=>reservation.close(error=>error?reject(error):resolve()));
     if(child&&!child.killed){child.kill('SIGTERM');await new Promise(resolve=>{child.once('exit',resolve);setTimeout(resolve,2500);});}
-  }finally{await rm(temporary,{recursive:true,force:true});}
+  }finally{if(!usesExtractedPackage)await rm(temporary,{recursive:true,force:true});}
 }

@@ -171,8 +171,7 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
       const step = Math.sin(cycle + index * Math.PI) * stride;
       hips[index].rotation.x = step * .53;
       knees[index].rotation.x = Math.max(0, -step) * .66;
-      shoulders[index].rotation.x = -step * .36;
-      shoulders[index].rotation.z = index === 0 ? .055 : -.055;
+      shoulders[index].rotation.set(-step * .36, 0, index === 0 ? .055 : -.055);
       elbows[index].rotation.x = -.10 - Math.max(0, step) * .15;
     }
     torso.rotation.z = mannequin ? 0 : Math.sin(cycle) * stride * .015;

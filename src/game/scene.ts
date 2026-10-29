@@ -871,7 +871,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     selfAvatar.root.position.set(pose.x, 0, pose.z); selfAvatar.root.rotation.y = pose.yaw; selfAvatar.root.visible = active;
     const connectedPeers = [...peers.values()].filter(peer => peer.group.visible).sort((a, b) => a.slot - b.slot);
     selfAvatar.animate({ time: elapsed, speed: selfSpeed, talking, pitch: pose.pitch, mannequin: effects.has('avatar_mannequin') && connectedPeers.length === 0, radioSignal: effects.has('radio_signal') });
-    if (active && dt > 0) {
+    // Keep a full second of history without making its duration depend on refresh rate.
+    if (active && dt > 0 && (!poseHistory.length || elapsed - poseHistory[poseHistory.length - 1].time >= 1 / 120)) {
       poseHistory.push({ time: elapsed, pose: { ...pose }, speed: selfSpeed, talking });
       while (poseHistory.length > 2 && poseHistory[1].time < elapsed - 1.15) poseHistory.shift();
       while (poseHistory.length > 180) poseHistory.shift();

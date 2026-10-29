@@ -110,29 +110,40 @@ export default function Game({portable=false}:{portable?:boolean}){
   const inputBlocked=modal!=="none"||roundFinished||phase==="lobby";
 
   const notify=useCallback((message:string)=>{setToast(message);},[]);
+  const resetJoystick=useCallback((pointerId?:number)=>{
+    if(pointerId!==undefined&&joystickOrigin.current?.id!==pointerId)return;
+    joystickOrigin.current=null;touchMove.current={forward:0,strafe:0};setTouchStick({x:0,y:0});
+    engine.current?.setInput({forward:0,strafe:0,sprint:false});
+  },[]);
+  const resetLook=useCallback((pointerId?:number)=>{
+    if(pointerId!==undefined&&touchLook.current?.id!==pointerId)return;
+    touchLook.current=null;
+  },[]);
+  const resetControls=useCallback(()=>{keys.current.clear();resetJoystick();resetLook();},[resetJoystick,resetLook]);
+  const blockControls=useCallback(()=>{frameState.current.blocked=true;resetControls();},[resetControls]);
   const suspendTalking=useCallback(()=>{padTalk.current?.suspend();radio.current?.setTalking(false);},[]);
   const stopRadio=useCallback(()=>{suspendTalking();radioActions.current?.cancel();radio.current?.disablePlayback();},[suspendTalking]);
   const stopMicrophone=useCallback(()=>{suspendTalking();radioActions.current?.cancel();radio.current?.disableMicrophone();},[suspendTalking]);
   const resetSession=useCallback((credential:Credentials|null)=>{
-    suspendTalking();
+    blockControls();suspendTalking();
     // Even a repeat resume of the same saved identity must restart its effects.
     const next=credential?{...credential}:null;
     sessionScope.current!.replace(next);credRef.current=next;
     postInFlight.current=false;setBusy(false);setNetworkDown(false);
     setCredentials(next);setOnline(null);lastPhase.current="";lastReveal.current="";
-  },[suspendTalking]);
+  },[blockControls,suspendTalking]);
   const cancelOpening=useCallback(()=>{
     // An opening request has no adopted credentials yet. Closing it retires its ticket.
     if(postInFlight.current&&!credRef.current)resetSession(null);
   },[resetSession]);
-  const openModal=useCallback((m:Modal)=>{if(m!=="coop")cancelOpening();suspendTalking();document.exitPointerLock?.();setModal(m);setError("");audio.current?.tone("click");},[cancelOpening,suspendTalking]);
-  const closeModal=useCallback(()=>{cancelOpening();suspendTalking();setModal("none");setError("");setConfirmLeave(false);},[cancelOpening,suspendTalking]);
-  const togglePause=useCallback(()=>{cancelOpening();suspendTalking();setModal(m=>m!=="none"?"none":"pause");},[cancelOpening,suspendTalking]);
+  const openModal=useCallback((m:Modal)=>{if(m!=="coop")cancelOpening();blockControls();suspendTalking();document.exitPointerLock?.();setModal(m);setError("");audio.current?.tone("click");},[blockControls,cancelOpening,suspendTalking]);
+  const closeModal=useCallback(()=>{cancelOpening();blockControls();suspendTalking();setModal("none");setError("");setConfirmLeave(false);},[blockControls,cancelOpening,suspendTalking]);
+  const togglePause=useCallback(()=>{cancelOpening();blockControls();suspendTalking();setModal(m=>m!=="none"?"none":"pause");},[blockControls,cancelOpening,suspendTalking]);
   const acceptState=useCallback((state:OnlineState)=>{
     if(!sessionScope.current!.accept(state))return;
-    if(["reveal","won","lost"].includes(state.phase))suspendTalking();
+    if(["reveal","won","lost"].includes(state.phase)){blockControls();suspendTalking();}
     setOnline(state);setNetworkDown(false);
-  },[suspendTalking]);
+  },[blockControls,suspendTalking]);
   useEffect(()=>()=>{sessionScope.current!.invalidate();},[]);
   const request=useCallback(async(action:string,extra:Record<string,unknown>={},quiet=false)=>{
     if(postInFlight.current&&!quiet)return null;
@@ -205,7 +216,7 @@ export default function Game({portable=false}:{portable?:boolean}){
       };raf=requestAnimationFrame(animate);
     }).catch(e=>{if(!destroyed)setGraphicsError(e instanceof Error?e.message:"WebGL 2 est indisponible sur cet appareil.");});
     const onLock=()=>setLocked(document.pointerLockElement===canvasRef.current);
-    const onBlur=()=>{keys.current.clear();touchMove.current={forward:0,strafe:0};suspendTalking();};
+    const onBlur=()=>{resetControls();suspendTalking();};
     const onVisibility=()=>{if(document.hidden)onBlur();};
     const onMouse=(e:MouseEvent)=>{if(document.pointerLockElement===canvasRef.current&&!frameState.current.blocked)engine.current?.look(e.movementX*frameState.current.sensitivity,e.movementY*frameState.current.sensitivity);};
     const onKey=(e:KeyboardEvent)=>{
@@ -227,9 +238,10 @@ export default function Game({portable=false}:{portable?:boolean}){
     document.addEventListener("visibilitychange",onVisibility);
     window.addEventListener("gamepadconnected",suspendTalking);window.addEventListener("gamepaddisconnected",suspendTalking);
     return()=>{destroyed=true;cancelAnimationFrame(raf);engine.current?.dispose();engine.current=null;audio.current?.dispose();window.removeEventListener("keydown",onKey);window.removeEventListener("keyup",onKey);window.removeEventListener("blur",onBlur);document.removeEventListener("pointerlockchange",onLock);document.removeEventListener("mousemove",onMouse);document.removeEventListener("visibilitychange",onVisibility);window.removeEventListener("gamepadconnected",suspendTalking);window.removeEventListener("gamepaddisconnected",suspendTalking);};
-  },[suspendTalking]);
+  },[resetControls,suspendTalking]);
 
   useEffect(()=>{frameState.current={playing,blocked:inputBlocked,sensitivity:preferences.sensitivity,reduceMotion:preferences.reduceMotion,radioInput:!!online&&!networkDown&&(playing&&!inputBlocked||modal==="radio"||phase==="lobby"),sessionTicket:renderedSessionTicket};},[playing,inputBlocked,preferences.sensitivity,preferences.reduceMotion,online!==null,networkDown,modal,phase,renderedSessionTicket]);
+  useEffect(()=>{if(inputBlocked||!playing)resetControls();},[inputBlocked,playing,resetControls]);
   useEffect(()=>{
     let disposed=false;
     const scope=sessionScope.current!;const ticket=renderedSessionTicket;
@@ -366,7 +378,7 @@ export default function Game({portable=false}:{portable?:boolean}){
   };
   const startProtocol=()=>submitDecision("start");
   const nextRound=async()=>{if(!currentDecision())return;audio.current?.start();if(online){if(!await submitDecision("next")||!currentDecision())return;}else if(run){setRun(advanceRun(run));}setModal("none");};
-  const vote=async(value:boolean)=>{if(phase!=="inspect"||!currentDecision())return;if(online){const result=await submitDecision("vote",{vote:value});if(result&&currentDecision()){setModal("none");notify("Diagnostic transmis. Attendez l’accord de l’équipe.");}}else if(run){setRun(evaluateRun(run,value));setModal("none");}};
+  const vote=async(value:boolean)=>{if(phase!=="inspect"||!currentDecision())return;if(online){const result=await submitDecision("vote",{vote:value});if(result&&currentDecision()){setModal("none");notify("Diagnostic transmis. Attendez l’accord de l’équipe.");}}else if(run){blockControls();setRun(evaluateRun(run,value));setModal("none");}};
   const switchView=()=>{if(online)return;setSlot(s=>1-s);audio.current?.tone("signal");notify(`Perception ${slot===0?"BÊTA":"ALPHA"}. Comparez le même objet.`);};
   const toggleTorch=()=>{setTorch(t=>!t);audio.current?.tone("click");};
   const interact=()=>{
@@ -403,14 +415,36 @@ export default function Game({portable=false}:{portable?:boolean}){
   const setTalking=(talking:boolean)=>{if(!talking||!!online&&!networkDown)radio.current?.setTalking(talking);};
   const probeRadio=async()=>{const result=await radio.current?.probe();if(result)setRadioCaption(result.caption);};
   const sendChat=async(e:React.FormEvent)=>{e.preventDefault();if(!chat.trim())return;const r=await request("chat",{message:chat.trim()});if(r)setChat("");};
+  const canUsePointer=()=>frameState.current.playing&&!frameState.current.blocked&&!document.hidden&&document.hasFocus();
+  const beginJoystick=(e:React.PointerEvent<HTMLElement>)=>{
+    if(!canUsePointer()||joystickOrigin.current)return;
+    joystickOrigin.current={x:e.clientX,y:e.clientY,id:e.pointerId};e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const moveJoystick=(e:React.PointerEvent<HTMLElement>)=>{
+    const o=joystickOrigin.current;if(!canUsePointer()||!o||o.id!==e.pointerId)return;
+    const x=Math.max(-38,Math.min(38,e.clientX-o.x)),y=Math.max(-38,Math.min(38,e.clientY-o.y));
+    setTouchStick({x,y});touchMove.current={strafe:x/38,forward:-y/38};
+  };
+  const endJoystick=(e:React.PointerEvent<HTMLElement>)=>resetJoystick(e.pointerId);
+  const beginLook=(e:React.PointerEvent<HTMLElement>)=>{
+    if(!canUsePointer()||document.pointerLockElement===canvasRef.current||touchLook.current)return;
+    touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const moveLook=(e:React.PointerEvent<HTMLElement>,scale=1)=>{
+    const o=touchLook.current;if(!canUsePointer()||!o||o.id!==e.pointerId||document.pointerLockElement===canvasRef.current)return;
+    engine.current?.look((e.clientX-o.x)*scale*frameState.current.sensitivity,(e.clientY-o.y)*scale*frameState.current.sensitivity);
+    touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};
+  };
+  const endLook=(e:React.PointerEvent<HTMLElement>)=>resetLook(e.pointerId);
+
   const patchPref=(next:Partial<Preferences>)=>setPreferences(p=>({...p,...next}));
   const renderedAnomalies=ANOMALIES.filter(a=>!archiveFilter||`${a.title} ${a.description}`.toLowerCase().includes(archiveFilter.toLowerCase()));
 
   return <main className={`game-root ${playing?"in-game":"in-menu"} ${preferences.reduceMotion?"reduce-motion":""}`}>
     <canvas ref={canvasRef} className="world-canvas" aria-label={`Lieu 3D explorable : ${level.name}`} onClick={capture}
-      onPointerDown={e=>{if(playing&&!inputBlocked&&!locked&&e.pointerType!=="touch"){touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};e.currentTarget.setPointerCapture(e.pointerId);}}}
-      onPointerMove={e=>{const t=touchLook.current;if(t&&t.id===e.pointerId&&!locked&&!inputBlocked){engine.current?.look((e.clientX-t.x)*preferences.sensitivity,(e.clientY-t.y)*preferences.sensitivity);touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};}}}
-      onPointerUp={()=>{touchLook.current=null;}} onPointerCancel={()=>{touchLook.current=null;}}/>
+      onPointerDown={e=>{if(e.pointerType!=="touch")beginLook(e);}}
+      onPointerMove={e=>moveLook(e)}
+      onPointerUp={endLook} onPointerCancel={endLook} onLostPointerCapture={endLook}/>
     <div className="cinematic-shade" aria-hidden="true"/><div className="grain" aria-hidden="true"/>
 
     {!active&&<>
@@ -449,7 +483,7 @@ export default function Game({portable=false}:{portable?:boolean}){
       <div className="radio-hud">{online?<TalkButton compact enabled={!!radioStatus?.microphone&&!networkDown} talking={radioStatus?.talking??false} onTalk={setTalking}/>:<button className="radio-probe-shortcut" onClick={()=>openModal("radio")}><Radio size={14}/> Tester le talkie</button>}</div><div className="controls-line"><span><Key>ZQSD</Key> / <Key>WASD</Key> Se déplacer</span><span><Key>E</Key> Signaler</span><span><Key>F</Key> Lampe</span><span><Key>J</Key> Carnet</span><span><Key>T</Key> Talkie</span><span><Key>Échap</Key> Pause</span></div>
       {online&&online.pings.length>0&&<div className="ping-feed">{online.pings.slice(-2).map(p=><span key={p.id}><Radio size={12}/> {p.name} : repère « {p.target} »</span>)}</div>}
       {(networkDown||online?.paused)&&<div className="network-warning" role="status"><Radio size={15}/> {networkDown?"Liaison interrompue · reconnexion automatique. Attendez avant de voter.":"Un inspecteur manque à l’appel. Le diagnostic attend son retour."}</div>}
-      {isTouch&&!inputBlocked&&<div className="touch-controls"><div className="touch-stick" role="application" aria-label="Joystick de déplacement" onPointerDown={e=>{joystickOrigin.current={x:e.clientX,y:e.clientY,id:e.pointerId};e.currentTarget.setPointerCapture(e.pointerId);}} onPointerMove={e=>{const o=joystickOrigin.current;if(!o||o.id!==e.pointerId)return;const x=Math.max(-38,Math.min(38,e.clientX-o.x));const y=Math.max(-38,Math.min(38,e.clientY-o.y));setTouchStick({x,y});touchMove.current={strafe:x/38,forward:-y/38};}} onPointerUp={()=>{joystickOrigin.current=null;touchMove.current={forward:0,strafe:0};setTouchStick({x:0,y:0});}} onPointerCancel={()=>{joystickOrigin.current=null;touchMove.current={forward:0,strafe:0};setTouchStick({x:0,y:0});}}><i style={{transform:`translate(${touchStick.x}px,${touchStick.y}px)`}}/></div><div className="touch-look" role="application" aria-label="Glissez pour regarder" onPointerDown={e=>{touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};e.currentTarget.setPointerCapture(e.pointerId);}} onPointerMove={e=>{const o=touchLook.current;if(!o||o.id!==e.pointerId)return;engine.current?.look((e.clientX-o.x)*1.6*preferences.sensitivity,(e.clientY-o.y)*1.6*preferences.sensitivity);touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};}} onPointerUp={()=>{touchLook.current=null;}} onPointerCancel={()=>{touchLook.current=null;}}><span>REGARDER</span></div><button className="touch-interact" onClick={interact}><Crosshair size={22}/></button></div>}
+      {isTouch&&!inputBlocked&&<div className="touch-controls"><div className="touch-stick" role="application" aria-label="Joystick de déplacement" onPointerDown={beginJoystick} onPointerMove={moveJoystick} onPointerUp={endJoystick} onPointerCancel={endJoystick} onLostPointerCapture={endJoystick}><i style={{transform:`translate(${touchStick.x}px,${touchStick.y}px)`}}/></div><div className="touch-look" role="application" aria-label="Glissez pour regarder" onPointerDown={beginLook} onPointerMove={e=>moveLook(e,1.6)} onPointerUp={endLook} onPointerCancel={endLook} onLostPointerCapture={endLook}><span>REGARDER</span></div><button className="touch-interact" onClick={interact}><Crosshair size={22}/></button></div>}
     </>}
 
     {online&&phase==="lobby"&&<section className="lobby-screen"><header><Brand/><button className="text-button" onClick={returnMenu}><ChevronLeft size={16}/> Quitter le salon</button></header><div className="lobby-content"><span className="eyebrow">LIAISON ÉTABLIE · {online.players.length} / 4</span><h1>L’équipe avant<br/>la réalité.</h1><p>Chaque inspecteur verra sa propre version du lieu.<br/>Gardez une ligne de communication ouverte.</p><div className="room-code"><span>CODE DU SALON</span><strong>{online.code}</strong><button title="Copier le code" aria-label="Copier le code" onClick={copyCode}><Copy size={18}/></button></div><div className="lobby-roster">{Array.from({length:4},(_,i)=>{const p=online.players.find(p=>p.slot===i);return <div className={p?"filled":""} key={i}><span>{LETTERS[i]}</span><div><strong>{p?.name??"En attente d’un inspecteur"}</strong><small>{p?p.id===online.hostId?"RESPONSABLE DU PROTOCOLE":"OBSERVATEUR":"EMPLACEMENT LIBRE"}</small></div>{p&&<Check size={17}/>}</div>;})}</div>{isHost?<button className="solid-button wide" disabled={!ready||online.players.filter(p=>p.connected).length<2||busy} onClick={startProtocol}>{busy?<LoaderCircle className="spin" size={17}/>:<ArrowRight size={17}/>} {!ready?"Rendu 3D nécessaire pour commencer":online.players.length<2?"En attente du deuxième inspecteur":"Entrer dans l’observatoire"}</button>:<p className="waiting-note"><LoaderCircle className="spin" size={15}/> Le responsable lancera le passage de référence.</p>}<button className="outline-button wide lobby-radio-button" onClick={()=>openModal("radio")}><Radio size={16}/> Préparer et tester mon talkie</button><p className="fine-print">Talkies intégrés : activez votre microphone, puis maintenez T pour parler. Les invités doivent avoir accès à cette édition du jeu.</p>{error&&<p className="error-line" role="alert">{error}</p>}</div><aside className="lobby-sidebar"><span className="eyebrow">RÈGLE N° 01</span><h2>Votre collègue<br/>ne ment pas.</h2><p>Si vous ne voyez pas la même chose, c’est le lieu qu’il faut remettre en question.</p><div className="signal-wave"><i/><i/><i/><i/><i/><i/><i/><i/><i/></div></aside></section>}

@@ -4,9 +4,13 @@ import { resolve, join, relative, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { deflateRawSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const version=JSON.parse(await readFile(join(root,'package.json'),'utf8')).version;
+const commit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+const dirty=Boolean(execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:root,encoding:'utf8'}).trim());
+const sha256=data=>createHash('sha256').update(data).digest('hex');
 const output=join(root,'outputs',`release-v${version}`);
 await mkdir(output,{recursive:true});
 const crcTable=Array.from({length:256},(_,value)=>{for(let i=0;i<8;i++)value=(value&1)?0xedb88320^(value>>>1):value>>>1;return value>>>0;});
@@ -24,7 +28,7 @@ async function archive(path,entries){
   }
   const central=Buffer.concat(directory),end=Buffer.alloc(22);end.writeUInt32LE(0x06054b50,0);end.writeUInt16LE(entries.size,8);end.writeUInt16LE(entries.size,10);end.writeUInt32LE(central.length,12);end.writeUInt32LE(offset,16);
   const buffer=Buffer.concat([...files,central,end]);await writeFile(path,buffer);
-  return {file:path,files:entries.size,bytes:buffer.length};
+  return {file:path,files:entries.size,bytes:buffer.length,sha256:sha256(buffer)};
 }
 async function collect(folder,prefix,entries,filter=()=>true){
   for(const item of await readdir(folder,{withFileTypes:true})){const absolute=join(folder,item.name),name=prefix+'/'+item.name;
@@ -61,11 +65,14 @@ const sourcePath=join(output,`PARALLAXE_Sources_v${version}.zip`);
 const sourceResult=await archive(sourcePath,sources);
 // The portable edition includes its source download, but never embeds its own ZIP.
 portable.set(`standalone-dist/downloads/PARALLAXE_Sources_v${version}.zip`,await readFile(sourcePath));
+portable.set('COMMIT.txt',commit+'\n');
 const portableResult=await archive(portablePath,portable);
 await mkdir(join(root,'public/downloads'),{recursive:true});
 for(const item of await readdir(join(root,'public/downloads')))if(/^PARALLAXE_(Jeu_PC_LAN|Sources)_v.*\.zip$/.test(item))await rm(join(root,'public/downloads',item));
 await copyFile(portablePath,join(root,'public/downloads',relative(output,portablePath)));
 await copyFile(sourcePath,join(root,'public/downloads',relative(output,sourcePath)));
-const report={version,portable:portableResult,sources:sourceResult};
+const report={version,commit,dirty,portable:portableResult,sources:sourceResult};
 await writeFile(join(output,'release-manifest.json'),JSON.stringify(report,null,2)+'\n');
+await writeFile(join(output,'COMMIT.txt'),commit+'\n');
+await writeFile(join(output,'SHA256SUMS.txt'),[portableResult,sourceResult].map(item=>`${item.sha256}  ${relative(output,item.file)}`).join('\n')+'\n');
 console.log(JSON.stringify(report,null,2));
