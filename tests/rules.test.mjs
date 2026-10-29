@@ -4,19 +4,24 @@ import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import ts from 'typescript';
+import {stripTypeScriptTypes} from 'node:module';
 
 // Compile the actual dependency-free domain modules, then test their public API.
 const temp=await mkdtemp(join(tmpdir(),'parallaxe-domain-'));
 for(const name of ['levels','catalog','rules','session']){
   const source=await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8');
-  const output=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");
+  const output=stripTypeScriptTypes(source).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");
   await writeFile(join(temp,`${name}.mjs`),output);
 }
 const {ANOMALIES}=await import(pathToFileURL(join(temp,'catalog.mjs')));
 const {createRun,advanceRun,evaluateRun,getPersonalView,migrateRun}=await import(pathToFileURL(join(temp,'rules.mjs')));
-const {createRoom,joinRoom,actRoom,projectRoom,makePlayer,authenticate,cleanPose,PRESENCE_TIMEOUT}=await import(pathToFileURL(join(temp,'session.mjs')));
+const {createRoom,joinRoom,actRoom:applyRoom,projectRoom,makePlayer,authenticate,cleanPose,PRESENCE_TIMEOUT}=await import(pathToFileURL(join(temp,'session.mjs')));
 test.after(async()=>{await rm(temp,{recursive:true,force:true});});
+// Ordinary rule scenarios issue a fresh decision from the latest displayed room.
+// Captured/replayed decisions are exercised without this helper in session-actions.
+function actRoom(room,id,action,payload,at){
+  return applyRoom(room,id,action,['start','next','vote'].includes(action)?{decisionEpoch:room.decisionEpoch,...payload}:payload,at);
+}
 
 function roomWithTwo(){
   let room=createRoom('ABCDEF',makePlayer('a','Alpha','secret-a',0,1000),'standard','test-seed',1000);

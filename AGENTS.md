@@ -4,7 +4,7 @@
 
 Lire `README.md`, `package.json`, `package-lock.json` et [le guide du projet](docs/GAMEDEV_GUIDANCE.md). Vérifier la branche, le commit de départ et les changements déjà en cours avant toute modification.
 
-Le relevé du 29 octobre 2026 porte sur la PR #2, commit `f1cadcca96dd94a84eaf68bdf821f235fb50b2cf`, dont le paquet déclare **0.2.1**. La description de cette PR signale un site privé en **0.4.0** dont les sources ne sont pas encore synchronisées. Ce signalement ne prouve pas que cette branche contient la 0.4.0. Retrouver et comparer les sources avant une livraison de gameplay destinée à remplacer le site ; poursuivre les corrections isolées sur une base explicitement nommée. Actualiser ce constat dès que la réconciliation est prouvée.
+L'examen des guides du 29 octobre 2026 porte sur la PR #2, commit `f1cadcca96dd94a84eaf68bdf821f235fb50b2cf`, dont le paquet déclare **0.2.1**. Les correctifs qui suivent partent du commit documentaire `1a7196f0151b3e755edc5670d8d571a9ec9e065c`. Les métadonnées du Site identifient sa version sauvegardée 7 et son commit source ; une capture du 28 octobre affiche **0.4.0 / quatre lieux**. Le téléchargement des sources reste bloqué et leur comparaison n'est pas faite : consulter le [relevé des sources](docs/SOURCE_RECONCILIATION_2026-10-29.md). Retrouver et comparer ces sources avant une livraison destinée à remplacer le site ; poursuivre les corrections isolées sur une base explicitement nommée.
 
 ## Moteur et sélection des guides
 
@@ -17,9 +17,10 @@ Conserver le moteur, les versions, la direction artistique et les deux cibles ex
 ## Invariants du jeu
 
 - **Vérité serveur :** utiliser `projectRoom()` pour les réponses réseau. Ne pas diffuser l'objet `Room`, la graine, la réponse cachée, les perceptions des autres inspecteurs ou les empreintes de leurs jetons.
-- **Consensus :** respecter l'unanimité, la présence de toute l'équipe et les transitions existantes. Après une absence d'au moins 45 secondes, invalider les anciens votes avant de rafraîchir la présence ; aucune reconnexion ne doit rétablir un diagnostic périmé.
+- **Consensus :** respecter l'unanimité, la présence de toute l'équipe et les transitions existantes. Après une absence d'au moins 45 secondes, invalider les anciens votes et calculer la succession du chef parmi les inspecteurs restés présents avant de rafraîchir la présence ; aucune reconnexion ne doit rétablir un diagnostic ou une priorité périmés.
+- **Intention du joueur :** `start`, `next` et `vote` portent le `decisionEpoch` observé dans le rendu, avec l'identité du salon concerné. Ne jamais remplacer ce contexte par la dernière valeur serveur pendant un réessai. Une décision ancienne renvoie 409 avec `projectRoom()` après persistance du nettoyage de session ; demander une nouvelle décision explicite. Les réponses d'une session abandonnée ne doivent pas restaurer ses identifiants.
 - **Anomalies :** chaque cas possède une référence normale, un lieu compatible, une preuve observable et une comparaison explicite. Les codes, heures ou flèches variables se comparent entre joueurs du même passage. Réinitialiser intégralement les effets entre deux passages.
-- **Voix :** capture uniquement après activation explicite, microphone initialement muet, écoute sans capture conservée. Une autorisation tardive annulée doit fermer ses pistes. Couper la transmission au relâchement, à la perte de focus, au masquage, à la sortie et à la limite de 30 secondes ; conserver la séparation des identités de connexion.
+- **Voix :** capture uniquement après activation explicite, microphone initialement muet, écoute sans capture conservée. Une autorisation tardive annulée doit fermer ses pistes. Couper la transmission au relâchement, à la perte de focus, au masquage, à la sortie et à la limite de 30 secondes ; une manette maintenue ne la réactive pas sans relâchement. Invalider aussi les négociations, réessais et callbacks RTC après extinction ou remplacement de la connexion.
 - **Accessibilité :** conserver la calibration écrite, les preuves solo et les modes silencieux/confort. Une erreur WebRTC n'est jamais la preuve d'une anomalie.
 - **Corps et reflets :** conserver le corps complet dans les captures de l'état normal, ainsi que les variations intentionnelles des anomalies prévues. Éviter la récursion des miroirs et restaurer les états temporaires même en cas d'erreur. Une qualité graphique réduite doit laisser chaque indice reconnaissable.
 - **Progression :** préserver les migrations de sauvegardes, les secteurs validés de la traversée et les règles propres au lieu unique. Un ajout de décor ne doit pas modifier implicitement ces règles.
@@ -31,12 +32,12 @@ Faire une modification ciblée, vérifier son effet observable, puis mettre à j
 
 | Domaine modifié | Contrôles existants à sélectionner |
 | --- | --- |
-| Règles, perceptions, sessions, sauvegardes | `npm test` ; ciblage possible avec `npm run test:resilience` |
+| Règles, perceptions, sessions, sauvegardes | `npm test` ; ciblage avec `npm run test:resilience`, `npm run test:session-actions` ou `npm run test:session-adapters` |
 | Lieux, avatars, collisions, reflets | `npm run test:scene` + contrôle visuel sur GPU pour les pixels et indices |
 | Radio et permissions | `npm run test:radio`, `npm run test:radio-ui`, `npm run test:radio-config` + écoute réelle si l'audio change |
 | Contrats TypeScript | `npm run typecheck` |
 | Cible portable | `npm run build:local`, puis `npm run test:portable` |
-| Backend D1 | `npm run test:network` avec `PARALLAXE_TEST_URL` vers un serveur de test |
+| Backend D1 | `npm run test:session-adapters` vérifie les handlers avec stockage CAS simulé ; `npm run test:network` vers une instance D1 de test pour valider le service réel |
 | Documentation seule | Vérifier sources, chemins, JSON et cohérence des versions |
 
 La CI de `.github/workflows/ci.yml` est la référence des contrôles automatisés requis. Un test CPU de scène ou une simulation des API radio ne prouve ni qualité d'image, ni FPS, ni intelligibilité sur microphone réel, ni fonctionnement TURN entre réseaux. Pour chaque résultat, préciser commit, commande, environnement et limite. Garder « non exécuté » distinct de « réussi ».

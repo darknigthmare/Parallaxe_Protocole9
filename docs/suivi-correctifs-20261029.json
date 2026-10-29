@@ -1,0 +1,165 @@
+{
+  "project": "PARALLAXE — Protocole 9",
+  "date": "2026-10-29",
+  "timezone": "UTC",
+  "base_commit": "1a7196f0151b3e755edc5670d8d571a9ec9e065c",
+  "integrated_base_commit": "f738ab9a54df2b6b651c179c5e9b035ca626719c",
+  "tested_revision": "Modifications locales du lot du 29 octobre 2026, après intégration de f738ab9a. Aucun résultat de CI attribué à un futur commit.",
+  "pull_request": "https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2",
+  "supporting_documents": ["docs/SOURCE_RECONCILIATION_2026-10-29.md", "docs/QA.md"],
+  "preserved_incoming_work": [
+    "Protections SessionScope et tests associés apportés par les changements concurrents.",
+    "Priorité de succession aux inspecteurs restés présents et cinq tests de résilience associés.",
+    "Classeur concurrent docs/PARALLAXE_Suivi_Sessions_2026-10-29.xlsx, sans remplacement."
+  ],
+  "workbook": {
+    "path": "docs/PARALLAXE_Suivi_Reprise_2026-10-28.xlsx",
+    "source_git_blob_sha": "27846a00639f0611e2ee4b4eaff2e653769a0e16",
+    "preserved_sheets": ["Synthèse", "Suivi"],
+    "added_sheet": "Correctifs 29-10",
+    "historical_scope": "Les onglets Synthèse et Suivi conservent les constats du 28 octobre. Les identifiants du nouveau lot sont propres au 29 octobre."
+  },
+  "scope": "Correctifs ciblés de contexte de décision, de cycle de vie des sessions client et radio, et de push-to-talk manette. Protections concurrentes conservées et complétées. La récupération des sources du Site reste bloquée.",
+  "local_validation_summary": {
+    "npm_test": {"passed": 131, "total": 131, "domain": 66, "adapters": 5, "client_session_scope": 60},
+    "radio": {"passed": 29, "total": 29},
+    "radio_input": {"passed": 11, "total": 11, "state_machine": 7, "real_callbacks_in_harness": 4},
+    "ci": "En attente du commit publié",
+    "limits": "Les événements et callbacks du code sont exécutés par des harnais qui simulent les API navigateur. Aucune manette physique, voix réelle, connexion TURN entre réseaux ou validation GPU."
+  },
+  "validation_history": [
+    {
+      "stage": "Avant intégration des changements concurrents",
+      "base_commit": "1a7196f0151b3e755edc5670d8d571a9ec9e065c",
+      "scope": "Modifications locales du lot, résultats alors confirmés. Ce checkpoint ne valide pas les modifications ajoutées ensuite.",
+      "domain": {"passed": 61, "total": 61, "rules": 17, "resilience": 28, "actions": 16},
+      "adapters": {"passed": 5, "total": 5},
+      "radio": {"passed": 25, "total": 25},
+      "gamepad_ptt": {"passed": 7, "total": 7},
+      "ci_verified": false
+    },
+    {
+      "stage": "Après intégration du domaine de f738ab9a, avant clôture des correctifs client et radio",
+      "base_commit": "f738ab9a54df2b6b651c179c5e9b035ca626719c",
+      "scope": "Rejeu confirmé des règles, de la résilience, des actions et des adaptateurs après fusion. Résultats client et radio supplémentaires encore en cours à ce stade.",
+      "domain": {"passed": 66, "total": 66, "rules": 17, "resilience": 33, "actions": 16},
+      "adapters": {"passed": 5, "total": 5},
+      "ci_verified": false
+    }
+  ],
+  "source_comparison": {
+    "github": { "version": "0.2.1", "locations": 3, "source": "package.json et src/game/levels.ts" },
+    "site": {
+      "saved_version": 7,
+      "source_sha": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
+      "captured_publication_date": "2026-10-28",
+      "displayed_version": "0.4.0",
+      "displayed_locations": 4,
+      "additional_displayed_location": "Chalet de service",
+      "evidence": "Métadonnées du Site et texte de publication capturé. La version sauvegardée 7 ne prouve pas la version actuellement déployée. Son code source n'a pas été récupéré.",
+      "retrieval_status": "blocked",
+      "retrieval_blocker": "Accès à git.chatgpt-team.site impossible. Connexion browser-proxy indisponible.",
+      "reconciled_with_github": false
+    }
+  },
+  "rows": [
+    {
+      "id": "COOP05",
+      "change": "Rejeter les votes retardés",
+      "status": "Réalisé, tests locaux réussis",
+      "criterion": "Un vote capturé dans un ancien decisionEpoch ne vote pas dans le passage suivant. Un vote dans le contexte courant reste possible.",
+      "evidence": "Domaine intégré : 66/66 tests réussis, dont 16 tests d'actions. Adaptateurs : 5/5. Rejet HTTP 409 des décisions périmées avec état courant privé.",
+      "limit": "Résultat local sur les règles partagées. La CI du commit livré et une partie humaine restent à contrôler.",
+      "next": "Vérifier la resynchronisation de l'interface avec plusieurs navigateurs et le frontend compilé.",
+      "sources": ["src/game/session.ts", "tests/session-actions.test.mjs", "tests/session-adapters.test.mjs"]
+    },
+    {
+      "id": "COOP06",
+      "change": "Conserver la référence du nouveau lieu",
+      "status": "Réalisé, tests locaux réussis",
+      "criterion": "Un second next reçu après le changement de secteur ne saute pas la phase de référence du nouveau lieu.",
+      "evidence": "Régression du double next dans les 16 tests d'actions. Les 5 tests d'adaptateurs couvrent aussi la concurrence CAS et trois phases de référence via HTTP.",
+      "limit": "Le test protège la transition logique. Il ne prouve pas le rendu ou la lisibilité du nouveau lieu.",
+      "next": "Vérifier le parcours complet et l'affichage de la référence sur les clients.",
+      "sources": ["src/game/session.ts", "tests/session-actions.test.mjs", "tests/session-adapters.test.mjs"]
+    },
+    {
+      "id": "COOP07",
+      "change": "Invalider la décision après une absence",
+      "status": "Réalisé, tests locaux réussis",
+      "criterion": "Une interruption de présence invalide l'ancien contexte, même sans vote enregistré. Le retour exige une décision fraîche.",
+      "evidence": "Domaine intégré : 66/66. Régressions d'absence sans vote et d'invalidation unique. Les adaptateurs vérifient la persistance du nettoyage avant le rejet 409.",
+      "limit": "Les pauses réseau réelles et la reprise d'une partie humaine ne sont pas validées par ces tests.",
+      "next": "Tester une absence, une reconnexion et un vote retardé sur plusieurs clients.",
+      "sources": ["src/game/session.ts", "tests/session-actions.test.mjs", "tests/session-resilience.test.mjs", "tests/session-adapters.test.mjs"]
+    },
+    {
+      "id": "RAD07",
+      "change": "Annuler les négociations radio périmées",
+      "status": "Réalisé, tests locaux réussis",
+      "criterion": "Ignorer les suites et rejets RTC périmés après extinction, dispose, reconnexion, départ du pair ou changement de son radioEpoch. Un pair courant continue à négocier.",
+      "evidence": "Radio : 29/29. Quatre régressions supplémentaires ont échoué avant correction puis réussi après : rejets tardifs RTC d'un pair parti ou remplacé.",
+      "limit": "API audio et WebRTC simulées. Aucun microphone réel ni relais TURN entre réseaux n'est validé.",
+      "next": "Vérifier extinction et reconnexion avec de vrais appareils et un relais TURN entre réseaux.",
+      "sources": ["src/game/radio.ts", "tests/radio.test.mjs"]
+    },
+    {
+      "id": "INPUT01",
+      "change": "Sécuriser le push-to-talk manette",
+      "status": "Réalisé, tests locaux réussis",
+      "criterion": "blur, onglet masqué ou pause coupe le PTT, même entre deux images. Le retour exige de relâcher le bouton puis de réappuyer.",
+      "evidence": "PTT : 11/11, dont 7 tests d'automate et 4 tests des vrais callbacks exécutés par harnais. Les tests client couvrent aussi pause, changement de session et perte réseau entre deux images.",
+      "limit": "API navigateur simulées par harnais. Aucune manette physique ni aucun microphone réel testé.",
+      "next": "Rejouer perte de focus, pause et changement d'onglet avec manette et microphone physiques.",
+      "sources": ["app/game.tsx", "src/game/radio-input.ts", "tests/radio-input.test.mjs", "tests/session-scope.test.mjs"]
+    },
+    {
+      "id": "CLIENT01",
+      "change": "Compléter le cycle de vie des sessions client",
+      "status": "Protection préservée et complétée",
+      "criterion": "Une fermeture ou annulation create/join retire la requête. Les anciens callbacks radio ne changent pas la session reprise. L'arrêt final utilise les anciens identifiants sans réadopter sa réponse.",
+      "evidence": "SessionScope : 60/60, dont 34 tests concurrents conservés et 26 complémentaires. Annulations, reprise de la même identité, callbacks radio et paquet final d'arrêt couverts.",
+      "limit": "Callbacks du code exécutés dans un harnais avec API navigateur simulées. Le rendu React dans un navigateur réel n'est pas validé.",
+      "next": "Jouer les transitions coopération, annulation, solo et reprise dans plusieurs navigateurs.",
+      "sources": ["app/game.tsx", "src/game/session-scope.ts", "tests/session-scope.test.mjs"]
+    },
+    {
+      "id": "CLIENT02",
+      "change": "Lier chaque action à son contexte affiché",
+      "status": "Réalisé, tests locaux réussis",
+      "criterion": "Une action issue d'un ancien affichage ou d'une ancienne visite ne part pas avec les identifiants du salon courant, même si decisionEpoch est identique.",
+      "evidence": "Inclus dans les 60 tests SessionScope : contexte de rendu, visite, identité, rejet 409 sans réessai automatique et protection d'une nouvelle fenêtre après réponse tardive.",
+      "limit": "Harnais client et HTTP contrôlés. Aucune partie humaine sur plusieurs appareils n'est attestée par ces tests.",
+      "next": "Vérifier vote, passage suivant et reprise du même salon avec une interface compilée et plusieurs clients.",
+      "sources": ["app/game.tsx", "src/game/session-scope.ts", "tests/session-scope.test.mjs"]
+    },
+    {
+      "id": "SRC01",
+      "change": "Récupérer les sources du Site",
+      "status": "Bloqué par accès réseau",
+      "criterion": "Récupérer le sourceSHA de la version 7, comparer avec GitHub 0.2.1 et vérifier le lien avec le texte publié 0.4.0.",
+      "evidence": "Version 7 et sourceSHA connus. Texte publié du 28 octobre : 0.4.0 et quatre lieux, dont Chalet de service. GitHub : 0.2.1 et trois lieux.",
+      "limit": "git.chatgpt-team.site inaccessible. Connexion browser-proxy indisponible. La comparaison du code n'est pas réalisée.",
+      "next": "Rétablir l'accès au dépôt source ou obtenir son archive, puis comparer avant toute livraison remplaçant le Site.",
+      "sources": ["docs/SOURCE_RECONCILIATION_2026-10-29.md", "Métadonnées du Site, version 7", "Texte de publication capturé le 28 octobre 2026", "package.json", "src/game/levels.ts"]
+    }
+  ],
+  "validation": [
+    {"id":"DOMAIN","label":"Domaine partagé","command":"npm test, sous-ensemble domaine","status":"Réussi localement","passed":66,"total":66,"detail":"Règles : 17. Résilience : 33, dont 5 tests concurrents conservés. Actions : 16.","limit":"Règles partagées, sans validation graphique ou matérielle."},
+    {"id":"PTT","label":"Entrées PTT manette","command":"node tests/radio-input.test.mjs","status":"Réussi localement","passed":11,"total":11,"detail":"7 tests d'automate et 4 tests des vrais callbacks exécutés par harnais. L'interruption entre deux images ne réarme pas un bouton maintenu.","limit":"API navigateur simulées. Aucune manette physique ni aucun microphone réel testé."},
+    {"id":"RADIO","label":"Cycle de vie radio","command":"npm run test:radio","status":"Réussi localement","passed":29,"total":29,"detail":"25 tests précédents et 4 régressions de rejets RTC tardifs après départ ou remplacement du pair. Ces 4 défauts étaient reproduits avant correction.","limit":"API audio et WebRTC simulées. Aucun microphone réel validé."},
+    {"id":"HTTP","label":"Adaptateurs D1 et HTTP Node","command":"node tests/session-adapters.test.mjs","status":"Réussi localement","passed":5,"total":5,"detail":"4 tests des vrais handlers D1 sur stockage CAS simulé. 1 scénario vrai HTTP Node sur localhost : 4 clients, 9 consensus, 3 références, rejets 409.","limit":"Sources exécutées sans annotations de types et page HTML de test. Frontend compilé et D1 déployé non validés."},
+    {"id":"CLIENT","label":"Sessions client SessionScope","command":"npm run test:session-client","status":"Réussi localement","passed":60,"total":60,"detail":"34 tests concurrents conservés et 26 complémentaires. Avec 66 tests de domaine et 5 adaptateurs, npm test totalise 131/131.","limit":"Vrais callbacks du code dans un harnais avec API navigateur simulées. Aucun contrôle du rendu React en navigateur."},
+    {"id":"BUILD","label":"Typage et compilation","command":"npm run typecheck ; npm run build:local ; npm run test:portable","status":"En attente CI","passed":null,"total":null,"detail":"Typage, compilation et contrôle du portable compilé restent à valider en CI.","limit":"Le test HTTP depuis les sources ne remplace pas la compilation du frontend."},
+    {"id":"CI","label":"CI du commit livré","command":"GitHub Actions sur la PR 2","status":"En attente CI","passed":null,"total":null,"detail":"En attente sur le commit publié. La CI doit aussi vérifier 4 tests d'actions radio, 59 de configuration et 11 de scène.","limit":"Aucun résultat de CI attribué avant exécution sur le commit exact. La scène CPU ne valide pas le GPU."},
+    {"id":"GPU","label":"GPU et reflets","command":null,"status":"Non exécuté","passed":null,"total":null,"detail":"Aucun contrôle GPU revendiqué dans cette passe.","limit":"Corps, reflets, anomalies et performances restent à vérifier visuellement."},
+    {"id":"MIC","label":"Microphones réels","command":null,"status":"Non exécuté","passed":null,"total":null,"detail":"Aucun essai de voix réelle revendiqué.","limit":"Intelligibilité, permission, coupure et reprise à tester sur appareils."},
+    {"id":"TURN","label":"TURN entre réseaux","command":null,"status":"Non exécuté","passed":null,"total":null,"detail":"Aucune connexion relayée entre réseaux vérifiée.","limit":"Tester avec un relais configuré et deux réseaux distincts."}
+  ],
+  "delivery": {
+    "merged": false,
+    "deployed": false,
+    "site_sources_retrieved": false,
+    "note": "Pas de fusion ni de déploiement dans cette passe."
+  }
+}

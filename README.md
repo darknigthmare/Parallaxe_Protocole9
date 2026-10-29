@@ -136,7 +136,7 @@ Le classeur livré se modifie directement dans Excel. Son générateur `scripts/
 
 Les [consignes du dépôt](AGENTS.md) et le [guide adapté à PARALLAXE](docs/GAMEDEV_GUIDANCE.md) relient dix références de `awesome-gamedev-agent-skills` aux scènes Three.js, aux anomalies, aux personnages, à la radio et aux vérifications existantes. Les sources sont [fixées à une révision précise](docs/gamedev-sources.json).
 
-Le relevé distingue cette base GitHub 0.2.1 de l'édition 0.4.0 signalée dans la [PR de reprise #2](https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2). Consulter le guide pour la réconciliation des sources et les limites de validation avant une nouvelle livraison.
+Le relevé distingue cette base GitHub 0.2.1 de l'édition 0.4.0 signalée dans la [PR de reprise #2](https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2). Le [rapport de sources](docs/SOURCE_RECONCILIATION_2026-10-29.md) identifie la version sauvegardée du Site et la récupération encore bloquée. Les [correctifs du 29 octobre](docs/suivi-correctifs-20261029.json) et leur [suivi Excel](docs/PARALLAXE_Suivi_Reprise_2026-10-28.xlsx) consignent les preuves et les validations restantes.
 
 ## Vérification
 

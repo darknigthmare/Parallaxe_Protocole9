@@ -12,11 +12,11 @@
 | Paquet de cette base | `package.json` : 0.2.1 |
 | Dépendances résolues | `package-lock.json` : Three.js 0.186.1, types Three.js 0.186.0, React 19.2.6, TypeScript 5.9.3 |
 | Catalogue de guides | Commit `19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9` ; guides Three.js ciblant r186 |
-| Version du site | La PR #2 signale une édition privée 0.4.0 dont les sources ne figurent pas dans cette base ; ce signalement reste à réconcilier avec les sources |
+| Version du site | Capture du 28 octobre : 0.4.0 / quatre lieux. Métadonnées : version sauvegardée 7, commit source identifié. Sources non récupérées ; [comparaison en attente](SOURCE_RECONCILIATION_2026-10-29.md) |
 
 Les versions ci-dessus décrivent le relevé, pas une instruction de rétrograder une version plus récente. Vérifier les métadonnées du code lors de la reprise.
 
-Cette passe ajoute des consignes, une sélection traçable et des critères de validation. Elle ne crée pas de nouvelle anomalie ni de nouvelle édition jouable. Le classeur et les archives distribuées conservent leur état antérieur. Le site n'a pas été relu ni déployé pour établir ce guide.
+L'intégration initiale ajoute des consignes, une sélection traçable et des critères de validation. L'application qui suit corrige les décisions coopératives retardées, le cycle de vie radio et les entrées PTT ; ses preuves sont dans [QA.md](QA.md) et le [suivi daté](suivi-correctifs-20261029.json). Le classeur de reprise reçoit un onglet daté en conservant son historique. Cette passe ne crée pas de nouvelle anomalie ni de nouvelle édition jouable, ne régénère pas les archives distribuées et ne déploie pas le Site.
 
 Le catalogue aide à choisir une méthode et à éviter des erreurs courantes. Le rendu des miroirs, les perceptions privées, le consensus et les talkies restent des systèmes propres à PARALLAXE. Leur bon fonctionnement doit être prouvé dans ce projet.
 
@@ -59,6 +59,8 @@ Les points suivants sont une feuille de travail proposée, pas une liste de nouv
 `src/game/session.ts` décide des actions coopératives ; `src/game/rules.ts` porte les règles communes au solo et au serveur. `projectRoom()` est la projection destinée au joueur. Tester ce qu'elle révèle autant que ce qu'elle masque.
 
 Préserver l'ordre « invalider le vote interrompu, puis rafraîchir la présence » après 45 secondes d'absence. Un client revenu ne réactive ni ses anciens votes ni ses anciennes offres radio. Tester également le départ explicite du témoin et l'interdiction d'un nouveau vote pendant qu'un membre manque.
+
+Les décisions `start`, `next` et `vote` transmettent le `decisionEpoch` de la vue que le joueur a utilisée. Le serveur le modifie lors d'une transition ou d'une interruption de décision, sans l'incrémenter pour chaque mouvement ou message. Un contexte manquant ou ancien produit un 409 avec la projection privée actuelle, après sauvegarde du nettoyage. Le client se resynchronise et attend une nouvelle action ; les réessais CAS D1 conservent l'intention d'origine.
 
 La logique métier reste commune à la cible portable et au backend D1. Une réussite avec deux clients Node ne valide pas à elle seule la concurrence des écritures D1.
 

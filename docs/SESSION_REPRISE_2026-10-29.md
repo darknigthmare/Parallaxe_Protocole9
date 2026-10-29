@@ -57,3 +57,12 @@ Aucune anomalie ni aucun niveau supplémentaire n'est revendiqué.
 Le complément `PARALLAXE_Suivi_Sessions_2026-10-29.xlsx` accompagne le classeur
 maître de 120 fiches, conservé intact. Son suivi distingue code testé, contenu
 non récupéré et validation matérielle manquante.
+
+## Complément intégré au même chantier
+
+Les décomptes et la limite sur les votes retardés ci-dessus décrivent le lot
+`b2722ee` et son suivi `f738ab9`. Le complément [coopération et radio](QA.md#correctifs-coopératifs-et-radio--29-octobre-2026)
+ajoute maintenant le contexte de décision côté protocole, préserve les barrières
+`SessionScope` et la succession de l'hôte, et les vérifie ensemble. Le
+[suivi des correctifs](suivi-correctifs-20261029.json) porte les résultats de cette
+intégration et distingue les validations matérielles toujours manquantes.

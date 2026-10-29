@@ -48,6 +48,13 @@ export class RadioClient {
   get status():RadioStatus{return this.getStatus();}
   getStatus():RadioStatus{return {enabled:this.enabled,microphone:this.microphone,talking:this.talking,secure:typeof window!=='undefined'&&window.isSecureContext,supported:typeof RTCPeerConnection!=='undefined',micLevel:this.micLevel,error:this.error,caption:this.caption,peers:[...this.peers.values()].map(p=>({id:p.id,state:p.pc.connectionState,talking:p.talking,signalingState:p.pc.signalingState,iceGatheringState:p.pc.iceGatheringState,iceConnectionState:p.pc.iceConnectionState,localDescription:!!p.pc.localDescription,remoteDescription:!!p.pc.remoteDescription,localCandidateCount:p.localCandidateCount,remoteCandidateCount:p.remoteCandidateCount}))};}
   private emit(){if(!this.disposed)this.options.onState(this.getStatus());}
+  private isCurrentSession(generation:number):boolean{return !this.disposed&&this.enabled&&generation===this.playbackGeneration;}
+  private isCurrentPeer(peer:Peer):boolean{return !this.disposed&&this.enabled&&this.peers.get(peer.id)===peer;}
+  private invalidateSignaling():void{
+    this.playbackGeneration++;this.seen.clear();this.acknowledgements.clear();
+    // Retired browser operations may still settle, but must not block a new radio session.
+    this.receiving=Promise.resolve();this.receiveScheduled=false;
+  }
   private training(){return this.options.selfId==='training'||this.options.selfId.startsWith('training-');}
   private async send(action:string,payload:Record<string,unknown>){if(this.training())return;if(this.disposed&&action!=='radio-status')return;const result=await this.options.send(action,payload);if(result===null)throw new Error('Signalisation radio indisponible.');}
   private updateStatus(payload:Record<string,unknown>):Promise<void>{this.statusSending=this.statusSending.catch(()=>{}).then(async()=>{await this.send('radio-status',payload);});return this.statusSending;}
@@ -74,7 +81,7 @@ export class RadioClient {
       if(!this.enabled){this.enabled=true;this.epoch=freshEpoch();this.joiningUntil=Date.now()+5000;this.error=null;await this.updateStatus({enabled:true,talking:false,epoch:this.epoch,activate:true});}
       if(cancelled())return;
       this.sync(this.frame);this.emit();
-    }catch(error){if(cancelled())return;this.setTalking(false);this.enabled=false;for(const id of [...this.peers.keys()])this.closePeer(id);this.error=error instanceof Error?error.message:'Lecture radio indisponible.';this.emit();throw error;}
+    }catch(error){if(cancelled())return;this.setTalking(false);this.enabled=false;this.invalidateSignaling();for(const id of [...this.peers.keys()])this.closePeer(id);this.error=error instanceof Error?error.message:'Lecture radio indisponible.';this.emit();throw error;}
   }
   /** The ONLY getUserMedia call in this module. Caller must invoke it from a user click. */
   enableMicrophone():Promise<void>{
@@ -130,11 +137,14 @@ export class RadioClient {
   }
   async reconnect():Promise<void>{
     if(!this.enabled){await this.enablePlayback();return;}
-    this.setTalking(false);for(const id of [...this.peers.keys()])this.closePeer(id);this.epoch=freshEpoch();this.joiningUntil=Date.now()+5000;this.error=null;
-    await this.updateStatus({enabled:true,talking:false,epoch:this.epoch,activate:true});this.sync(this.frame);this.emit();
+    this.setTalking(false);this.invalidateSignaling();for(const id of [...this.peers.keys()])this.closePeer(id);this.epoch=freshEpoch();this.joiningUntil=Date.now()+5000;this.error=null;
+    const generation=this.playbackGeneration;
+    await this.updateStatus({enabled:true,talking:false,epoch:this.epoch,activate:true});
+    if(!this.isCurrentSession(generation))return;
+    this.sync(this.frame);this.emit();
   }
   disablePlayback():void{
-    this.playbackGeneration++;
+    this.invalidateSignaling();
     const epoch=this.epoch;this.disableMicrophone();this.enabled=false;for(const id of [...this.peers.keys()])this.closePeer(id);
     void this.updateStatus({enabled:false,talking:false,epoch}).catch(()=>{});this.error=null;this.emit();
   }
@@ -157,18 +167,34 @@ export class RadioClient {
     this.frame=frame;if(this.disposed||this.training())return;
     const self=frame.players.find(p=>p.id===this.options.selfId);
     if(!this.enabled){if(!this.epoch&&!this.clearedPreviousSession&&self?.radioEnabled){this.clearedPreviousSession=true;void this.updateStatus({enabled:false,talking:false,epoch:self.radioEpoch??''}).catch(()=>{});}return;}
-    if(self?.radioEnabled&&self.radioEpoch&&self.radioEpoch!==this.epoch&&Date.now()>this.joiningUntil){this.disableMicrophone();this.enabled=false;for(const id of [...this.peers.keys()])this.closePeer(id);this.error='Le talkie est actif dans un autre onglet. Réactivez-le ici si nécessaire.';this.emit();return;}
+    if(self?.radioEnabled&&self.radioEpoch&&self.radioEpoch!==this.epoch&&Date.now()>this.joiningUntil){this.invalidateSignaling();this.disableMicrophone();this.enabled=false;for(const id of [...this.peers.keys()])this.closePeer(id);this.error='Le talkie est actif dans un autre onglet. Réactivez-le ici si nécessaire.';this.emit();return;}
     const active=frame.players.filter(p=>p.id!==this.options.selfId&&p.connected&&p.radioEnabled&&p.radioEpoch);
     if(active.length===0&&this.talking)this.setTalking(false);
     for(const [id,peer] of this.peers)if(!active.some(p=>p.id===id&&p.radioEpoch===peer.epoch))this.closePeer(id);
     for(const player of active){const peer=this.peer(player.id,player.radioEpoch!);if(Date.now()-peer.lastTalkData>2500)this.remoteTalking(peer,player.talking===true);}
-    if(!this.receiveScheduled){this.receiveScheduled=true;this.receiving=this.receiving.then(async()=>{
-      const inbox=this.frame.radioInbox??[];
-      for(const signal of inbox){if(signal.to!==this.options.selfId||signal.toEpoch!==this.epoch)continue;if(!this.seen.has(signal.id)){this.seen.add(signal.id);if(this.seen.size>512)this.seen.delete(this.seen.values().next().value!);try{await this.receive(signal);}catch(error){this.error=error instanceof Error?error.message:'Négociation radio interrompue.';}}
-        this.acknowledgements.add(signal.id);
-      }
-      if(this.acknowledgements.size){const ids=[...this.acknowledgements].slice(0,128);try{await this.send('signal-ack',{ids});ids.forEach(id=>this.acknowledgements.delete(id));}catch{/* Keep IDs for the next poll; received audio is never replayed. */}}
-    }).finally(()=>{this.receiveScheduled=false;this.emit();});}
+    if(!this.receiveScheduled){
+      this.receiveScheduled=true;
+      const generation=this.playbackGeneration,epoch=this.epoch;
+      const current=()=>this.isCurrentSession(generation)&&this.epoch===epoch;
+      this.receiving=this.receiving.then(async()=>{
+        if(!current())return;
+        const inbox=this.frame.radioInbox??[];
+        for(const signal of inbox){
+          if(!current())return;
+          if(signal.to!==this.options.selfId||signal.toEpoch!==epoch)continue;
+          if(!this.seen.has(signal.id)){
+            this.seen.add(signal.id);if(this.seen.size>512)this.seen.delete(this.seen.values().next().value!);
+            try{await this.receive(signal,generation);}catch(error){if(current())this.error=error instanceof Error?error.message:'Négociation radio interrompue.';}
+          }
+          if(!current())return;
+          this.acknowledgements.add(signal.id);
+        }
+        if(this.acknowledgements.size){
+          const ids=[...this.acknowledgements].slice(0,128);
+          try{await this.send('signal-ack',{ids});if(current())ids.forEach(id=>this.acknowledgements.delete(id));}catch{/* Keep IDs for the current session's next poll. */}
+        }
+      }).finally(()=>{if(generation===this.playbackGeneration){this.receiveScheduled=false;this.emit();}});
+    }
   }
   private peer(id:string,epoch:string):Peer{
     const existing=this.peers.get(id);if(existing?.epoch===epoch)return existing;if(existing)this.closePeer(id);
@@ -178,11 +204,11 @@ export class RadioClient {
     this.peers.set(id,peer);
     if(this.mic)void transceiver.sender.replaceTrack(this.mic.getAudioTracks()[0]).catch(()=>{});
     pc.onnegotiationneeded=()=>{void this.negotiate(peer);};
-    pc.onicecandidate=event=>{if(event.candidate)peer.localCandidateCount++;void this.signal(peer,{candidate:event.candidate?.toJSON()??null}).catch(()=>{});this.emit();};
-    pc.ontrack=event=>{const stream=event.streams[0]??new MediaStream([event.track]);this.attachReceiver(peer,stream);event.track.onended=()=>this.dropReceiver(peer);};
-    pc.ondatachannel=event=>this.attachChannel(peer,event.channel);
+    pc.onicecandidate=event=>{if(!this.isCurrentPeer(peer))return;if(event.candidate)peer.localCandidateCount++;void this.signal(peer,{candidate:event.candidate?.toJSON()??null}).catch(()=>{});this.emit();};
+    pc.ontrack=event=>{if(!this.isCurrentPeer(peer)){event.track.stop();return;}const stream=event.streams[0]??new MediaStream([event.track]);this.attachReceiver(peer,stream);event.track.onended=()=>{if(this.isCurrentPeer(peer))this.dropReceiver(peer);};};
+    pc.ondatachannel=event=>{if(!this.isCurrentPeer(peer)){event.channel.close();return;}this.attachChannel(peer,event.channel);};
     if(this.options.selfId<id)this.attachChannel(peer,pc.createDataChannel('parallaxe-radio',{ordered:true}));
-    pc.onconnectionstatechange=()=>{if(pc.connectionState==='connected'){peer.restartCount=0;this.error=null;if(peer.connectTimer)clearTimeout(peer.connectTimer);peer.connectTimer=null;}if(['failed','disconnected'].includes(pc.connectionState)){this.setTalking(false);if(!peer.restartTimer)peer.restartTimer=setTimeout(()=>{peer.restartTimer=null;if(['failed','disconnected'].includes(pc.connectionState)&&peer.restartCount<2){peer.restartCount++;pc.restartIce();}else if(pc.connectionState==='failed'){this.error='Liaison vocale impossible entre ces réseaux. Un relais TURN peut être nécessaire ; le texte et le contrôle local fonctionnent encore.';this.emit();}},5000);}this.emit();};
+    pc.onconnectionstatechange=()=>{if(!this.isCurrentPeer(peer))return;if(pc.connectionState==='connected'){peer.restartCount=0;this.error=null;if(peer.connectTimer)clearTimeout(peer.connectTimer);peer.connectTimer=null;}if(['failed','disconnected'].includes(pc.connectionState)){this.setTalking(false);if(!peer.restartTimer)peer.restartTimer=setTimeout(()=>{peer.restartTimer=null;if(!this.isCurrentPeer(peer))return;if(['failed','disconnected'].includes(pc.connectionState)&&peer.restartCount<2){peer.restartCount++;pc.restartIce();}else if(pc.connectionState==='failed'){this.error='Liaison vocale impossible entre ces réseaux. Un relais TURN peut être nécessaire ; le texte et le contrôle local fonctionnent encore.';this.emit();}},5000);}this.emit();};
     peer.connectTimer=setTimeout(()=>{if(this.peers.get(id)!==peer||pc.connectionState==='connected')return;this.error=!pc.localDescription?'La négociation du talkie n’a pas démarré. Essayez de reconnecter la radio.':!pc.remoteDescription?'Le talkie attend la réponse de son partenaire. Vérifiez sa radio et la liaison de signalisation.':peer.localCandidateCount===0?'Le navigateur n’a fourni aucun chemin réseau pour la voix. Un relais TURN ou un autre réseau peut être nécessaire.':'La liaison vocale n’a pas abouti après 30 secondes. Reconnectez le talkie ou configurez un relais TURN.';this.emit();},30_000);
     // Initial offer ownership is deterministic. Explicit scheduling also covers browsers
     // that defer negotiationneeded until after a media permission interaction.
@@ -190,37 +216,58 @@ export class RadioClient {
     this.emit();return peer;
   }
   private async negotiate(peer:Peer):Promise<void>{
-    const pc=peer.pc;if(this.disposed||!this.enabled||this.peers.get(peer.id)!==peer||peer.makingOffer||pc.signalingState!=='stable')return;
+    const pc=peer.pc,generation=this.playbackGeneration;
+    const current=()=>this.isCurrentSession(generation)&&this.isCurrentPeer(peer);
+    if(!current()||peer.makingOffer||pc.signalingState!=='stable')return;
     if(!pc.remoteDescription&&this.options.selfId>peer.id)return;
-    try{peer.makingOffer=true;await pc.setLocalDescription();if(pc.localDescription)await this.signal(peer,{description:{type:pc.localDescription.type as 'offer'|'answer',sdp:pc.localDescription.sdp}});}catch(error){if((pc.signalingState as RTCSignalingState)!=='closed'){this.error=error instanceof Error?error.message:'Négociation radio impossible.';this.emit();}}finally{peer.makingOffer=false;this.emit();}
+    try{peer.makingOffer=true;await pc.setLocalDescription();if(current()&&pc.localDescription)await this.signal(peer,{description:{type:pc.localDescription.type as 'offer'|'answer',sdp:pc.localDescription.sdp}});}catch(error){if(current()&&(pc.signalingState as RTCSignalingState)!=='closed'){this.error=error instanceof Error?error.message:'Négociation radio impossible.';this.emit();}}finally{peer.makingOffer=false;if(current())this.emit();}
   }
   private signal(peer:Peer,data:Record<string,unknown>):Promise<void>{
+    const generation=this.playbackGeneration,epoch=this.epoch;
+    const current=()=>this.isCurrentSession(generation)&&this.isCurrentPeer(peer);
     peer.sending=peer.sending.catch(()=>{}).then(async()=>{
-      if(this.disposed||!this.enabled||this.peers.get(peer.id)!==peer)return;
-      for(let attempt=0;attempt<3;attempt++)try{await this.send('signal',{signal:{to:peer.id,epoch:this.epoch,toEpoch:peer.epoch,...data}});return;}catch(error){if(attempt===2){this.error='Signalisation radio interrompue. La radio textuelle reste disponible.';this.emit();throw error;}await new Promise(resolve=>setTimeout(resolve,180*(attempt+1)));}
+      for(let attempt=0;attempt<3;attempt++){
+        if(!current())return;
+        try{await this.send('signal',{signal:{to:peer.id,epoch,toEpoch:peer.epoch,...data}});return;}
+        catch(error){if(!current())return;if(attempt===2){this.error='Signalisation radio interrompue. La radio textuelle reste disponible.';this.emit();throw error;}await new Promise(resolve=>setTimeout(resolve,180*(attempt+1)));}
+      }
     });return peer.sending;
   }
-  private async receive(signal:RadioSignal):Promise<void>{
+  private async receive(signal:RadioSignal,generation:number):Promise<void>{
+    if(!this.isCurrentSession(generation)||signal.toEpoch!==this.epoch)return;
     const player=this.frame.players.find(p=>p.id===signal.from&&p.connected&&p.radioEnabled&&p.radioEpoch===signal.fromEpoch);if(!player)return;
     const peer=this.peer(signal.from,signal.fromEpoch);const pc=peer.pc;
+    const current=()=>this.isCurrentSession(generation)&&this.isCurrentPeer(peer)&&signal.toEpoch===this.epoch;
     if(signal.reset){pc.restartIce();return;}
     if(signal.description){
       const description=signal.description;const ready=!peer.makingOffer&&(pc.signalingState==='stable'||peer.settingAnswer);const collision=description.type==='offer'&&!ready;
       peer.ignoreOffer=!peer.polite&&collision;if(peer.ignoreOffer){peer.candidates=[];return;}
-      peer.settingAnswer=description.type==='answer';try{await pc.setRemoteDescription(description);}finally{peer.settingAnswer=false;}
-      for(const candidate of peer.candidates.splice(0))try{await pc.addIceCandidate(candidate??undefined);}catch(error){if(!peer.ignoreOffer)throw error;}
-      if(description.type==='offer'){await pc.setLocalDescription();if(pc.localDescription)await this.signal(peer,{description:{type:pc.localDescription.type as 'offer'|'answer',sdp:pc.localDescription.sdp}});}
+      peer.settingAnswer=description.type==='answer';
+      // A remote departure/restart can retire this peer without changing our local session.
+      try{await pc.setRemoteDescription(description);}
+      catch(error){if(current())throw error;return;}
+      finally{peer.settingAnswer=false;}
+      if(!current())return;
+      for(const candidate of peer.candidates.splice(0)){
+        if(!current())return;
+        try{await pc.addIceCandidate(candidate??undefined);}catch(error){if(current()&&!peer.ignoreOffer)throw error;}
+      }
+      if(!current())return;
+      if(description.type==='offer'){
+        try{await pc.setLocalDescription();}catch(error){if(current())throw error;return;}
+        if(current()&&pc.localDescription)await this.signal(peer,{description:{type:pc.localDescription.type as 'offer'|'answer',sdp:pc.localDescription.sdp}});
+      }
     }else if('candidate'in signal){
       if(signal.candidate)peer.remoteCandidateCount++;
       if(peer.ignoreOffer)return;
       if(!pc.remoteDescription){peer.candidates.push(signal.candidate??null);if(peer.candidates.length>64)peer.candidates.shift();}
-      else try{await pc.addIceCandidate(signal.candidate??undefined);}catch(error){if(!peer.ignoreOffer)throw error;}
+      else try{await pc.addIceCandidate(signal.candidate??undefined);}catch(error){if(current()&&!peer.ignoreOffer)throw error;}
     }
   }
   private attachChannel(peer:Peer,channel:RTCDataChannel){
     if(channel.label!=='parallaxe-radio'){channel.close();return;}peer.channel=channel;
-    channel.onopen=()=>{if(channel.readyState==='open')channel.send(JSON.stringify({type:'ptt',talking:this.talking}));};
-    channel.onmessage=event=>{if(typeof event.data!=='string'||event.data.length>160)return;try{const data=JSON.parse(event.data);if(data.type==='ptt'&&typeof data.talking==='boolean'){peer.lastTalkData=Date.now();this.remoteTalking(peer,data.talking);}}catch{/* Ignore malformed peer control messages. */}};
+    channel.onopen=()=>{if(this.isCurrentPeer(peer)&&peer.channel===channel&&channel.readyState==='open')channel.send(JSON.stringify({type:'ptt',talking:this.talking}));};
+    channel.onmessage=event=>{if(!this.isCurrentPeer(peer)||peer.channel!==channel||typeof event.data!=='string'||event.data.length>160)return;try{const data=JSON.parse(event.data);if(data.type==='ptt'&&typeof data.talking==='boolean'){peer.lastTalkData=Date.now();this.remoteTalking(peer,data.talking);}}catch{/* Ignore malformed peer control messages. */}};
   }
   private remoteTalking(peer:Peer,value:boolean){const changed=peer.talking!==value;const ended=peer.talking&&!value;peer.talking=value;if(changed)this.squelch(value?0.045:0.065,0.011);if(ended&&this.profile==='aftertone')this.aftertone();this.tune(peer);this.emit();}
   private attachReceiver(peer:Peer,stream:MediaStream){
@@ -245,9 +292,14 @@ export class RadioClient {
   private squelch(duration:number,gain=0.014){if(!this.ctx||!this.master||!this.noiseBuffer)return;const ctx=this.ctx;const source=ctx.createBufferSource();const envelope=ctx.createGain();source.buffer=this.noiseBuffer;envelope.gain.setValueAtTime(gain,ctx.currentTime);envelope.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+duration);source.connect(envelope);envelope.connect(this.master);source.start();source.stop(ctx.currentTime+duration);source.onended=()=>{source.disconnect();envelope.disconnect();};}
   private aftertone(){if(!this.ctx||!this.master)return;const ctx=this.ctx;const oscillator=ctx.createOscillator(),gain=ctx.createGain();oscillator.frequency.value=165;gain.gain.setValueAtTime(0.035,ctx.currentTime+0.25);gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.85);oscillator.connect(gain);gain.connect(this.master);oscillator.start(ctx.currentTime+0.25);oscillator.stop(ctx.currentTime+0.9);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};}
   private dropReceiver(peer:Peer){const r=peer.receiver;if(!r)return;try{r.osc.stop();r.noise.stop();}catch{}for(const node of Object.values(r))node.disconnect();peer.receiver=null;}
-  private closePeer(id:string){const peer=this.peers.get(id);if(!peer)return;if(peer.restartTimer)clearTimeout(peer.restartTimer);if(peer.connectTimer)clearTimeout(peer.connectTimer);this.dropReceiver(peer);peer.channel?.close();peer.pc.onicecandidate=null;peer.pc.onconnectionstatechange=null;peer.pc.onnegotiationneeded=null;peer.pc.close();this.peers.delete(id);}
+  private closePeer(id:string){
+    const peer=this.peers.get(id);if(!peer)return;this.peers.delete(id);
+    if(peer.restartTimer)clearTimeout(peer.restartTimer);if(peer.connectTimer)clearTimeout(peer.connectTimer);this.dropReceiver(peer);
+    if(peer.channel){peer.channel.onopen=null;peer.channel.onmessage=null;peer.channel.close();}
+    peer.pc.onicecandidate=null;peer.pc.onconnectionstatechange=null;peer.pc.onnegotiationneeded=null;peer.pc.ontrack=null;peer.pc.ondatachannel=null;peer.pc.close();
+  }
   dispose():void{
-    if(this.disposed)return;this.setTalking(false);this.disableMicrophone();if(this.enabled)void this.updateStatus({enabled:false,talking:false,epoch:this.epoch}).catch(()=>{});this.enabled=false;this.disposed=true;
+    if(this.disposed)return;this.invalidateSignaling();this.setTalking(false);this.disableMicrophone();if(this.enabled)void this.updateStatus({enabled:false,talking:false,epoch:this.epoch}).catch(()=>{});this.enabled=false;this.disposed=true;
     for(const id of [...this.peers.keys()])this.closePeer(id);if(this.meter)clearInterval(this.meter);if(this.keepAlive)clearInterval(this.keepAlive);if(this.pttLimit)clearTimeout(this.pttLimit);
     this.master?.disconnect();void this.ctx?.close().catch(()=>{});this.ctx=null;this.master=null;
     if(typeof window!=='undefined')window.removeEventListener('blur',this.stopOnBlur);if(typeof document!=='undefined')document.removeEventListener('visibilitychange',this.stopWhenHidden);

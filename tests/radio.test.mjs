@@ -5,12 +5,12 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHmac} from 'node:crypto';
-import ts from 'typescript';
+import {stripTypeScriptTypes} from 'node:module';
 
 const temp=await mkdtemp(join(tmpdir(),'parallaxe-radio-'));
 for(const name of ['levels','catalog','rules','session','radio','radio-config']){
   const source=await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8');
-  const output=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");
+  const output=stripTypeScriptTypes(source).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");
   await writeFile(join(temp,`${name}.mjs`),output);
 }
 const {RadioClient,profileForEffects,getProbePattern,isPolitePeer}=await import(pathToFileURL(join(temp,'radio.mjs')));
@@ -207,3 +207,150 @@ test('radio cancellation: leaving the room stops a microphone granted after disp
     assert.equal(radio.status.enabled,false);assert.equal(radio.status.microphone,false);assert.equal(granted.track.stopped,true);
   }finally{radio?.dispose();env.restore();}
 });
+
+function signalingHarness({failSignal=false}={}){
+  const env=browserHarness(),sent=[],connections=[],operations=[],blocked=new Map();
+  const signalStarted=deferred();let epoch='';
+  const step=async(pc,kind)=>{
+    operations.push({pc,kind});
+    const key=pc.index+':'+kind,block=blocked.get(key);
+    if(block){blocked.delete(key);block.started.resolve();await block.finished.promise;}
+  };
+  class FakePeerConnection{
+    connectionState='new';signalingState='stable';iceGatheringState='new';iceConnectionState='new';localDescription=null;remoteDescription=null;
+    constructor(){this.index=connections.length;connections.push(this);}
+    addTransceiver(){return {sender:{replaceTrack:async()=>{}}};}
+    createDataChannel(label){return {label,readyState:'connecting',close(){},send(){}};}
+    async setRemoteDescription(description){
+      await step(this,'remote');this.remoteDescription=description;
+      if(this.signalingState!=='closed')this.signalingState=description.type==='offer'?'have-remote-offer':'stable';
+    }
+    async setLocalDescription(){
+      await step(this,'local');
+      if(this.signalingState==='closed')throw new Error('Retired peer is closed');
+      this.localDescription={type:this.remoteDescription?.type==='offer'?'answer':'offer',sdp:'v=0\r\n'};
+      this.signalingState=this.localDescription.type==='answer'?'stable':'have-local-offer';
+    }
+    async addIceCandidate(){await step(this,'candidate');}
+    restartIce(){operations.push({pc:this,kind:'restart'});}
+    close(){this.connectionState='closed';this.signalingState='closed';}
+  }
+  globalThis.RTCPeerConnection=FakePeerConnection;
+  const radio=new RadioClient({selfId:'z',onState(){},send:async(action,payload)=>{
+    sent.push({action,payload});
+    if(action==='radio-status'&&payload.activate)epoch=payload.epoch;
+    if(action==='signal'&&failSignal){signalStarted.resolve();throw new Error('Transient signaling failure');}
+    return {};
+  }});
+  return {radio,sent,connections,operations,signalStarted,env,
+    get epoch(){return epoch;},
+    block(kind,index=0){const value={started:deferred(),finished:deferred()};blocked.set(index+':'+kind,value);return value;},
+    frame(inbox=[]){return {players:[{id:'z',connected:true,radioEnabled:true,radioEpoch:epoch},{id:'a',connected:true,radioEnabled:true,radioEpoch:'radio_epoch_alpha_01'}],radioInbox:inbox};},
+    offer(id){return {id,from:'a',to:'z',fromEpoch:'radio_epoch_alpha_01',toEpoch:epoch,createdAt:Date.now(),description:{type:'offer',sdp:'v=0\r\n'}};},
+    close(){radio.disablePlayback();radio.dispose();env.restore();}
+  };
+}
+const flushSignaling=()=>new Promise(resolve=>setImmediate(resolve));
+const acknowledgements=sent=>sent.filter(message=>message.action==='signal-ack').flatMap(message=>message.payload.ids);
+
+for(const action of ['disablePlayback','dispose']){
+  test(`radio teardown: a queued inbox cannot recreate peers after ${action}`,async()=>{
+    const h=signalingHarness();
+    try{
+      await h.radio.enablePlayback();await flushSignaling();
+      h.radio.sync(h.frame([h.offer('queued-before-stop')]));
+      assert.equal(h.connections.length,1);
+      h.radio[action]();await flushSignaling();
+      assert.equal(h.radio.status.enabled,false);
+      assert.equal(h.radio.status.peers.length,0,'An extinguished talkie must keep its peer map empty');
+      assert.equal(h.connections.length,1,'No replacement connection may be created by the retired inbox');
+      assert.ok(h.connections.every(pc=>pc.connectionState==='closed'));
+      assert.deepEqual(acknowledgements(h.sent),[]);
+      assert.equal(h.sent.filter(message=>message.action==='signal').length,0);
+    }finally{h.close();}
+  });
+}
+
+for(const replacement of ['reconnect','reactivate']){
+  test(`radio teardown: ${replacement} handles its own inbox while a retired offer is pending`,async()=>{
+    const h=signalingHarness();let stalled;
+    try{
+      await h.radio.enablePlayback();await flushSignaling();
+      const oldEpoch=h.epoch,oldOffer=h.offer('old-offer');
+      stalled=h.block('remote');h.radio.sync(h.frame([oldOffer]));await stalled.started.promise;
+      if(replacement==='reconnect')await h.radio.reconnect();
+      else{h.radio.disablePlayback();await h.radio.enablePlayback();}
+      assert.notEqual(h.epoch,oldEpoch);await flushSignaling();
+      h.radio.sync(h.frame([h.offer('current-offer')]));await flushSignaling();
+      assert.ok(acknowledgements(h.sent).includes('current-offer'),'A retired operation must not block the new radio session');
+      const current=h.connections.at(-1);
+      assert.equal(current.localDescription?.type,'answer');
+      stalled.finished.resolve();await flushSignaling();
+      assert.equal(h.connections[0].connectionState,'closed');
+      assert.equal(h.operations.filter(operation=>operation.pc===h.connections[0]&&operation.kind==='local').length,0,'No answer may be built after the peer was retired');
+      assert.ok(!acknowledgements(h.sent).includes('old-offer'));
+      assert.equal(h.sent.filter(message=>message.action==='signal').length,1,'Only the current answer is signaled');
+      assert.equal(h.radio.status.enabled,true);assert.equal(h.radio.status.peers.length,1);
+      assert.equal(h.radio.status.error,null);
+    }finally{stalled?.finished.resolve();await flushSignaling();h.close();}
+  });
+}
+
+test('radio teardown: a retired remote-description rejection cannot fault the new session',async()=>{
+  const h=signalingHarness();let stalled;
+  try{
+    await h.radio.enablePlayback();await flushSignaling();
+    stalled=h.block('remote');h.radio.sync(h.frame([h.offer('rejected-old-offer')]));await stalled.started.promise;
+    await h.radio.reconnect();await flushSignaling();
+    h.radio.sync(h.frame([h.offer('current-after-rejection')]));await flushSignaling();
+    stalled.finished.reject(new Error('Old negotiation completed after cancellation'));await flushSignaling();
+    assert.equal(h.radio.status.error,null);assert.equal(h.radio.status.enabled,true);
+    assert.deepEqual(acknowledgements(h.sent),['current-after-rejection']);
+  }finally{stalled?.finished.resolve();await flushSignaling();h.close();}
+});
+
+for(const operation of ['remote','local'])for(const retirement of ['departure','remote-epoch']){
+  test(`radio teardown: a retired ${operation} rejection after ${retirement} cannot fault its replacement peer`,async()=>{
+    const h=signalingHarness();let stalled;
+    try{
+      await h.radio.enablePlayback();await flushSignaling();
+      const localEpoch=h.epoch;
+      stalled=h.block(operation);
+      h.radio.sync(h.frame([h.offer('old-peer-offer')]));await stalled.started.promise;
+      if(retirement==='departure'){
+        const absent=h.frame();absent.players=absent.players.filter(player=>player.id==='z');
+        h.radio.sync(absent);
+      }
+      const remoteEpoch='radio_epoch_alpha_02';
+      const replacement=h.frame([{...h.offer('replacement-peer-offer'),fromEpoch:remoteEpoch}]);
+      replacement.players.find(player=>player.id==='a').radioEpoch=remoteEpoch;
+      h.radio.sync(replacement);
+      assert.equal(h.epoch,localEpoch,'Replacing a remote peer must not reactivate the local radio');
+      assert.equal(h.connections[0].connectionState,'closed');assert.equal(h.connections.length,2);
+      stalled.finished.reject(new Error('Retired individual peer rejected its description'));
+      await flushSignaling();
+      // The next ordinary poll processes the replacement inbox once the old operation settles.
+      h.radio.sync(replacement);await flushSignaling();
+      assert.equal(h.connections[1].localDescription?.type,'answer');
+      assert.ok(acknowledgements(h.sent).includes('replacement-peer-offer'));
+      const answers=h.sent.filter(message=>message.action==='signal'&&message.payload.signal.description);
+      assert.equal(answers.length,1);assert.equal(answers[0].payload.signal.toEpoch,remoteEpoch);
+      assert.equal(h.radio.status.enabled,true);assert.equal(h.radio.status.peers.length,1);
+      assert.equal(h.radio.status.error,null);
+    }finally{stalled?.finished.resolve();await flushSignaling();h.close();}
+  });
+}
+
+test('radio teardown: signaling retries stop when their peer is retired',async()=>{
+  const h=signalingHarness({failSignal:true});
+  try{
+    await h.radio.enablePlayback();await flushSignaling();
+    h.radio.sync(h.frame([h.offer('offer-before-retry')]));await h.signalStarted.promise;
+    h.radio.disablePlayback();
+    await new Promise(resolve=>setTimeout(resolve,220));
+    assert.equal(h.sent.filter(message=>message.action==='signal').length,1,'An obsolete answer must not be retried after extinction');
+    assert.deepEqual(acknowledgements(h.sent),[]);
+    assert.equal(h.radio.status.error,null);assert.equal(h.radio.status.peers.length,0);
+  }finally{h.close();}
+});
+

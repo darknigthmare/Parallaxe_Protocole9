@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { createRoom,joinRoom,actRoom,authenticate,projectRoom,makePlayer,validateName,validateCode,SessionError,SESSION_TTL,upgradeRoom,type Room } from '../../../src/game/session';
+import { createRoom,joinRoom,actRoom,authenticate,projectRoom,makePlayer,validateName,validateCode,SessionError,SESSION_TTL,upgradeRoom,type Room,type DecisionRejection } from '../../../src/game/session';
 import type { Difficulty } from '../../../src/game/rules';
 import {isLevelId} from '../../../src/game/levels';
 import {makeRadioConfig,type IceSettings} from '../../../src/game/radio-config';
@@ -91,7 +91,14 @@ export async function POST(request:Request){
     if(typeof action!=='string')throw new SessionError('Action manquante.');
     const hash=await tokenHash(accessToken(request));
     let selfId='';
-    const room=await mutate(code,current=>{const self=authenticate(current,hash);selfId=self.id;return actRoom(current,self.id,action,payload,Date.now());});
+    const decision:{rejection:DecisionRejection|null}={rejection:null};
+    const room=await mutate(code,current=>{
+      // A CAS retry must re-evaluate the original intention, never adopt a newer epoch.
+      decision.rejection=null;
+      const self=authenticate(current,hash);selfId=self.id;
+      return actRoom(current,self.id,action,payload,Date.now(),rejection=>{decision.rejection=rejection;});
+    });
+    if(decision.rejection)return Response.json({error:decision.rejection.message,code:decision.rejection.code,state:projectRoom(room,selfId,Date.now())},{status:409,headers});
     if(action==='leave')return Response.json({left:true},{headers});
     return Response.json({state:projectRoom(room,selfId,Date.now())},{headers});
   }catch(error){return failure(error);}

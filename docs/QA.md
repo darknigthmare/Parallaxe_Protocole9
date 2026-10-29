@@ -119,3 +119,39 @@ Le typage, les 19 tests radio, les 4 tests du contrôleur d’interface, les bui
 - [Validation des données du classeur](workbook-validation.json), [structure du classeur](workbook-structure-validation.json) et [revue visuelle du classeur et de sa mise à jour](workbook-visual-review.json).
 
 Les fichiers `qa-network.json` et `qa-results.json` sont des traces historiques v0.1. Ils ne doivent pas être utilisés pour annoncer les comptes, le contenu ou les résultats de la v0.2.
+
+## Correctifs coopératifs et radio — 29 octobre 2026
+
+Ce lot applique les consignes gamedev à des défauts reproduits dans le code. Il part de `1a7196f0151b3e755edc5670d8d571a9ec9e065c`, puis intègre les changements concurrents jusqu'à `f738ab9a54df2b6b651c179c5e9b035ca626719c`. Le contenu reste celui de la base GitHub 0.2.1. Le [relevé des sources](SOURCE_RECONCILIATION_2026-10-29.md) distingue cette base du Site plus récent dont les sources ne sont pas récupérées.
+
+### Défauts protégés
+
+| Situation | Comportement corrigé et preuve attendue |
+| --- | --- |
+| Vote retardé après changement de passage | Le vote porte le `decisionEpoch` affiché lors de l'action. Un ancien contexte reçoit 409 et ne vote pas dans le nouveau passage. |
+| Double passage suivant au changement de lieu | La seconde requête garde son intention d'origine et ne saute pas la référence normale du métro ou de la clinique. |
+| Absence détectée avant réception des votes | L'interruption invalide le contexte même si aucun vote n'était encore enregistré. Le nettoyage précède le battement de retour. |
+| Réessai après conflit d'écriture D1 | Le handler réapplique le payload d'origine ; il ne remplace pas son contexte par celui du nouvel état. Le nettoyage est persisté avant le 409. |
+| Ancien salon ou tentative abandonnée | `SessionScope` conserve les barrières de session et d'ordre ajoutées par le lot concurrent ; les décisions sont en plus rattachées à la visite et à l'identité observées. |
+| Négociation radio suspendue lors de l'extinction | Les continuations, réessais, erreurs et callbacks périmés ne recréent pas de pair. Une nouvelle négociation avance sans attendre l'ancienne. |
+| Bouton de talkie maintenu après interruption | La manette doit être relâchée puis pressée à nouveau après perte de focus, masquage, pause, perte réseau ou changement de session. Un maintien continu ne contourne pas la limite de 30 secondes. |
+
+### Contrats et compatibilité
+
+`start`, `next` et `vote` exigent désormais un entier sûr `decisionEpoch`. Une valeur absente ou invalide renvoie `INVALID_DECISION_CONTEXT` ; une valeur périmée renvoie `STALE_DECISION_CONTEXT`. Les deux réponses ont le statut HTTP 409 et contiennent la projection privée actuelle. Les clients doivent transmettre la valeur de leur vue affichée, accepter cette nouvelle vue et attendre une confirmation volontaire. Ils ne doivent pas réessayer automatiquement une décision avec un contexte actualisé.
+
+Le compteur de décision reste stable pendant les mouvements, messages, battements et votes non conclusifs. Les salons sauvegardés sans ce champ sont migrés de façon déterministe. Les anciennes interfaces déjà chargées doivent être rechargées avec le client corrigé après une mise à jour du serveur. Aucun changement de schéma SQL, de dépendance ou de règle de score n'est introduit.
+
+### Portée des vérifications
+
+Les commandes et les résultats à jour figurent dans [suivi-correctifs-20261029.json](suivi-correctifs-20261029.json), avec le commit de code et le lien de CI lorsqu'ils sont connus.
+
+- `npm test` couvre les règles, la résilience, les intentions de décision, les adaptateurs et les callbacks du client. Les callbacks de `app/game.tsx` sont exécutés depuis leur code réel avec requêtes différées ; React n'est pas monté dans un navigateur.
+- `npm run test:session-adapters` exécute quatre scénarios des vrais handlers Cloudflare avec un **stockage CAS simulé**, puis un scénario contre le **vrai serveur HTTP Node**. Ce dernier utilise les modules du domaine effacés de leurs annotations TypeScript et une page de test explicitement factice : quatre clients, neuf consensus, trois références normales et rejeux 409. Il ne valide pas le frontend compilé ni le service D1 hébergé.
+- `npm run test:radio` exerce le vrai client radio avec API Web Audio/WebRTC simulées. Six régressions reproduisent les opérations périmées après extinction ou reconnexion locale. Quatre autres reproduisent les rejets RTC tardifs après départ ou remplacement du pair distant, sans changement de génération locale. Chaque défaut a été observé avant sa correction ; la suite complète atteint 29 tests réussis. La négociation du pair remplaçant est également vérifiée.
+- `npm run test:radio-ui` inclut la logique de maintien PTT. Les transitions entre deux images sont testées sans prétendre qu'une manette physique a été utilisée.
+- La CI vérifie en plus TypeScript, les géométries CPU, la configuration radio, le build portable et les échanges de deux clients avec le **portable réellement compilé**. Ce dernier test reste distinct de la fixture HTTP de la suite adaptateurs.
+
+Les exécutions locales de ce lot utilisent Node 24.22.1 ; la CI utilise Node 22. Les tests HTTP locaux ont nécessité l'autorisation d'écoute sur `127.0.0.1` de l'environnement. Les processus et données temporaires sont nettoyés, y compris lors des échecs d'arrivée ou de réservation de port.
+
+Aucun nouvel essai GPU, navigateur avec scène 3D, microphone physique ou TURN entre réseaux n'est revendiqué. Les preuves historiques ci-dessus conservent leur date et leur édition ; elles ne remplacent pas ces essais. Le classeur de reprise conserve ses deux feuilles historiques et ajoute une feuille datée pour ce lot. Le classeur concurrent de suivi des sessions et le classeur maître d'anomalies sont conservés.

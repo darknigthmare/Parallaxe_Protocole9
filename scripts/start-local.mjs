@@ -84,7 +84,10 @@ async function api(request,response,url){
     return json(response,200,{code:key,token:access,selfId:actor.id,state:projectRoom(room,actor.id,now)});
   }
   const room=readRoom(key);const actor=authenticate(room,bearer(request));
-  const next=put(actRoom(room,actor.id,payload.action,payload,Date.now()));
+  let rejection=null;
+  // Persist presence cleanup even when the old decision itself must be rejected.
+  const next=put(actRoom(room,actor.id,payload.action,payload,Date.now(),value=>{rejection=value;}));
+  if(rejection)return json(response,409,{error:rejection.message,code:rejection.code,state:projectRoom(next,actor.id,Date.now())});
   if(payload.action==='leave')return json(response,200,{left:true});
   return json(response,200,{state:projectRoom(next,actor.id,Date.now())});
 }

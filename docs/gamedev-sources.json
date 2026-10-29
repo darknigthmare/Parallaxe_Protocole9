@@ -27,8 +27,13 @@
       "typescript": "5.9.3"
     },
     "reported_site_version": "0.4.0",
-    "site_version_evidence": "Description de la PR #2 ; site et sources de cette édition non vérifiés pour ce relevé.",
-    "source_reconciliation": "pending"
+    "site_version_evidence": "Capture textuelle de publication enregistrée le 28 octobre 2026 : 0.4.0 et quatre lieux. Métadonnées du Site : version sauvegardée 7 et commit source identifié. Code source non récupéré et état déployé non vérifié.",
+    "source_reconciliation": "blocked_source_retrieval",
+    "source_reconciliation_report": "docs/SOURCE_RECONCILIATION_2026-10-29.md",
+    "implementation_base_commit": "1a7196f0151b3e755edc5670d8d571a9ec9e065c",
+    "site_saved_version": 7,
+    "site_source_commit": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
+    "integration_base_commit": "f738ab9a54df2b6b651c179c5e9b035ca626719c"
   },
   "references": [
     {
