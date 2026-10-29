@@ -14,6 +14,7 @@ La version **0.4.1** réunit les sources 0.4.0 récupérées du Site et les corr
 - [Conception et suivi Excel](docs/PARALLAXE_Design_Complet.xlsx).
 - [Inspecteur 3D animé au format GLB](public/models/inspecteur-parallaxe.glb), avec [fiche technique](public/models/inspecteur-parallaxe.manifest.json).
 - [Sources complètes](public/downloads/PARALLAXE_Sources_v0.4.1.zip), ou **Code → Download ZIP** dans le dépôt.
+- [Manifeste du paquet 0.4.1](public/downloads/PARALLAXE_v0.4.1_manifest.json) et [empreintes SHA-256](public/downloads/PARALLAXE_v0.4.1_SHA256SUMS.txt) : construction propre `fa9cf63`, archive extraite et testée.
 
 **Correctifs de la PR #2 :** le workflow [GitHub Actions](https://github.com/darknigthmare/Parallaxe_Protocole9/actions/workflows/ci.yml) prépare désormais un artefact `parallaxe-pc-lan-<commit>-<exécution>-<tentative>`. Il est publié seulement après une validation réussie et contient les ZIP PC et sources reconstruits, `COMMIT.txt`, `SHA256SUMS.txt` et le manifeste. La CI vérifie le contenu et lance le serveur depuis une extraction du ZIP avec deux clients. Les archives 0.4.1 et les artefacts de CI identifient leur révision exacte ; les anciennes archives restent historiques. Consulter [le suivi de jouabilité](docs/suivi-jouabilite-20261029.json) pour les preuves.
 

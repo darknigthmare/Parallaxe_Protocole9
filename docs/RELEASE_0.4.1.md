@@ -22,6 +22,8 @@ Les 42 anomalies supplémentaires par rapport à l'ancienne branche GitHub provi
 
 ## Livraison et preuves
 
+Le [Site privé 0.4.1](https://parallaxe-protocole-neuf.darknigthmare.chatgpt.site) est publié depuis le 29 octobre 2026 à 16:07 UTC (17:07 à Paris), avec un déploiement réussi depuis la source `064a2157b64787228966ea108b683f735f2e3dc6`. Les exécutables et les archives correspondent au code GitHub propre `fa9cf6306705c750106467d0d6caddf96767b0e7`. La PR #2 reste ouverte et la CI est encore en file d’attente au relevé.
+
 Le packaging produit les archives PC et sources, `COMMIT.txt`, `SHA256SUMS.txt` et un manifeste. La vérification compare les ressources compilées, vérifie les archives, puis lance le serveur depuis une extraction neuve. Le parcours portable comprend une partie Chalet à quatre clients jusqu'à la victoire.
 
 Consulter [le rapport actuel](qa-final-v0.4.1.json), [QA.md](QA.md), [la réconciliation](SOURCE_RECONCILIATION_2026-10-29.md) et [le suivi de reprise](PARALLAXE_Suivi_Reprise_2026-10-28.xlsx) pour les révisions testées et l'état effectif de livraison.

@@ -1,0 +1,27 @@
+{
+  "version": "0.4.1",
+  "commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+  "dirty": false,
+  "portable": {
+    "file": "PARALLAXE_Jeu_PC_LAN_v0.4.1.zip",
+    "files": 79,
+    "bytes": 3455133,
+    "sha256": "7b19158d79e326e4bf3b753679221eb27f67dfb1a7ec16b3449ebf366dca21f6"
+  },
+  "sources": {
+    "file": "PARALLAXE_Sources_v0.4.1.zip",
+    "files": 223,
+    "bytes": 1719317,
+    "sha256": "3742644e36e63f47105bb347802fa3f249efbd38d1f4a77839b349bc3e59cb42"
+  },
+  "validation": {
+    "archive": "passed",
+    "http_checks": 17,
+    "path_requests": 12,
+    "chalet_clients": 4,
+    "chalet_diagnoses": 9,
+    "chalet_won": true,
+    "webgl": "unverified",
+    "windowsLauncher": "unverified"
+  }
+}

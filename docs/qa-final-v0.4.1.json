@@ -2,8 +2,8 @@
   "version": "0.4.1",
   "date": "2026-10-29",
   "timezone": "Europe/Paris",
-  "status": "integrated_local_tests_passed_release_checks_pending",
-  "code_commit": null,
+  "status": "local_validation_archive_and_private_deployment_passed",
+  "code_commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
   "github_base": "2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65",
   "site_source_commit": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
   "runtime": {
@@ -70,15 +70,68 @@
     }
   ],
   "release": {
-    "hosted_build": "initial_build_passed_final_build_pending",
-    "portable_build": "initial_build_passed_final_build_pending",
-    "archive_test": "pending_clean_commit",
-    "ci": "pending",
-    "deployment": "not_started"
+    "hosted_build": "passed",
+    "portable_build": "passed",
+    "archive_test": "passed",
+    "archive_manifest": "public/downloads/PARALLAXE_v0.4.1_manifest.json",
+    "archive": {
+      "version": "0.4.1",
+      "commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+      "dirty": false,
+      "portable": {
+        "file": "PARALLAXE_Jeu_PC_LAN_v0.4.1.zip",
+        "files": 79,
+        "bytes": 3455133,
+        "sha256": "7b19158d79e326e4bf3b753679221eb27f67dfb1a7ec16b3449ebf366dca21f6"
+      },
+      "sources": {
+        "file": "PARALLAXE_Sources_v0.4.1.zip",
+        "files": 223,
+        "bytes": 1719317,
+        "sha256": "3742644e36e63f47105bb347802fa3f249efbd38d1f4a77839b349bc3e59cb42"
+      },
+      "validation": {
+        "archive": "passed",
+        "http_checks": 17,
+        "path_requests": 12,
+        "chalet_clients": 4,
+        "chalet_diagnoses": 9,
+        "chalet_won": true,
+        "webgl": "unverified",
+        "windowsLauncher": "unverified"
+      }
+    },
+    "portable_http_checks": 17,
+    "path_protection_requests": 12,
+    "chalet": {
+      "clients": 4,
+      "diagnoses": 9,
+      "won": true,
+      "private_readings_protected": true
+    },
+    "ci": {
+      "run_id": 40907389674,
+      "status": "queued",
+      "url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40907389674"
+    },
+    "deployment": {
+      "status": "succeeded",
+      "visibility": "private",
+      "url": "https://parallaxe-protocole-neuf.darknigthmare.chatgpt.site",
+      "project_id": "appgprj_6adf87d7eaf48191a7dd65687cb07c5b",
+      "deployment_id": "appgdep_6ae36f3e3f848191b1ec1afb032c56e4",
+      "version_id": "appgprj_6adf87d7eaf48191a7dd65687cb07c5b~appgver_03d914e2bce08191906c8c58af03fde9",
+      "source_commit": "064a2157b64787228966ea108b683f735f2e3dc6",
+      "code_commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+      "published_at_utc": "2026-10-29T16:07:51.579221+00:00",
+      "verification": "Native deployment reported succeeded; runtime sources match the tested GitHub code. Browser reached the expected private sign-in gate; gameplay not exercised."
+    }
   },
   "limits": [
     "Browser preview could not access the shared dependency installation through its mounted checkout; browser QA unverified.",
     "No physical GPU, touchscreen, microphones, Windows launcher or TURN connectivity test in this pass.",
     "D1 handlers use a CAS storage double; deployed D1 service not exercised."
-  ]
+  ],
+  "verified_at_utc": "2026-10-29T16:03:34.653062+00:00",
+  "publication_recorded_at_utc": "2026-10-29T16:07:51.579221+00:00"
 }

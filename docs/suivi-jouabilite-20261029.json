@@ -5,15 +5,15 @@
   "repository": "darknigthmare/Parallaxe_Protocole9",
   "branch": "continuation/session-integrity-20261029",
   "pull_request": 2,
-  "baseline_commit": "5c4488ae9d36f44875352cf62997c8800f32db76",
-  "package_version": "0.2.1",
-  "scope": "Correctifs sur la base GitHub à trois lieux. Sources Site 0.4.0 non récupérées.",
+  "baseline_commit": "2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65",
+  "package_version": "0.4.1",
+  "scope": "Sources du Site0.4.0 récupérées et réconciliées avec la PR2 : quatre lieux,96 anomalies et correctifs de sessions,radio,commandes.",
   "records": [
     {
       "id": "JOU01",
       "title": "Interruption des gestes de déplacement et de regard",
       "area": "Entrées",
-      "status": "awaiting_ci",
+      "status": "validated_locally",
       "problem": "Une pause conserve le déplacement du joystick ; après blur, un ancien pointermove peut le réactiver.",
       "change": "Réinitialiser les commandes et les origines, bloquer les callbacks périmés, traiter la perte de capture et conserver le propriétaire de chaque geste.",
       "acceptance": "Les interruptions et les anciens événements ne réactivent ni mouvement ni regard ; un nouveau geste et deux doigts indépendants restent fonctionnels.",
@@ -35,9 +35,9 @@
       "id": "JOU02",
       "title": "Retour de l'épaule après le talkie",
       "area": "Inspecteurs",
-      "status": "awaiting_ci",
+      "status": "validated_locally",
       "problem": "La rotation Y de l'épaule droite reste à 0,90 radian après une pose talkie ou une anomalie radio.",
-      "change": "Rétablir les trois axes de l'épaule à chaque pose normale avant les gestes spéciaux.",
+      "change": "Avatar enrichi0.4 conservé : remise à zéro Y déjà présente ; les cinq tests PR de retour de pose sont conservés et passent.",
       "acceptance": "Repos, marche, mannequin et état normal après radio retrouvent la pose d'un inspecteur neuf ; le geste indépendant fonctionne toujours.",
       "tests": [
         "npm run test:scene"
@@ -54,7 +54,7 @@
       "id": "JOU03",
       "title": "Durée du reflet retardé à haute fréquence",
       "area": "Reflets",
-      "status": "awaiting_ci",
+      "status": "validated_locally",
       "problem": "Le plafond de 180 poses ramène le retard à environ 0,746 s à 240 Hz et 0,497 s à 360 Hz.",
       "change": "Échantillonner l'historique au maximum à 120 Hz tout en conservant les purges temporelle et quantitative.",
       "acceptance": "Une seconde de décalage est conservée à 20, 60, 120, 240, 360 Hz et en cadence variable, à la résolution d'échantillonnage près.",
@@ -73,7 +73,7 @@
       "id": "JOU04",
       "title": "Paquet PC lancé depuis son ZIP extrait",
       "area": "Livraison",
-      "status": "awaiting_ci",
+      "status": "validated_locally",
       "problem": "Le test portable précédent utilisait directement les fichiers compilés et ne validait pas leur mise en archive.",
       "change": "Vérifier CRC, SHA-256, contenu compilé et source embarquée, puis lancer le serveur du ZIP extrait avec deux clients réels.",
       "acceptance": "Le ZIP testé démarre sans node_modules ; les décisions coopératives et les rejets de requêtes périmées réussissent.",
@@ -89,13 +89,14 @@
       ],
       "limits": [
         "Serveur et clients HTTP sous Linux ; rendu du navigateur et lanceur Windows non exécutés."
-      ]
+      ],
+      "evidence": "ZIP fa9cf63 extrait et vérifié,17 contrôles HTTP dont Chalet4clients/9diagnostics ; empreintes dans le manifeste0.4.1."
     },
     {
       "id": "JOU05",
       "title": "Révision commune aux tests et archives",
       "area": "Traçabilité",
-      "status": "awaiting_ci",
+      "status": "local_provenance_verified_ci_queued",
       "problem": "Le job jeu pouvait tester le commit de fusion GitHub alors que l'archive source ciblait le commit de branche.",
       "change": "Utiliser explicitement le même SHA et identifier les artefacts par révision, exécution et tentative.",
       "acceptance": "La révision des deux checkouts, COMMIT.txt et le manifeste correspondent ; les artefacts ne sont publiés qu'après validation.",
@@ -109,24 +110,25 @@
       ],
       "limits": [
         "Les archives historiques suivies dans public/downloads conservent leur contenu antérieur."
-      ]
+      ],
+      "evidence": "Paquet local depuis checkout propre fa9cf63,manifestes concordants ; jobs CI40907389674 encore en attente."
     },
     {
       "id": "JOU06",
       "title": "Réconcilier le Site 0.4.0 avec GitHub",
       "area": "Sources",
-      "status": "blocked",
+      "status": "reconciled_and_published_privately",
       "problem": "Le Site annonce quatre lieux, dont Chalet de service ; la source GitHub disponible contient trois lieux.",
-      "change": "Provenance Site revérifiée : version sauvegardée 7, commit 6c8784e0cf5d64f6386f3448434b0bc659d3fc15.",
+      "change": "Sources Site6c8784e récupérées avec le helper officiel, comparaison par contenu puis fusion0.4.1 sans perte du Chalet ni des42 anomalies supplémentaires.",
       "acceptance": "Récupérer les fichiers sources via la reprise Sites, comparer les deux versions et reporter les correctifs sur la source finale.",
       "tests": [],
       "files": [
         "docs/SOURCE_RECONCILIATION_2026-10-29.md"
       ],
       "limits": [
-        "Exécuteur indisponible pour reprendre le dépôt Sites.",
-        "Aucun code 0.4.0 récupéré ; aucun déploiement effectué."
-      ]
+        "La récupération et la compilation ne valent pas une recette GPU ou physique."
+      ],
+      "evidence": "Sources réunies dans fa9cf63 ; Site privé 0.4.1 publié avec succès le 29 octobre 2026 à 16:07 UTC, source 064a215, déploiement appgdep_6ae36f3e3f848191b1ec1afb032c56e4. Rapport SOURCE_RECONCILIATION_2026-10-29.md et suites catalogue, scène, Chalet, inspection."
     },
     {
       "id": "JOU07",
@@ -143,203 +145,185 @@
       "limits": [
         "Essais matériels non exécutés dans ce lot."
       ]
-    }
-  ],
-  "code_commit": "b70350c59e97487d0c7224d6c57c17eabb0f8e1b",
-  "validation": {
-    "ci": {
-      "run_id": 40901665020,
-      "url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40901665020",
-      "status": "queued",
-      "last_checked_utc": "2026-10-29 15:33:29 UTC",
-      "jobs": [
-        {
-          "id": 123545307536,
-          "name": "game",
-          "status": "queued"
-        },
-        {
-          "id": 123545308488,
-          "name": "source-snapshot",
-          "status": "queued"
-        }
+    },
+    {
+      "id": "JOU08",
+      "title": "Calibration liée à la session",
+      "area": "Radio",
+      "status": "validated_locally",
+      "change": "Annulation synchrone au changement de session, ticket du rendu et génération de tâche avant toute réponse.",
+      "acceptance": "Une ancienne calibration ne démarre pas, ne publie pas de résultat et ne libère pas une nouvelle attente.",
+      "tests": [
+        "npm run test:session-client",
+        "npm run test:radio"
       ],
-      "commands_not_yet_verified_on_this_commit": [
-        "npm run typecheck",
+      "evidence": "Quatre nouveaux scénarios de calibration ;64 tests de session et42 tests radio réussis.",
+      "limits": [
+        "Frontières navigateur simulées ; écoute physique non exécutée."
+      ]
+    },
+    {
+      "id": "JOU09",
+      "title": "Contenu0.4 et Chalet préservés",
+      "area": "Contenu",
+      "status": "validated_locally",
+      "change": "Quatre lieux,96 anomalies et lectures privées réunis avec les correctifs PR.",
+      "acceptance": "La campagne garde trois secteurs ; le Chalet optionnel se termine à quatre clients sans fuite de lecture privée.",
+      "tests": [
         "npm test",
         "npm run test:scene",
-        "npm run test:radio",
-        "npm run test:radio-ui",
-        "npm run test:radio-config",
-        "npm run build:local",
-        "npm run package:release",
+        "npm run test:cabin",
+        "npm run test:inspection",
         "python3 tests/package-archive.test.py"
-      ]
-    },
-    "isolated_v8": {
-      "movement": {
-        "passed": 27,
-        "failed": 0,
-        "source": "Real integrated app/game.tsx callbacks; exact known TypeScript annotations removed; simulated browser boundaries",
-        "before_reproductions": [
-          "Pause preserves forward=0.9210526315789473 and the gesture origin",
-          "After blur, a stale pointermove restores forward=0.9210526315789473"
-        ]
-      },
-      "scene": {
-        "environment": "functions.exec V8; actual animation and history blocks extracted from source; transforms/materials and linear motion simulated",
-        "baseline": "5c4488ae9d36f44875352cf62997c8800f32db76",
-        "pose": [
-          {
-            "name": "talkie to idle",
-            "before": {
-              "passed": false,
-              "rightShoulderY": 0.9
-            },
-            "after": {
-              "passed": true,
-              "rightShoulderY": 0
-            }
-          },
-          {
-            "name": "talkie to walking",
-            "before": {
-              "passed": false,
-              "rightShoulderY": 0.9
-            },
-            "after": {
-              "passed": true,
-              "rightShoulderY": 0
-            }
-          },
-          {
-            "name": "radio anomaly to normal",
-            "before": {
-              "passed": false,
-              "rightShoulderY": 0.9
-            },
-            "after": {
-              "passed": true,
-              "rightShoulderY": 0
-            }
-          },
-          {
-            "name": "talkie to mannequin",
-            "before": {
-              "passed": false,
-              "rightShoulderY": 0.9
-            },
-            "after": {
-              "passed": true,
-              "rightShoulderY": 0
-            }
-          },
-          {
-            "name": "independent reflection to normal",
-            "before": {
-              "passed": true,
-              "rightShoulderY": 0
-            },
-            "after": {
-              "passed": true,
-              "rightShoulderY": 0
-            }
-          }
-        ],
-        "reflections": [
-          {
-            "name": "20 Hz",
-            "before": {
-              "delaySeconds": 1.0499999999999998,
-              "samples": 25
-            },
-            "after": {
-              "delaySeconds": 1.0499999999999998,
-              "samples": 25
-            }
-          },
-          {
-            "name": "60 Hz",
-            "before": {
-              "delaySeconds": 1.016666666666663,
-              "samples": 71
-            },
-            "after": {
-              "delaySeconds": 1.016666666666663,
-              "samples": 71
-            }
-          },
-          {
-            "name": "120 Hz",
-            "before": {
-              "delaySeconds": 1.0083333333333298,
-              "samples": 140
-            },
-            "after": {
-              "delaySeconds": 1.0083333333333298,
-              "samples": 71
-            }
-          },
-          {
-            "name": "240 Hz",
-            "before": {
-              "delaySeconds": 0.7458333333333307,
-              "samples": 180
-            },
-            "after": {
-              "delaySeconds": 1.0041666666666633,
-              "samples": 94
-            }
-          },
-          {
-            "name": "360 Hz",
-            "before": {
-              "delaySeconds": 0.49722222222222046,
-              "samples": 180
-            },
-            "after": {
-              "delaySeconds": 1.005555555555552,
-              "samples": 105
-            }
-          },
-          {
-            "name": "variable",
-            "before": {
-              "delaySeconds": 1.0319444444444446,
-              "samples": 83
-            },
-            "after": {
-              "delaySeconds": 1.036111111111111,
-              "samples": 42
-            }
-          }
-        ],
-        "limits": [
-          "not a full scene execution",
-          "not a WebGL/GPU test"
-        ]
-      },
+      ],
+      "evidence": "31 contrôles scène,9 Chalet,13 lectures ; partie Chalet4clients/9diagnostics depuis le ZIP.",
       "limits": [
-        "No Node execution of the full suites in this environment",
-        "React not mounted",
-        "No actual Three.js geometry execution for these V8 probes",
-        "No GPU, physical touch device, microphone or TURN validation"
+        "Rendu GPU et essais sur périphériques à réaliser."
       ]
-    },
-    "package": {
-      "status": "awaiting_ci",
-      "artifact_available": false,
-      "checks_implemented": [
-        "CRC and SHA-256 for both ZIPs",
-        "Exact compiled contents and embedded sources",
-        "Fresh extraction without node_modules or player sessions",
-        "Portable server started from the extraction with two real HTTP clients",
-        "Common commit for both checkouts, manifest and COMMIT.txt"
-      ]
-    },
-    "review": {
-      "package_and_ci": "Independent static review of b70350c: no concrete blocking defect identified",
-      "runtime": "Three targeted defects reproduced; patches and regression suites integrated"
     }
-  }
+  ],
+  "code_commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+  "validation": {
+    "local_runtime": {
+      "node": "24.22.1",
+      "three": "0.186.1",
+      "react": "19.2.6",
+      "typescript": "5.9.3",
+      "dependency_versions_changed": false
+    },
+    "checks": [
+      {
+        "command": "npm run typecheck",
+        "status": "passed",
+        "count": null,
+        "scope": "TypeScript contracts"
+      },
+      {
+        "command": "npm test",
+        "status": "passed",
+        "count": 165,
+        "scope": "rules, sessions, adapters, real UI callbacks with simulated browser boundaries"
+      },
+      {
+        "command": "npm run test:scene",
+        "status": "passed",
+        "count": 31,
+        "scope": "Three.js geometry and scene state, CPU renderer boundaries"
+      },
+      {
+        "command": "npm run test:cabin",
+        "status": "passed",
+        "count": 9,
+        "scope": "Chalet geometry, collisions and inspection"
+      },
+      {
+        "command": "npm run test:inspection",
+        "status": "passed",
+        "count": 13,
+        "scope": "private readings and comparisons"
+      },
+      {
+        "command": "npm run test:radio",
+        "status": "passed",
+        "count": 42,
+        "scope": "audio/RTC with simulated browser boundaries and PCM synthesis"
+      },
+      {
+        "command": "npm run test:radio-ui",
+        "status": "passed",
+        "count": 15,
+        "scope": "4 actions and11 PTT/input tests"
+      },
+      {
+        "command": "npm run test:radio-config",
+        "status": "passed",
+        "count": 59,
+        "scope": "configuration and URL validation, no TURN connectivity"
+      }
+    ],
+    "package": {
+      "version": "0.4.1",
+      "commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+      "dirty": false,
+      "portable": {
+        "file": "PARALLAXE_Jeu_PC_LAN_v0.4.1.zip",
+        "files": 79,
+        "bytes": 3455133,
+        "sha256": "7b19158d79e326e4bf3b753679221eb27f67dfb1a7ec16b3449ebf366dca21f6"
+      },
+      "sources": {
+        "file": "PARALLAXE_Sources_v0.4.1.zip",
+        "files": 223,
+        "bytes": 1719317,
+        "sha256": "3742644e36e63f47105bb347802fa3f249efbd38d1f4a77839b349bc3e59cb42"
+      },
+      "validation": {
+        "archive": "passed",
+        "http_checks": 17,
+        "path_requests": 12,
+        "chalet_clients": 4,
+        "chalet_diagnoses": 9,
+        "chalet_won": true,
+        "webgl": "unverified",
+        "windowsLauncher": "unverified"
+      }
+    },
+    "ci": {
+      "run_id": 40907389674,
+      "status": "queued",
+      "url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40907389674"
+    },
+    "report": "docs/qa-final-v0.4.1.json",
+    "limits": [
+      "Browser preview could not access the shared dependency installation through its mounted checkout; browser QA unverified.",
+      "No physical GPU, touchscreen, microphones, Windows launcher or TURN connectivity test in this pass.",
+      "D1 handlers use a CAS storage double; deployed D1 service not exercised."
+    ],
+    "deployment": {
+      "status": "succeeded",
+      "visibility": "private",
+      "url": "https://parallaxe-protocole-neuf.darknigthmare.chatgpt.site",
+      "project_id": "appgprj_6adf87d7eaf48191a7dd65687cb07c5b",
+      "deployment_id": "appgdep_6ae36f3e3f848191b1ec1afb032c56e4",
+      "version_id": "appgprj_6adf87d7eaf48191a7dd65687cb07c5b~appgver_03d914e2bce08191906c8c58af03fde9",
+      "source_commit": "064a2157b64787228966ea108b683f735f2e3dc6",
+      "code_commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+      "published_at_utc": "2026-10-29T16:07:51.579221+00:00",
+      "verification": "Native deployment reported succeeded; runtime sources match the tested GitHub code. Browser reached the expected private sign-in gate; gameplay not exercised."
+    }
+  },
+  "reconciliation_0_4_1": {
+    "version": "0.4.1",
+    "commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+    "source_retrieved": true,
+    "source_commit": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
+    "local_checks": 334,
+    "archive_test": "passed",
+    "portable_http_checks": 17,
+    "chalet_clients": 4,
+    "chalet_diagnoses": 9,
+    "ci": "queued",
+    "ci_run": 40907389674,
+    "report": "docs/qa-final-v0.4.1.json",
+    "historical_entries": "Les enregistrements précédents décrivent les passes0.2.1 ; cette section et le rapport0.4.1 constituent le relevé actuel.",
+    "deployment": {
+      "status": "succeeded",
+      "visibility": "private",
+      "url": "https://parallaxe-protocole-neuf.darknigthmare.chatgpt.site",
+      "project_id": "appgprj_6adf87d7eaf48191a7dd65687cb07c5b",
+      "deployment_id": "appgdep_6ae36f3e3f848191b1ec1afb032c56e4",
+      "version_id": "appgprj_6adf87d7eaf48191a7dd65687cb07c5b~appgver_03d914e2bce08191906c8c58af03fde9",
+      "source_commit": "064a2157b64787228966ea108b683f735f2e3dc6",
+      "code_commit": "fa9cf6306705c750106467d0d6caddf96767b0e7",
+      "published_at_utc": "2026-10-29T16:07:51.579221+00:00",
+      "verification": "Native deployment reported succeeded; runtime sources match the tested GitHub code. Browser reached the expected private sign-in gate; gameplay not exercised."
+    }
+  },
+  "history": [
+    {
+      "commit": "5d94377346051292b1775a7f510962e2646c1659",
+      "path": "docs/suivi-jouabilite-20261029.json",
+      "description": "Relevé précédent0.2.1, simulations V8 et récupération encore bloquée."
+    }
+  ]
 }
