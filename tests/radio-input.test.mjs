@@ -11,6 +11,7 @@ function between(start,end){
   assert.ok(a>=0&&b>a,`Game input callback boundaries: ${start}`);
   return game.slice(a,b);
 }
+const controlReset=between('  const resetJoystick=','  const blockControls=');
 const suspension=between('  const suspendTalking=','  const stopRadio=');
 const focusCallbacks=between('    const onBlur=','    const onMouse=');
 const listeners=between('    window.addEventListener("keydown"','    return()=>{destroyed=true;');
@@ -20,7 +21,10 @@ export function bindInputs(HoldToTalkGate){
   const window=target(),document={...target(),hidden:false};
   const padTalk={current:new HoldToTalkGate()},state={talking:false};
   const radio={current:{setTalking:value=>state.talking=value}},keys={current:new Set()},touchMove={current:{forward:0,strafe:0}};
+  const joystickOrigin={current:null},touchLook={current:null};
+  const engine={current:{setInput:value=>state.input=value}},setTouchStick=value=>state.touchStick=value;
   const useCallback=callback=>callback;
+  ${controlReset}
   ${suspension}
   ${focusCallbacks}
   const onKey=()=>{},onLock=()=>{},onMouse=()=>{};
