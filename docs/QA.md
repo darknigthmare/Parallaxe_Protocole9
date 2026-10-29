@@ -146,6 +146,22 @@ Le compteur de décision reste stable pendant les mouvements, messages, battemen
 
 Les commandes et les résultats à jour figurent dans [suivi-correctifs-20261029.json](suivi-correctifs-20261029.json), avec le commit de code et le lien de CI lorsqu'ils sont connus.
 
+**CI du code vérifiée :** commit `f258c5b6bd99e24d6ef9650941fa6a86b162a1f0`, [exécution 40884677504](https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40884677504), **réussie**. Les deux jobs, sources/traçabilité et jeu, ont terminé avec succès. Les journaux du job jeu confirment Node **22.23.4**.
+
+| Contrôle sur cette révision | Résultat |
+| --- | --- |
+| Règles, résilience et intentions de décision | 66 tests réussis : 17 + 33 + 16 |
+| Adaptateurs de sessions | 5 tests réussis, dont le parcours HTTP Node à quatre clients |
+| Callbacks client et durée de vie de session | 60 tests réussis |
+| Client radio | 29 tests réussis |
+| Actions de l'interface radio et maintien PTT | 15 tests réussis : 4 + 11 |
+| Configuration radio | 59 tests réussis |
+| Géométries et transitions de scène | 11 contrôles CPU réussis ; aucun rendu GPU validé |
+| TypeScript et compilation portable | Réussis |
+| Serveur portable réellement compilé | Réussi : deux clients et 11 vérifications, dont les rejets 409 et le départ propre |
+
+Les suites Node totalisent **234 tests réussis et zéro échec**. Les contrôles CPU et les vérifications du scénario portable sont comptés séparément. Le complément documentaire et le classeur référencent ce commit de code effectivement testé ; leurs mises à jour ne doivent pas être présentées comme une nouvelle version jouable.
+
 - `npm test` couvre les règles, la résilience, les intentions de décision, les adaptateurs et les callbacks du client. Les callbacks de `app/game.tsx` sont exécutés depuis leur code réel avec requêtes différées ; React n'est pas monté dans un navigateur.
 - `npm run test:session-adapters` exécute quatre scénarios des vrais handlers Cloudflare avec un **stockage CAS simulé**, puis un scénario contre le **vrai serveur HTTP Node**. Ce dernier utilise les modules du domaine effacés de leurs annotations TypeScript et une page de test explicitement factice : quatre clients, neuf consensus, trois références normales et rejeux 409. Il ne valide pas le frontend compilé ni le service D1 hébergé.
 - `npm run test:radio` exerce le vrai client radio avec API Web Audio/WebRTC simulées. Six régressions reproduisent les opérations périmées après extinction ou reconnexion locale. Quatre autres reproduisent les rejets RTC tardifs après départ ou remplacement du pair distant, sans changement de génération locale. Chaque défaut a été observé avant sa correction ; la suite complète atteint 29 tests réussis. La négociation du pair remplaçant est également vérifiée.
