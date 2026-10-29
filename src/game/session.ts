@@ -130,10 +130,10 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
   const actor=next.players.find(p=>p.id===playerId&&!p.left);
   if(!actor)throw new SessionError('Inspecteur introuvable.',401);
   invalidateInterruptedBallot(next,now);
-  actor.lastSeen=now;
   const host=next.players.find(p=>p.id===next.hostId&&!p.left);
-  // After 45 seconds without heartbeat, command passes to a present inspector.
+  // Elect from witnesses already present, before a returning host refreshes itself.
   if(!host||now-host.lastSeen>=PRESENCE_TIMEOUT)next.hostId=activePlayers(next,now).sort((a,b)=>a.slot-b.slot)[0]?.id??actor.id;
+  actor.lastSeen=now;
   if(action==='start'){
     if(actor.id!==next.hostId)throw new SessionError('Seul le chef d’équipe lance le protocole.',403);
     if(next.started&&!['won','lost'].includes(next.run.phase))return next;

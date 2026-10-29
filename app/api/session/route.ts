@@ -55,7 +55,7 @@ export async function GET(request:Request){
     if(new URL(request.url).searchParams.get('radioConfig')==='1')return Response.json(await makeRadioConfig(env as unknown as IceSettings,self.id,now),{headers});
     // A five-second heartbeat is sufficient; ordinary state polls stay read-only.
     if(now-self.lastSeen>=5000){room=await mutate(code,current=>{const actor=authenticate(current,hash);return actRoom(current,actor.id,'ping',{},Date.now());});self=authenticate(room,hash);}
-    return Response.json({state:projectRoom(room,self.id,now)},{headers});
+    return Response.json({state:projectRoom(room,self.id,Date.now())},{headers});
   }catch(error){return failure(error);}
 }
 export async function POST(request:Request){

@@ -223,3 +223,24 @@ test('expired and future pings are removed even without a new object ping',()=>{
   room=keep(room,'a',now);
   assert.deepEqual(room.pings.map(p=>p.id),['valid']);
 });
+
+test('returning expired host cannot preempt already-present inspectors',()=>{
+  const room=roomWith(3);room.players[1].lastSeen=later-1;room.players[2].lastSeen=later-1;
+  const resumed=keep(room,'a',later);
+  assert.equal(resumed.hostId,'b');assert.equal(resumed.players[0].lastSeen,later);assert.equal(room.hostId,'a');
+});
+test('expired host cannot open a passage by refreshing itself within next',()=>{
+  const room=roomWith(3);room.run.phase='reference';room.players[1].lastSeen=later-1;room.players[2].lastSeen=later-1;
+  assert.throws(()=>actRoom(room,'a','next',{},later),error=>error.status===403);
+});
+test('current host is retained when a stale non-host returns',()=>{
+  const room=roomWith(3);room.players[0].lastSeen=later-1;
+  assert.equal(keep(room,'b',later).hostId,'a');
+});
+test('returning inspector becomes host when nobody was still present',()=>{
+  const room=roomWith(3);assert.equal(keep(room,'c',later).hostId,'c');
+});
+test('host election uses the lowest already-live slot, not a returning lower slot',()=>{
+  const room=roomWith(4);room.players[2].lastSeen=later-1;room.players[3].lastSeen=later-1;
+  assert.equal(keep(room,'b',later).hostId,'c');
+});

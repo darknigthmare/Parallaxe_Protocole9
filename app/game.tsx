@@ -10,6 +10,7 @@ import type { PublicRoom } from "@/src/game/session";
 import { getLevel, type LevelId } from "@/src/game/levels";
 import { RadioClient, profileForEffects, radioReferenceCaption, type RadioStatus } from "@/src/game/radio";
 import { RadioActionGate } from "@/src/game/radio-actions";
+import { SessionScope } from "@/src/game/session-scope";
 import { MissionSelector, MISSION_LOCATIONS, type MissionChoice } from "./mission-selector";
 import { RadioPanel, TalkButton } from "./radio-panel";
 
@@ -76,11 +77,10 @@ export default function Game({portable=false}:{portable?:boolean}){
   const [isTouch,setIsTouch]=useState(false);
   const [confirmLeave,setConfirmLeave]=useState(false);
   const [archiveFilter,setArchiveFilter]=useState("");
-  const latestServerTime=useRef(0);
-  const latestRevision=useRef(-1);
+  const sessionScope=useRef<SessionScope|null>(null);
+  if(!sessionScope.current)sessionScope.current=new SessionScope();
   const lastReveal=useRef("");
   const lastPhase=useRef("");
-  const pollInFlight=useRef(false);
   const postInFlight=useRef(false);
   const [touchStick,setTouchStick]=useState({x:0,y:0});
   const joystickOrigin=useRef<{x:number;y:number;id:number}|null>(null);
@@ -109,31 +109,41 @@ export default function Game({portable=false}:{portable?:boolean}){
   const stopRadio=useCallback(()=>{radioActions.current?.cancel();radio.current?.disablePlayback();},[]);
   const stopMicrophone=useCallback(()=>{radioActions.current?.cancel();radio.current?.disableMicrophone();},[]);
   const openModal=useCallback((m:Modal)=>{radio.current?.setTalking(false);document.exitPointerLock?.();setModal(m);setError("");audio.current?.tone("click");},[]);
-  const acceptState=useCallback((state:OnlineState)=>{
-    if(!state||!Array.isArray(state.players))return;
-    if(state.revision<latestRevision.current||state.revision===latestRevision.current&&state.serverTime<latestServerTime.current)return;
-    latestRevision.current=state.revision;
-    latestServerTime.current=state.serverTime;setOnline(state);setNetworkDown(false);
+  const resetSession=useCallback((credential:Credentials|null)=>{
+    sessionScope.current!.replace(credential);credRef.current=credential;
+    postInFlight.current=false;setBusy(false);setNetworkDown(false);
+    setCredentials(credential);setOnline(null);lastPhase.current="";lastReveal.current="";
   },[]);
+  const acceptState=useCallback((state:OnlineState)=>{
+    if(!sessionScope.current!.accept(state))return;
+    setOnline(state);setNetworkDown(false);
+  },[]);
+  useEffect(()=>()=>{sessionScope.current!.invalidate();},[]);
   const request=useCallback(async(action:string,extra:Record<string,unknown>={},quiet=false)=>{
     if(postInFlight.current&&!quiet)return null;
-    const credential=credRef.current;
+    const scope=sessionScope.current!;const ticket=scope.ticket();
+    const credential=credRef.current;const opening=action==="create"||action==="join";
+    if(!opening&&!credential)return null;
     if(!quiet){postInFlight.current=true;setBusy(true);setError("");}
     try{
-      const response=await fetch("/api/session",{method:"POST",headers:{"Content-Type":"application/json",...(credential?{Authorization:`Bearer ${credential.token}`}:{})},body:JSON.stringify({action,...(credential?{code:credential.code}:{}),...extra}),signal:AbortSignal.timeout(10000)});
+      const response=await fetch("/api/session",{method:"POST",headers:{"Content-Type":"application/json",...(credential&&!opening?{Authorization:`Bearer ${credential.token}`}:{})},body:JSON.stringify({...extra,action,...(credential&&!opening?{code:credential.code}:{})}),signal:AbortSignal.timeout(10000)});
       const payload=await response.json() as SessionResponse;
+      if(!scope.isCurrent(ticket))return null;
       if(!response.ok)throw new Error(payload.error||payload.message||"La liaison n’a pas pu être établie.");
-      if(payload.token&&payload.code&&payload.selfId){
+      if(opening){
+        if(!payload.token||!payload.code||!payload.selfId||!payload.state||payload.state.code!==payload.code||payload.state.selfId!==payload.selfId)throw new Error("La réponse du salon est incomplète. Réessayez.");
         const c={code:payload.code,token:payload.token,selfId:payload.selfId};
-        credRef.current=c;setCredentials(c);setSavedSession(c);latestServerTime.current=0;latestRevision.current=-1;
+        resetSession(c);setSavedSession(c);
         try{sessionStorage.setItem("parallaxe-session",JSON.stringify(c));}catch{}
         setRun(null);setModal("none");
       }
       if(payload.state)acceptState(payload.state);
       return payload;
-    }catch(e){const message=e instanceof Error?e.message:"Connexion interrompue.";if(!quiet)setError(message);else setNetworkDown(true);return null;
-    }finally{if(!quiet){postInFlight.current=false;setBusy(false);}}
-  },[acceptState]);
+    }catch(e){
+      if(scope.isCurrent(ticket)){const message=e instanceof Error?e.message:"Connexion interrompue.";if(!quiet)setError(message);else setNetworkDown(true);}
+      return null;
+    }finally{if(!quiet&&scope.isCurrent(ticket)){postInFlight.current=false;setBusy(false);}}
+  },[acceptState,resetSession]);
 
   useEffect(()=>{
     const p=safeRead<Preferences>("parallaxe-preferences",DEFAULTS);setPreferences({...DEFAULTS,...p});
@@ -279,37 +289,43 @@ export default function Game({portable=false}:{portable?:boolean}){
 
   useEffect(()=>{
     if(!credentials)return;
-    let cancelled=false;
+    // Poll ownership is local to this effect: an old finally cannot unlock a new room.
+    const scope=sessionScope.current!;const ticket=scope.ticket();
+    let cancelled=false;let inFlight=false;let controller:AbortController|null=null;
+    const current=()=>!cancelled&&scope.isCurrent(ticket);
     const poll=async()=>{
-      if(pollInFlight.current)return;pollInFlight.current=true;
+      if(inFlight||!current())return;inFlight=true;
+      const activeController=new AbortController();controller=activeController;
+      const timeout=setTimeout(()=>activeController.abort(),8000);
       try{
-        const res=await fetch(`/api/session?code=${encodeURIComponent(credentials.code)}`,{headers:{Authorization:`Bearer ${credentials.token}`},signal:AbortSignal.timeout(8000),cache:"no-store"});
+        const res=await fetch(`/api/session?code=${encodeURIComponent(credentials.code)}`,{headers:{Authorization:`Bearer ${credentials.token}`},signal:activeController.signal,cache:"no-store"});
         const data=await res.json() as SessionResponse;
+        if(!current())return;
         if(!res.ok){
-          if(!cancelled&&(res.status===401||res.status===404)){
+          if(res.status===401||res.status===404){
             setError(data.error||"Le salon a expiré. Créez ou rejoignez une nouvelle équipe.");
-            setCredentials(null);credRef.current=null;setSavedSession(null);setOnline(null);setModal("coop");
+            resetSession(null);setSavedSession(null);setModal("coop");
             try{sessionStorage.removeItem("parallaxe-session");}catch{}
           }
           throw new Error(data.error||"Liaison perdue.");
         }
-        if(!cancelled&&data.state)acceptState(data.state);
-      }catch{if(!cancelled)setNetworkDown(true);}finally{pollInFlight.current=false;}
+        if(data.state)acceptState(data.state);
+      }catch{if(current())setNetworkDown(true);}finally{clearTimeout(timeout);inFlight=false;if(controller===activeController)controller=null;}
     };
-    poll();const interval=setInterval(poll,1100);
-    const heartbeat=setInterval(()=>{if(!cancelled&&engine.current&&frameState.current.playing)request("pose",{pose:engine.current.getPose()},true);},750);
-    return()=>{cancelled=true;clearInterval(interval);clearInterval(heartbeat);};
-  },[credentials,acceptState,request]);
+    void poll();const interval=setInterval(()=>{void poll();},1100);
+    const heartbeat=setInterval(()=>{if(current()&&engine.current&&frameState.current.playing)void request("pose",{pose:engine.current.getPose()},true);},750);
+    return()=>{cancelled=true;controller?.abort();clearInterval(interval);clearInterval(heartbeat);};
+  },[credentials,acceptState,request,resetSession]);
 
   const capture=()=>{if(inputBlocked||!playing)return;audio.current?.start();if(!isTouch)canvasRef.current?.requestPointerLock?.()?.catch?.(()=>notify("Maintenez le clic et faites glisser pour regarder autour de vous."));};
   const beginSolo=(resume=false)=>{
-    stopRadio();credRef.current=null;setCredentials(null);setOnline(null);latestServerTime.current=0;latestRevision.current=-1;
+    stopRadio();resetSession(null);
     const generatedSeed=globalThis.crypto?.randomUUID?.()??`session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const next=resume&&savedRun?savedRun:createRun({seed:seed.trim()||generatedSeed,difficulty,players:2,...mission});
     setRun(next);setSlot(0);setModal("none");setError("");setNotes([]);lastPhase.current="";lastReveal.current="";audio.current?.start();
     notify(resume?"Inspection reprise. Retrouvez vos deux perceptions.":"Passage de référence : observez le lieu avant sa première altération.");
   };
-  const nextRound=async()=>{audio.current?.start();if(online){await request("next");}else if(run){setRun(advanceRun(run));}setModal("none");};
+  const nextRound=async()=>{audio.current?.start();if(online){if(!await request("next"))return;}else if(run){setRun(advanceRun(run));}setModal("none");};
   const vote=async(value:boolean)=>{if(phase!=="inspect")return;if(online){const r=await request("vote",{vote:value});if(r){setModal("none");notify("Diagnostic transmis. Attendez l’accord de l’équipe.");}}else if(run){setRun(evaluateRun(run,value));setModal("none");}};
   const switchView=()=>{if(online)return;setSlot(s=>1-s);audio.current?.tone("signal");notify(`Perception ${slot===0?"BÊTA":"ALPHA"}. Comparez le même objet.`);};
   const toggleTorch=()=>{setTorch(t=>!t);audio.current?.tone("click");};
@@ -326,14 +342,16 @@ export default function Game({portable=false}:{portable?:boolean}){
   actions.current={interact,vote:()=>phase==="inspect"?openModal("vote"):openModal("journal"),journal:()=>openModal("journal"),torch:toggleTorch,switchView,pause:()=>setModal(m=>m!=="none"?"none":"pause")};
   const returnMenu=async()=>{
     stopRadio();
-    if(online)await request("leave");
-    credRef.current=null;setCredentials(null);setOnline(null);setRun(null);setModal("none");setConfirmLeave(false);document.exitPointerLock?.();keys.current.clear();
+    const leaving=online?request("leave",{},true):null;
+    // Retire callbacks immediately; a slow leave must never erase the next session.
+    resetSession(null);setRun(null);setModal("none");setError("");setConfirmLeave(false);document.exitPointerLock?.();keys.current.clear();
     if(online){setSavedSession(null);try{sessionStorage.removeItem("parallaxe-session");}catch{}}
+    await leaving;
   };
-  const resumeSession=()=>{if(!savedSession)return;stopRadio();latestServerTime.current=0;latestRevision.current=-1;credRef.current=savedSession;setCredentials(savedSession);setModal("none");setRun(null);audio.current?.start();notify("Reconnexion au salon en cours…");};
+  const resumeSession=()=>{if(!savedSession)return;stopRadio();resetSession(savedSession);setModal("none");setError("");setRun(null);audio.current?.start();notify("Reconnexion au salon en cours…");};
   const fullscreen=()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>notify("Sur cet appareil, ouvrez le jeu en plein écran depuis le navigateur."));};
   const copyCode=async()=>{try{await navigator.clipboard.writeText(online?.code??"");notify("Code du salon copié.");}catch{notify(`Code du salon : ${online?.code}`);}};
-  const startNetwork=(join:boolean)=>{safeWrite("parallaxe-name",name);audio.current?.start();request(join?"join":"create",join?{name:name.trim()||"Inspecteur",code:joinCode.trim().toUpperCase()}:{name:name.trim()||"Inspecteur",difficulty,...mission});};
+  const startNetwork=(join:boolean)=>{if(postInFlight.current)return;stopRadio();resetSession(null);safeWrite("parallaxe-name",name);audio.current?.start();void request(join?"join":"create",join?{name:name.trim()||"Inspecteur",code:joinCode.trim().toUpperCase()}:{name:name.trim()||"Inspecteur",difficulty,...mission});};
   const runRadioAction=(action:(client:RadioClient)=>Promise<void>,message:string)=>{
     const client=radio.current;if(!client)return;
     void refreshRadioConfig.current();
