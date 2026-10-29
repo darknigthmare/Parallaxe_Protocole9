@@ -22,7 +22,7 @@ Le catalogue aide à choisir une méthode et à éviter des erreurs courantes. L
 
 ## 2. Guides retenus et utilisation
 
-Les dix références, leur chemin exact, leur commit et leur empreinte Git sont dans [gamedev-sources.json](gamedev-sources.json). Lire seulement celles qui servent à la tâche en cours.
+Les onze références, leur chemin exact, leur commit et leur empreinte Git sont dans [gamedev-sources.json](gamedev-sources.json). Lire seulement celles qui servent à la tâche en cours.
 
 | Guide | Quand le lire | Adaptation au jeu |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ Les dix références, leur chemin exact, leur commit et leur empreinte Git sont 
 | `threejs-scene-setup` | Caméra, boucle, redimensionnement, cycle de vie | Examiner `src/game/scene.ts`, le rendu WebGL, le delta borné et la reprise après masquage ; conserver les contrôles FPS du jeu |
 | `threejs-materials-lighting` | Matériaux, éclairages et ombres | Vérifier PBR, couleurs et lisibilité des indices à chaque qualité ; les réflexions d'environnement ne remplacent pas les miroirs planaires |
 | `threejs-gltf-loading` | Import ou animation d'un nouveau GLB | Contrôler hiérarchie, échelle, clips, matériaux et erreurs de chargement ; le personnage actuel reste procédural tant qu'un remplacement n'est pas demandé |
+| `input-systems` | Interruption des gestes, pause, focus et capture du pointeur | Remettre à zéro les actions de déplacement et de regard ; protéger chaque geste avec son identifiant, sans modifier les règles PTT |
 | `audio-design` | Mixage, ambiance, parasites et retour radio | Régler les groupes de sons et l'intelligibilité ; appliquer les effets selon le destinataire avec la calibration écrite conservée |
 | `level-design` | Nouveau lieu ou modification de parcours | Valider d'abord dimensions, passages, points d'observation, référence normale et terminal ; ajouter ensuite les détails |
 | `performance-optimization` | Saccade, coût des reflets, budget GPU/CPU | Mesurer une scène reproductible avec quatre corps, reflets et radio ; corriger le coût dominant puis remesurer |
@@ -103,6 +104,7 @@ Les commandes sont celles de `package.json` et du workflow existant ; aucun nouv
 | `npm run typecheck` | Contrats TypeScript | Pas d'exécution du jeu |
 | `npm test` | Règles et résilience des sessions | Pas de rendu GPU ni d'écoute |
 | `npm run test:resilience` | Régressions ciblées de reprise/présence/projection | Pas un remplacement de tous les tests |
+| `npm run test:movement` | Callbacks réels de déplacement, regard et interruptions avec frontières navigateur simulées | Pas de montage React ni de périphérique tactile physique |
 | `npm run test:scene` | Géométries et états de scène avec dépendances de rendu simulées | Ne valide pas les pixels, les shaders ou les FPS |
 | `npm run test:radio` | États radio, permissions et traitement avec API simulées | Ne valide pas la capture physique ni l'intelligibilité |
 | `npm run test:radio-ui` | Annulation et transitions des actions d'interface | Pas de parcours complet sur appareils |
@@ -125,3 +127,11 @@ Documentation primaire complémentaire :
 - [Three.js](https://threejs.org/docs/) : vérifier les API avec la version verrouillée.
 - [WebRTC — connexions](https://webrtc.org/getting-started/peer-connections) et [relais TURN](https://webrtc.org/getting-started/turn-server).
 - [MediaDevices.getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia) et [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API).
+
+## Application suivante : gestes, poses et paquet extrait
+
+Le [suivi de jouabilité du 29 octobre](suivi-jouabilite-20261029.json) part du commit `5c4488ae9d36f44875352cf62997c8800f32db76`. Il applique les références ci-dessus à trois défauts reproduits : gestes tactiles conservés après interruption, rotation d'épaule conservée après le talkie et retard de reflet raccourci à haute fréquence.
+
+Les contrôles des deux jobs CI utilisent maintenant le même SHA explicite. Après compilation, `npm run package:release` produit le manifeste, le commit et les empreintes des archives. `python3 tests/package-archive.test.py` vérifie leur contenu puis lance les clients du test portable depuis une extraction neuve. Les artefacts de CI portent la révision et l'identifiant d'exécution ; les ZIP historiques suivis dans `public/downloads` restent des éditions antérieures.
+
+Cette validation ne remplace pas les essais GPU, l'écoute, les microphones, les périphériques réels ou la récupération des sources 0.4.0.

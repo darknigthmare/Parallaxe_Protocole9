@@ -150,6 +150,17 @@
         "public/models/inspecteur-parallaxe.manifest.json"
       ],
       "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "input-systems",
+      "path": "skills/disciplines/input-systems/SKILL.md",
+      "git_blob_sha": "d20f5a0bdfb5f6c41822dcd138cba305e2ab0d64",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/input-systems/SKILL.md",
+      "applies_to": [
+        "app/game.tsx",
+        "tests/movement-input.test.mjs"
+      ],
+      "usage": "Réinitialiser les gestes interrompus et vérifier la possession du pointeur ; conserver les commandes existantes et les gardes de radio."
     }
   ],
   "limits": [

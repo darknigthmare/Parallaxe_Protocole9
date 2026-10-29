@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-29",
+  "project": "PARALLAXE — Protocole 9",
+  "repository": "darknigthmare/Parallaxe_Protocole9",
+  "branch": "continuation/session-integrity-20261029",
+  "pull_request": 2,
+  "baseline_commit": "5c4488ae9d36f44875352cf62997c8800f32db76",
+  "package_version": "0.2.1",
+  "scope": "Correctifs sur la base GitHub à trois lieux. Sources Site 0.4.0 non récupérées.",
+  "records": [
+    {
+      "id": "JOU01",
+      "title": "Interruption des gestes de déplacement et de regard",
+      "area": "Entrées",
+      "status": "awaiting_ci",
+      "problem": "Une pause conserve le déplacement du joystick ; après blur, un ancien pointermove peut le réactiver.",
+      "change": "Réinitialiser les commandes et les origines, bloquer les callbacks périmés, traiter la perte de capture et conserver le propriétaire de chaque geste.",
+      "acceptance": "Les interruptions et les anciens événements ne réactivent ni mouvement ni regard ; un nouveau geste et deux doigts indépendants restent fonctionnels.",
+      "tests": [
+        "npm run test:movement",
+        "npm run test:session-client"
+      ],
+      "files": [
+        "app/game.tsx",
+        "tests/movement-input.test.mjs",
+        "tests/session-scope.test.mjs"
+      ],
+      "limits": [
+        "Callbacks réels avec frontières navigateur simulées.",
+        "React et périphérique tactile réel non testés."
+      ]
+    },
+    {
+      "id": "JOU02",
+      "title": "Retour de l'épaule après le talkie",
+      "area": "Inspecteurs",
+      "status": "awaiting_ci",
+      "problem": "La rotation Y de l'épaule droite reste à 0,90 radian après une pose talkie ou une anomalie radio.",
+      "change": "Rétablir les trois axes de l'épaule à chaque pose normale avant les gestes spéciaux.",
+      "acceptance": "Repos, marche, mannequin et état normal après radio retrouvent la pose d'un inspecteur neuf ; le geste indépendant fonctionne toujours.",
+      "tests": [
+        "npm run test:scene"
+      ],
+      "files": [
+        "src/game/avatar.ts",
+        "tests/scene.geometry.test.mjs"
+      ],
+      "limits": [
+        "Transformations CPU vérifiées ; rendu des avatars et des reflets sur GPU restant à examiner."
+      ]
+    },
+    {
+      "id": "JOU03",
+      "title": "Durée du reflet retardé à haute fréquence",
+      "area": "Reflets",
+      "status": "awaiting_ci",
+      "problem": "Le plafond de 180 poses ramène le retard à environ 0,746 s à 240 Hz et 0,497 s à 360 Hz.",
+      "change": "Échantillonner l'historique au maximum à 120 Hz tout en conservant les purges temporelle et quantitative.",
+      "acceptance": "Une seconde de décalage est conservée à 20, 60, 120, 240, 360 Hz et en cadence variable, à la résolution d'échantillonnage près.",
+      "tests": [
+        "npm run test:scene"
+      ],
+      "files": [
+        "src/game/scene.ts",
+        "tests/scene.geometry.test.mjs"
+      ],
+      "limits": [
+        "Cadences simulées dans la scène CPU ; aucune mesure de FPS sur écran ou GPU."
+      ]
+    },
+    {
+      "id": "JOU04",
+      "title": "Paquet PC lancé depuis son ZIP extrait",
+      "area": "Livraison",
+      "status": "awaiting_ci",
+      "problem": "Le test portable précédent utilisait directement les fichiers compilés et ne validait pas leur mise en archive.",
+      "change": "Vérifier CRC, SHA-256, contenu compilé et source embarquée, puis lancer le serveur du ZIP extrait avec deux clients réels.",
+      "acceptance": "Le ZIP testé démarre sans node_modules ; les décisions coopératives et les rejets de requêtes périmées réussissent.",
+      "tests": [
+        "npm run package:release",
+        "python3 tests/package-archive.test.py"
+      ],
+      "files": [
+        "scripts/package-release.mjs",
+        "tests/package-archive.test.py",
+        "tests/portable.test.mjs",
+        ".github/workflows/ci.yml"
+      ],
+      "limits": [
+        "Serveur et clients HTTP sous Linux ; rendu du navigateur et lanceur Windows non exécutés."
+      ]
+    },
+    {
+      "id": "JOU05",
+      "title": "Révision commune aux tests et archives",
+      "area": "Traçabilité",
+      "status": "awaiting_ci",
+      "problem": "Le job jeu pouvait tester le commit de fusion GitHub alors que l'archive source ciblait le commit de branche.",
+      "change": "Utiliser explicitement le même SHA et identifier les artefacts par révision, exécution et tentative.",
+      "acceptance": "La révision des deux checkouts, COMMIT.txt et le manifeste correspondent ; les artefacts ne sont publiés qu'après validation.",
+      "tests": [
+        "GitHub Actions: source-snapshot",
+        "GitHub Actions: game"
+      ],
+      "files": [
+        ".github/workflows/ci.yml",
+        "scripts/package-release.mjs"
+      ],
+      "limits": [
+        "Les archives historiques suivies dans public/downloads conservent leur contenu antérieur."
+      ]
+    },
+    {
+      "id": "JOU06",
+      "title": "Réconcilier le Site 0.4.0 avec GitHub",
+      "area": "Sources",
+      "status": "blocked",
+      "problem": "Le Site annonce quatre lieux, dont Chalet de service ; la source GitHub disponible contient trois lieux.",
+      "change": "Provenance Site revérifiée : version sauvegardée 7, commit 6c8784e0cf5d64f6386f3448434b0bc659d3fc15.",
+      "acceptance": "Récupérer les fichiers sources via la reprise Sites, comparer les deux versions et reporter les correctifs sur la source finale.",
+      "tests": [],
+      "files": [
+        "docs/SOURCE_RECONCILIATION_2026-10-29.md"
+      ],
+      "limits": [
+        "Exécuteur indisponible pour reprendre le dépôt Sites.",
+        "Aucun code 0.4.0 récupéré ; aucun déploiement effectué."
+      ]
+    },
+    {
+      "id": "JOU07",
+      "title": "Validation sur les appareils cibles",
+      "area": "QA matérielle",
+      "status": "not_executed",
+      "problem": "Les tests simulés ne prouvent pas le rendu GPU, les gestes physiques ou le transport vocal entre réseaux.",
+      "change": "Conserver ces validations ouvertes avec leurs scénarios séparés.",
+      "acceptance": "Jouer sur GPU et écran tactile, vérifier les inspecteurs/reflets puis microphones et relais TURN.",
+      "tests": [],
+      "files": [
+        "docs/QA.md"
+      ],
+      "limits": [
+        "Essais matériels non exécutés dans ce lot."
+      ]
+    }
+  ],
+  "code_commit": "b70350c59e97487d0c7224d6c57c17eabb0f8e1b",
+  "validation": {
+    "ci": {
+      "run_id": 40901665020,
+      "url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40901665020",
+      "status": "queued",
+      "last_checked_utc": "2026-10-29 15:33:29 UTC",
+      "jobs": [
+        {
+          "id": 123545307536,
+          "name": "game",
+          "status": "queued"
+        },
+        {
+          "id": 123545308488,
+          "name": "source-snapshot",
+          "status": "queued"
+        }
+      ],
+      "commands_not_yet_verified_on_this_commit": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:scene",
+        "npm run test:radio",
+        "npm run test:radio-ui",
+        "npm run test:radio-config",
+        "npm run build:local",
+        "npm run package:release",
+        "python3 tests/package-archive.test.py"
+      ]
+    },
+    "isolated_v8": {
+      "movement": {
+        "passed": 27,
+        "failed": 0,
+        "source": "Real integrated app/game.tsx callbacks; exact known TypeScript annotations removed; simulated browser boundaries",
+        "before_reproductions": [
+          "Pause preserves forward=0.9210526315789473 and the gesture origin",
+          "After blur, a stale pointermove restores forward=0.9210526315789473"
+        ]
+      },
+      "scene": {
+        "environment": "functions.exec V8; actual animation and history blocks extracted from source; transforms/materials and linear motion simulated",
+        "baseline": "5c4488ae9d36f44875352cf62997c8800f32db76",
+        "pose": [
+          {
+            "name": "talkie to idle",
+            "before": {
+              "passed": false,
+              "rightShoulderY": 0.9
+            },
+            "after": {
+              "passed": true,
+              "rightShoulderY": 0
+            }
+          },
+          {
+            "name": "talkie to walking",
+            "before": {
+              "passed": false,
+              "rightShoulderY": 0.9
+            },
+            "after": {
+              "passed": true,
+              "rightShoulderY": 0
+            }
+          },
+          {
+            "name": "radio anomaly to normal",
+            "before": {
+              "passed": false,
+              "rightShoulderY": 0.9
+            },
+            "after": {
+              "passed": true,
+              "rightShoulderY": 0
+            }
+          },
+          {
+            "name": "talkie to mannequin",
+            "before": {
+              "passed": false,
+              "rightShoulderY": 0.9
+            },
+            "after": {
+              "passed": true,
+              "rightShoulderY": 0
+            }
+          },
+          {
+            "name": "independent reflection to normal",
+            "before": {
+              "passed": true,
+              "rightShoulderY": 0
+            },
+            "after": {
+              "passed": true,
+              "rightShoulderY": 0
+            }
+          }
+        ],
+        "reflections": [
+          {
+            "name": "20 Hz",
+            "before": {
+              "delaySeconds": 1.0499999999999998,
+              "samples": 25
+            },
+            "after": {
+              "delaySeconds": 1.0499999999999998,
+              "samples": 25
+            }
+          },
+          {
+            "name": "60 Hz",
+            "before": {
+              "delaySeconds": 1.016666666666663,
+              "samples": 71
+            },
+            "after": {
+              "delaySeconds": 1.016666666666663,
+              "samples": 71
+            }
+          },
+          {
+            "name": "120 Hz",
+            "before": {
+              "delaySeconds": 1.0083333333333298,
+              "samples": 140
+            },
+            "after": {
+              "delaySeconds": 1.0083333333333298,
+              "samples": 71
+            }
+          },
+          {
+            "name": "240 Hz",
+            "before": {
+              "delaySeconds": 0.7458333333333307,
+              "samples": 180
+            },
+            "after": {
+              "delaySeconds": 1.0041666666666633,
+              "samples": 94
+            }
+          },
+          {
+            "name": "360 Hz",
+            "before": {
+              "delaySeconds": 0.49722222222222046,
+              "samples": 180
+            },
+            "after": {
+              "delaySeconds": 1.005555555555552,
+              "samples": 105
+            }
+          },
+          {
+            "name": "variable",
+            "before": {
+              "delaySeconds": 1.0319444444444446,
+              "samples": 83
+            },
+            "after": {
+              "delaySeconds": 1.036111111111111,
+              "samples": 42
+            }
+          }
+        ],
+        "limits": [
+          "not a full scene execution",
+          "not a WebGL/GPU test"
+        ]
+      },
+      "limits": [
+        "No Node execution of the full suites in this environment",
+        "React not mounted",
+        "No actual Three.js geometry execution for these V8 probes",
+        "No GPU, physical touch device, microphone or TURN validation"
+      ]
+    },
+    "package": {
+      "status": "awaiting_ci",
+      "artifact_available": false,
+      "checks_implemented": [
+        "CRC and SHA-256 for both ZIPs",
+        "Exact compiled contents and embedded sources",
+        "Fresh extraction without node_modules or player sessions",
+        "Portable server started from the extraction with two real HTTP clients",
+        "Common commit for both checkouts, manifest and COMMIT.txt"
+      ]
+    },
+    "review": {
+      "package_and_ci": "Independent static review of b70350c: no concrete blocking defect identified",
+      "runtime": "Three targeted defects reproduced; patches and regression suites integrated"
+    }
+  }
+}

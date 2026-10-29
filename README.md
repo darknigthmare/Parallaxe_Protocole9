@@ -15,6 +15,8 @@ Le correctif **0.2.1** empêche une autorisation microphone tardive de réactive
 - [Inspecteur 3D animé au format GLB](public/models/inspecteur-parallaxe.glb), avec [fiche technique](public/models/inspecteur-parallaxe.manifest.json).
 - [Sources complètes](public/downloads/PARALLAXE_Sources_v0.2.1.zip), ou **Code → Download ZIP** dans le dépôt.
 
+**Correctifs de la PR #2 :** le workflow [GitHub Actions](https://github.com/darknigthmare/Parallaxe_Protocole9/actions/workflows/ci.yml) prépare désormais un artefact `parallaxe-pc-lan-<commit>-<exécution>-<tentative>`. Il est publié seulement après une validation réussie et contient les ZIP PC et sources reconstruits, `COMMIT.txt`, `SHA256SUMS.txt` et le manifeste. La CI vérifie le contenu et lance le serveur depuis une extraction du ZIP avec deux clients. Les liens ZIP ci-dessus restent les archives historiques 0.2.1 ; le paquet de CI identifie les correctifs par son commit. Consulter [le suivi de jouabilité](docs/suivi-jouabilite-20261029.json) pour les preuves.
+
 Le paquet précompilé requiert **Node.js 22.13 ou ultérieur**, un navigateur compatible **WebGL 2** et une accélération graphique fonctionnelle. Il ne nécessite pas `npm install`. Extraire entièrement l’archive avant de lancer le jeu.
 
 **Windows :** ouvrir `LANCER_JEU_WINDOWS.cmd`.
@@ -134,7 +136,7 @@ Le classeur livré se modifie directement dans Excel. Son générateur `scripts/
 
 ## Guides de développement
 
-Les [consignes du dépôt](AGENTS.md) et le [guide adapté à PARALLAXE](docs/GAMEDEV_GUIDANCE.md) relient dix références de `awesome-gamedev-agent-skills` aux scènes Three.js, aux anomalies, aux personnages, à la radio et aux vérifications existantes. Les sources sont [fixées à une révision précise](docs/gamedev-sources.json).
+Les [consignes du dépôt](AGENTS.md) et le [guide adapté à PARALLAXE](docs/GAMEDEV_GUIDANCE.md) relient onze références de `awesome-gamedev-agent-skills` aux scènes Three.js, aux anomalies, aux personnages, à la radio et aux vérifications existantes. Les sources sont [fixées à une révision précise](docs/gamedev-sources.json).
 
 Le relevé distingue cette base GitHub 0.2.1 de l'édition 0.4.0 signalée dans la [PR de reprise #2](https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2). Le [rapport de sources](docs/SOURCE_RECONCILIATION_2026-10-29.md) identifie la version sauvegardée du Site et la récupération encore bloquée. Les [correctifs du 29 octobre](docs/suivi-correctifs-20261029.json) et leur [suivi Excel](docs/PARALLAXE_Suivi_Reprise_2026-10-28.xlsx) consignent les preuves et les validations restantes.
 
@@ -144,6 +146,7 @@ Le relevé distingue cette base GitHub 0.2.1 de l'édition 0.4.0 signalée dans 
 npm run typecheck
 npm test
 npm run test:scene
+npm run test:movement
 npm run test:radio
 npm run test:radio-ui
 npm run build:local

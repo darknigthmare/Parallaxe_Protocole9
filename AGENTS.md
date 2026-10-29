@@ -21,6 +21,7 @@ Conserver le moteur, les versions, la direction artistique et les deux cibles ex
 - **Intention du joueur :** `start`, `next` et `vote` portent le `decisionEpoch` observé dans le rendu, avec l'identité du salon concerné. Ne jamais remplacer ce contexte par la dernière valeur serveur pendant un réessai. Une décision ancienne renvoie 409 avec `projectRoom()` après persistance du nettoyage de session ; demander une nouvelle décision explicite. Les réponses d'une session abandonnée ne doivent pas restaurer ses identifiants.
 - **Anomalies :** chaque cas possède une référence normale, un lieu compatible, une preuve observable et une comparaison explicite. Les codes, heures ou flèches variables se comparent entre joueurs du même passage. Réinitialiser intégralement les effets entre deux passages.
 - **Voix :** capture uniquement après activation explicite, microphone initialement muet, écoute sans capture conservée. Une autorisation tardive annulée doit fermer ses pistes. Couper la transmission au relâchement, à la perte de focus, au masquage, à la sortie et à la limite de 30 secondes ; une manette maintenue ne la réactive pas sans relâchement. Invalider aussi les négociations, réessais et callbacks RTC après extinction ou remplacement de la connexion.
+- **Commandes :** une pause, une modale, un verdict, un changement de session ou une perte de focus invalide les gestes de déplacement et de regard. Réinitialiser les actions et leurs origines avant le retrait des contrôles ; rejeter les anciens événements et traiter la perte de capture sans annuler le geste d'un autre pointeur.
 - **Accessibilité :** conserver la calibration écrite, les preuves solo et les modes silencieux/confort. Une erreur WebRTC n'est jamais la preuve d'une anomalie.
 - **Corps et reflets :** conserver le corps complet dans les captures de l'état normal, ainsi que les variations intentionnelles des anomalies prévues. Éviter la récursion des miroirs et restaurer les états temporaires même en cas d'erreur. Une qualité graphique réduite doit laisser chaque indice reconnaissable.
 - **Progression :** préserver les migrations de sauvegardes, les secteurs validés de la traversée et les règles propres au lieu unique. Un ajout de décor ne doit pas modifier implicitement ces règles.
@@ -33,12 +34,16 @@ Faire une modification ciblée, vérifier son effet observable, puis mettre à j
 | Domaine modifié | Contrôles existants à sélectionner |
 | --- | --- |
 | Règles, perceptions, sessions, sauvegardes | `npm test` ; ciblage avec `npm run test:resilience`, `npm run test:session-actions` ou `npm run test:session-adapters` |
+| Commandes, gestes tactiles, pause et focus | `npm run test:movement` ; essai sur périphérique pour le comportement physique |
 | Lieux, avatars, collisions, reflets | `npm run test:scene` + contrôle visuel sur GPU pour les pixels et indices |
 | Radio et permissions | `npm run test:radio`, `npm run test:radio-ui`, `npm run test:radio-config` + écoute réelle si l'audio change |
 | Contrats TypeScript | `npm run typecheck` |
 | Cible portable | `npm run build:local`, puis `npm run test:portable` |
+| Paquet PC archivé | `npm run package:release`, puis `python3 tests/package-archive.test.py` depuis un checkout propre ; serveur lancé depuis une extraction neuve |
 | Backend D1 | `npm run test:session-adapters` vérifie les handlers avec stockage CAS simulé ; `npm run test:network` vers une instance D1 de test pour valider le service réel |
 | Documentation seule | Vérifier sources, chemins, JSON et cohérence des versions |
+
+Les jobs CI, l'archive source et le paquet PC doivent utiliser le même SHA explicite. Le manifeste, `COMMIT.txt` et les empreintes rattachent les fichiers à cette révision.
 
 La CI de `.github/workflows/ci.yml` est la référence des contrôles automatisés requis. Un test CPU de scène ou une simulation des API radio ne prouve ni qualité d'image, ni FPS, ni intelligibilité sur microphone réel, ni fonctionnement TURN entre réseaux. Pour chaque résultat, préciser commit, commande, environnement et limite. Garder « non exécuté » distinct de « réussi ».
 

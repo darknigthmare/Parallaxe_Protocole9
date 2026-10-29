@@ -171,3 +171,40 @@ Les suites Node totalisent **234 tests réussis et zéro échec**. Les contrôle
 Les exécutions locales de ce lot utilisent Node 24.22.1 ; la CI utilise Node 22. Les tests HTTP locaux ont nécessité l'autorisation d'écoute sur `127.0.0.1` de l'environnement. Les processus et données temporaires sont nettoyés, y compris lors des échecs d'arrivée ou de réservation de port.
 
 Aucun nouvel essai GPU, navigateur avec scène 3D, microphone physique ou TURN entre réseaux n'est revendiqué. Les preuves historiques ci-dessus conservent leur date et leur édition ; elles ne remplacent pas ces essais. Le classeur de reprise conserve ses deux feuilles historiques et ajoute une feuille datée pour ce lot. Le classeur concurrent de suivi des sessions et le classeur maître d'anomalies sont conservés.
+
+
+## Gestes tactiles, poses et livraison extraite — suite du 29 octobre 2026
+
+**Code appliqué :** [`b70350c59e97487d0c7224d6c57c17eabb0f8e1b`](https://github.com/darknigthmare/Parallaxe_Protocole9/commit/b70350c59e97487d0c7224d6c57c17eabb0f8e1b), depuis `5c4488ae9d36f44875352cf62997c8800f32db76`. Le [suivi structuré de ce lot](suivi-jouabilite-20261029.json) recense sept points et conserve les limites de chaque preuve.
+
+### État de validation de ce lot
+
+La [CI de cette révision](https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40901665020) est **en file d'attente** au moment du relevé : les jobs `game` et `source-snapshot` n'ont pas démarré. L'exécuteur local est également indisponible. **Aucun nouveau succès TypeScript, Node, géométrie Three.js complète, compilation ou ZIP extrait n'est revendiqué sur ce commit.** Les succès du lot précédent, présentés plus haut, gardent leurs révisions et ne deviennent pas des résultats de cette passe.
+
+Les vérifications exécutables disponibles sont des reproductions V8 des vrais corps de fonctions, avec annotations TypeScript retirées et frontières navigateur ou transformations simulées :
+
+| Vérification isolée | Résultat observé |
+| --- | --- |
+| Gestes tactiles du code intégré | **27 scénarios réussis**, zéro échec : pause, carnet, vote, radio, retour, verdicts, remplacement de session, focus, masquage, capture et gestes simultanés |
+| Pose de l'inspecteur après talkie/radio | Quatre défauts reproduits avant correction ; les quatre retours corrigés et le contrôle du geste indépendant réussissent |
+| Historique du reflet sur une marche de deux secondes | Six cadences vérifiées : 20, 60, 120, 240, 360 Hz et cadence variable ; les deux échecs à haute fréquence sont corrigés |
+| Ensemble pose + historique isolés | **11 scénarios**, six échecs avant correction et zéro après ; ce compte est distinct des 27 scénarios d'entrées |
+| Classeur de reprise | Nouvelle feuille « Jouabilité 29-10 » ; intégrité ZIP/CRC vérifiée et contenu décompressé des trois feuilles historiques, styles et tables conservé à l'identique |
+
+Le défaut tactile initial laisse une commande avant de `0,9210526` après ouverture d'une pause ; après perte de focus, un ancien déplacement peut la réactiver. Le correctif efface les origines, les actions, les touches et l'indicateur visuel. Chaque geste garde son propre identifiant de pointeur ; la fin du joystick conserve le doigt utilisé pour regarder. Les handlers traitent aussi `lostpointercapture`.
+
+L'épaule droite gardait sa rotation Y de `0,90 radian` après une pose talkie. La pose normale restaure maintenant ses trois axes avant les animations particulières.
+
+À 240 Hz, la reproduction isolée du reflet passe d'environ **0,746 s à 1,004 s** de retard ; à 360 Hz, d'environ **0,497 s à 1,006 s**. L'historique reste borné à 180 poses. Ces valeurs sont des calculs simulés, pas des FPS mesurés sur une carte graphique.
+
+### Régressions et livraison préparées
+
+- `tests/movement-input.test.mjs` exécute les callbacks réels avec `stripTypeScriptTypes` sous Node et est intégré à `npm test`. Le harnais de sessions utilise également les vraies fonctions de remise à zéro.
+- `tests/scene.geometry.test.mjs` ajoute cinq transitions de pose et un contrôle à six cadences avec les objets Three.js de sa suite CPU. Ses onze contrôles antérieurs sont conservés ; l'exécution de l'ensemble reste à confirmer par la CI.
+- Les deux jobs de CI extraient maintenant explicitement le même SHA de branche. Cela évite de rattacher une archive du commit de branche à un test du commit de fusion GitHub.
+- Le packaging ajoute `COMMIT.txt`, des empreintes SHA-256 et le commit au manifeste. `tests/package-archive.test.py` contrôle les ZIP et leur contenu, puis lance le serveur réellement extrait avec les deux clients du scénario portable.
+- Le test refuse un dossier fourni contenant déjà `.parallaxe-data`. Le paquet de CI est publié uniquement après succès et son nom inclut la révision, l'exécution et la tentative.
+
+**Aucun paquet PC de ce nouveau commit n'est encore déclaré validé ou disponible dans ce relevé.** Les archives historiques suivies dans `public/downloads` restent inchangées. Le lancement du serveur extrait sous Linux, quand il sera exécuté, ne validera pas à lui seul le double-clic du lanceur Windows, le rendu WebGL ou les périphériques physiques.
+
+Le [relevé des sources](SOURCE_RECONCILIATION_2026-10-29.md) confirme que la comparaison avec la source Site 0.4.0 reste bloquée. Aucun nouveau lieu, déploiement ou récupération du Chalet de service n'est revendiqué par ce lot.

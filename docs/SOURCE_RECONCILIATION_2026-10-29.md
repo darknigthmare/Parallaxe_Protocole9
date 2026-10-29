@@ -35,3 +35,11 @@ La recherche dans les fichiers disponibles n'a pas fourni d'archive source corre
 Les corrections continuent sur la base GitHub nommée ci-dessus, avec tests propres à cette base. Elles ne constituent pas une version 0.4.0, une récupération du quatrième lieu, une fusion avec les sources du Site ou un déploiement de ce Site. Les archives historiques v0.2.1 ne sont pas régénérées par cette passe.
 
 Avant une livraison destinée à remplacer le Site : récupérer le commit source déclaré ou son archive, vérifier l'empreinte de l'archive si elle est utilisée, comparer le manifeste et les différences avec GitHub, puis reporter les correctifs sur la source retenue. Les essais doivent porter sur cette source finale. La ligne **SRC01** du suivi reste bloquée jusqu'à cette comparaison.
+
+## Vérification complémentaire — jouabilité et paquet PC
+
+La reprise suivante part de `5c4488ae9d36f44875352cf62997c8800f32db76`. La lecture des sept versions Sites et de la projection publiée confirme la version sauvegardée 7, le même commit source et les quatre lieux annoncés. Le commit `6c8784e0cf5d64f6386f3448434b0bc659d3fc15` n'est pas accessible comme objet Git dans le dépôt GitHub du jeu. Aucun nouvel export source 0.4.0 n'a été retrouvé parmi les fichiers disponibles.
+
+Dans cette reprise, aucun exécuteur local n'est disponible. La voie de reprise Git prévue par Sites exige cet exécuteur ; les lectures de métadonnées ne donnent pas le contenu des fichiers. Aucun accès éphémère inutile n'a été créé. La comparaison reste donc ouverte, avec la même limite qu'au relevé précédent.
+
+Les corrections de gestes tactiles, de poses de l'inspecteur et de durée du reflet retardé sont appliquées à la base GitHub nommée. La CI reconstruit désormais un paquet PC pour cette révision et le lance depuis son ZIP extrait. Le nom de l'artefact, `COMMIT.txt` et les empreintes identifient exactement cette livraison ; elle ne constitue pas la récupération de l'édition 0.4.0. Voir [le suivi de jouabilité](suivi-jouabilite-20261029.json).
