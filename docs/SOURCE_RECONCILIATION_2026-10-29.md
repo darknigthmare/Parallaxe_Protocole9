@@ -1,3 +1,32 @@
+# Réconciliation des sources — 29 octobre 2026
+
+## Résultat actuel : sources récupérées et fusion appliquée
+
+Le dépôt source du Site a été ouvert avec le helper Sites officiel. Son HEAD est exactement **`6c8784e0cf5d64f6386f3448434b0bc659d3fc15`**, associé à la version sauvegardée 7. `package.json` déclare 0.4.0 ; `SELECTABLE_LEVELS` contient quatre lieux et le catalogue 96 anomalies. Le Chalet est donc confirmé par les fichiers, pas seulement par une capture textuelle.
+
+La consolidation 0.4.1 part de la PR #2 à **`2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65`**. Les historiques Git n'ont pas d'ancêtre commun ; `ccf629a22b5409f9ea9ad4eb5a221253a7030893` sert de base de comparaison par contenu, sans prétendre être un parent du dépôt Sites.
+
+| Élément | Constat et décision |
+| --- | --- |
+| Dépendances | Versions et intégrités identiques ; seul le numéro du paquet racine différait |
+| Hébergement | Identité `.openai/hosting.json`, schéma D1 et migrations inchangés |
+| Catalogue et lieux | Contenu 0.4 conservé : 96 anomalies, quatre lieux, campagne toujours à trois secteurs |
+| Sessions | Version PR conservée ; ajout des 17 cibles d'objet de la 0.4 |
+| Interface | Lectures, mono et calibration 0.4 réunis avec `SessionScope`, décisions contextualisées et gestes PR |
+| Scène et avatar | Scène 0.4 et échantillonnage du reflet à 120 Hz ; avatar 0.4 déjà doté de la remise à zéro de l'épaule |
+| Radio | Synthèses et preuves 0.4 réunies avec l'invalidation RTC PR ; calibration liée à la session |
+| Portable | Protections des chemins 0.4, Chalet à quatre clients, contexte de décision et provenance PR |
+| Tests | Union des scénarios existants et régressions ciblées de la fusion |
+| Conception | Classeur 120 fiches / 96 intégrées récupéré avec sa copie de téléchargement ; classeur de reprise GitHub conservé |
+
+L'inventaire initial comptait 135 fichiers communs identiques, 44 modifiés, 25 propres au Site et 20 propres à GitHub. Les fichiers ont été rapprochés par domaine ; aucune des deux arborescences n'a remplacé aveuglément l'autre.
+
+Les rapports 0.3/0.4 importés sont des **preuves historiques**. Les résultats de la version consolidée sont dans [qa-final-v0.4.1.json](qa-final-v0.4.1.json). La récupération et la fusion ne valent pas, à elles seules, validation GPU, microphones, TURN ou publication.
+
+## Relevés précédents conservés
+
+Les sections suivantes décrivent les tentatives antérieures, lorsque les sources étaient encore inaccessibles. Leur statut bloqué est historique.
+
 # Sources de la reprise du 29 octobre 2026
 
 ## Base des correctifs

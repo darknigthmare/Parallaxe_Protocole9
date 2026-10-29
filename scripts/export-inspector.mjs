@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import ts from 'typescript';
@@ -56,13 +57,6 @@ try {
     [model.knees[0], 'shin_l'], [model.knees[1], 'shin_r'],
   ];
   for (const [joint, name] of joints) joint.name = name;
-  model.root.traverse(object => {
-    if (!object.isMesh) return;
-    const materials = Array.isArray(object.material) ? object.material : [object.material];
-    for (const material of materials) {
-      material.map = null; material.emissiveMap = null;
-    }
-  });
   function clip(name, duration, state) {
     const times = Array.from({ length: 17 }, (_, index) => index / 16 * duration);
     const rotations = joints.map(() => []);
@@ -79,6 +73,15 @@ try {
     clip('Salut', 2, time => ({ time, speed: 0, independent: time > .2 && time < 1.8 })),
   ];
   model.animate({ time: 0, speed: 0 });
+  // Animation now restores the current badge map. Strip runtime-only canvas maps
+  // after sampling all clips so the final export remains independent of a DOM.
+  model.root.traverse(object => {
+    if (!object.isMesh) return;
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      material.map = null; material.emissiveMap = null;
+    }
+  });
   model.radio.visible = true; // The reusable model carries its device in its hand.
   model.root.updateMatrixWorld(true);
   let bounds = new THREE.Box3().setFromObject(model.root);
@@ -115,6 +118,8 @@ try {
     validation: 'Round-trip GLTFExporter → GLTFLoader passed; finite vertices; 3 animation clips',
     visualValidation: 'Not performed: no GPU render or screenshot certified',
     source: 'src/game/avatar.ts', rebuild: 'node scripts/export-inspector.mjs',
+    sourceVersion: JSON.parse(fs.readFileSync(path.join(project, 'package.json'), 'utf8')).version,
+    sourceSha256: createHash('sha256').update(fs.readFileSync(path.join(project, 'src/game/avatar.ts'))).digest('hex'),
   };
   fs.writeFileSync(path.join(output, 'inspecteur-parallaxe.manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   console.log(JSON.stringify({ saved: assetPath, ...manifest }, null, 2));

@@ -1,3 +1,11 @@
+# Vérification actuelle — 0.4.1
+
+Les sources 0.4 du Site sont récupérées et réunies avec la PR #2. Les preuves de cette consolidation sont dans [qa-final-v0.4.1.json](qa-final-v0.4.1.json), avec les commandes, le contexte et les limites. Sous Node24.22.1 : 165 tests de règles/sessions/commandes,31 contrôles de scène,9 du Chalet,13 de lecture,42 radio,15 interface radio et59 configuration radio réussissent. TypeScript réussit. Les deux compilations initiales réussissent ; les vérifications du commit propre, du ZIP et de publication seront relevées séparément.
+
+Les rapports [0.3](QA_0.3.0.md) et [0.4](QA_0.4.0.md) restent historiques. La prévisualisation navigateur de cette passe n'a pas démarré : son montage ne voit pas l'installation partagée des dépendances. Aucun résultat GPU, microphone, tactile physique, Windows, TURN ou D1 de production n'est revendiqué.
+
+## Historique des passes précédentes
+
 # Bilan de vérification — PARALLAXE v0.2.1
 
 Date : **26 octobre 2026**. La mise à jour v0.2.1 a fait l’objet de **19 tests radio réussis, de 4 tests du contrôleur d’interface réussis et d’un contrôle TypeScript réussi**. Les autres preuves v0.2 sont conservées et identifiées comme telles ; elles n’ont pas été relancées pour ce correctif ciblé. Ce bilan distingue les contrôles exécutés, leurs limites et les contrôles de livraison. Une fonctionnalité présente dans le code n’est pas automatiquement validée sur le matériel des joueurs.

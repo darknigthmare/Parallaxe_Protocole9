@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { createLocationClues } from './location-clues';
+import { createCabinWorld } from './cabin';
 
-export type ExtraLocationId = 'metro' | 'clinic';
+export type ExtraLocationId = 'metro' | 'clinic' | 'cabin';
 export type WorldObstacle = { x: number; z: number; rx: number; rz: number; effect?: string };
 
 export function reflectiveGlass(width: number, height: number, tint = 0x87999b, opacity = .38) {
@@ -17,6 +19,7 @@ export function reflectiveGlass(width: number, height: number, tint = 0x87999b, 
 
 /** Separate original level meshes; these are not recolours of the hotel. */
 export function createLocation(id: ExtraLocationId) {
+  if (id === 'cabin') return createCabinWorld(reflectiveGlass);
   const root = new THREE.Group(); root.name = id === 'metro' ? 'Terminus 09 — métro désaffecté' : 'Aile blanche — clinique de nuit';
   const targets: THREE.Object3D[] = [];
   const colliders: WorldObstacle[] = [];
@@ -101,8 +104,8 @@ export function createLocation(id: ExtraLocationId) {
   box(.64, .43, .07, 0, 0, 0, mats.black, relay, .025);
   const relayScreen = panel(.56, .35, 0, 0, .038, texture(['RELAIS', '0909']), relay, .7); tag(relay, 'radio', 'Relais de calibration — comparez le code');
   const mirrorFrame = wallGroup(1, 3.75);
-  box(1.33, 1.87, .09, 0, 1.99, .035, mats.steel, mirrorFrame, .02);
-  const mirror = reflectiveGlass(1.18, 1.72, 0x8e9a97, 1); mirror.position.set(0, 1.99, .09); mirrorFrame.add(mirror); reflectors.push(mirror); tag(mirrorFrame, 'mirror', 'Miroir de contrôle');
+  box(1.33, 2.65, .09, 0, 1.65, .035, mats.steel, mirrorFrame, .02);
+  const mirror = reflectiveGlass(1.18, 2.50, 0x8e9a97, 1); mirror.position.set(0, 1.65, .09); mirrorFrame.add(mirror); reflectors.push(mirror); tag(mirrorFrame, 'mirror', 'Miroir de contrôle');
   const windowGroup = wallGroup(-1, -12.25);
   const window = reflectiveGlass(2.12, 1.84, 0x809b9f, .32); window.position.set(0, 2.03, .12); windowGroup.add(window); reflectors.push(window);
   for (const x of [-1.08, 0, 1.08]) box(.045, 1.95, .09, x, 2.03, .18, mats.steel, windowGroup);
@@ -124,6 +127,7 @@ export function createLocation(id: ExtraLocationId) {
   let secondBed: THREE.Group | undefined;
   let trainShadow: THREE.Group | undefined;
   let curtainMesh: THREE.Mesh | undefined;
+  let routePanel: THREE.Mesh | undefined;
 
   if (id === 'metro') {
     // Track pit, sleepers and rails are outside the walkable platform.
@@ -139,9 +143,12 @@ export function createLocation(id: ExtraLocationId) {
     for (const x of [-.72, .72]) { box(.08, .13, 28, x, .05, 0, mats.steel, trackSet); box(.14, .035, 28, x, .13, 0, mats.steel, trackSet); }
     tag(trackSet, 'tracks', 'Rails et traverses');
     for (let z = -13.5; z <= 10.5; z += 4) {
-      const arch = part(new THREE.TorusGeometry(3.78, .075, 12, 72, Math.PI), mats.steel); arch.position.set(0, .12, z); arch.rotation.z = 0;
+      // The previous semicircle reached y=3.975 through the ceiling underside at 3.43.
+      // A shallow vault joins the existing posts at 2.695 and stays below that ceiling.
+      const arch = part(new THREE.TorusGeometry(3.5, .075, 12, 72, Math.PI), mats.steel);
+      arch.name = 'Arceau du quai'; arch.position.set(0, 2.695, z); arch.scale.y = .18; arch.userData.keepSeparate = true;
       for (const x of [-3.5, 3.5]) { box(.24, 2.67, .28, x, 1.36, z, mats.enamel); box(.30, .11, .34, x, .08, z, mats.steel); }
-      box(2.14, .055, .14, .35, 3.28, z, mats.glow); lamp(.35, 3.08, z, 18, 0xb3ccc3);
+      box(2.14, .055, .14, .35, 3.28, z + .24, mats.glow); lamp(.35, 3.08, z + .24, 18, 0xb3ccc3);
     }
     // Tiled walls with station stripes and exposed service conduits.
     for (let z = -15.5; z < 12; z += .65) for (let y = .25; y < 3.4; y += .42) box(.022, .013, .64, 3.73, y, z, mats.steel);
@@ -164,7 +171,7 @@ export function createLocation(id: ExtraLocationId) {
     panel(.78, .14, 0, 1.10, .321, texture(['POINT DE CONTRÔLE']), vending, .15); obstacle(2.78, 8, .72, .46);
     const routeMap = wallGroup(1, -.9);
     box(1.42, 1.26, .06, 0, 2.1, .05, mats.steel, routeMap);
-    panel(1.28, 1.12, 0, 2.1, .083, texture(['LIGNE 09', 'OBSERVATOIRE', 'QUAI TERMINAL'], '#cbd2bd', '#234740'), routeMap, .05);
+    routePanel = panel(1.28, 1.12, 0, 2.1, .083, texture(['LIGNE 09', 'OBSERVATOIRE', 'QUAI TERMINAL'], '#cbd2bd', '#234740'), routeMap, .05);
     tag(routeMap, 'portrait', 'Plan de la ligne');
     const destinationGroup = new THREE.Group(); destinationGroup.position.set(0, 2.94, -6.15); root.add(destinationGroup);
     box(2.38, .47, .16, 0, 0, 0, mats.black, destinationGroup, .025);
@@ -288,13 +295,17 @@ export function createLocation(id: ExtraLocationId) {
     lamp(-5.15, 2.8, -12.25, 10, 0x789cb4, 5);
   }
 
-  // Batch rigid geometry within each articulated/inspectable root.
+  const clues = createLocationClues(id, { routePanel, bed }); root.add(clues.root); targets.push(...clues.targets); colliders.push(...clues.colliders);
+  // Batch rigid geometry within each articulated/inspectable root. The clue module owns its own meshes.
   const groups: THREE.Group[] = []; root.traverse(object => { if ((object as THREE.Group).isGroup) groups.push(object as THREE.Group); });
   for (const group of groups.reverse()) {
     const batches = new Map<THREE.Material, THREE.Mesh[]>();
     for (const child of [...group.children]) {
       const m = child as THREE.Mesh;
-      if (!m.isMesh || (m as Reflector).isReflector || m.userData.inspect || Array.isArray(m.material)) continue;
+      if (!m.isMesh || (m as Reflector).isReflector || m.userData.inspect || m.userData.keepSeparate || Array.isArray(m.material)) continue;
+      let owner: THREE.Object3D | null = m.parent;
+      while (owner && owner !== clues.root) owner = owner.parent;
+      if (owner === clues.root) continue;
       const pieces = batches.get(m.material) || []; pieces.push(m); batches.set(m.material, pieces);
     }
     for (const [mat, pieces] of batches) if (pieces.length >= 3) {
@@ -306,6 +317,7 @@ export function createLocation(id: ExtraLocationId) {
   const baseSignal = new THREE.Color(0x70b898);
   function setView(nextEffects: Set<string>, code = '0909') {
     effects = nextEffects;
+    clues.setView(effects);
     for (const item of lights) { item.light.intensity = item.intensity * (effects.has('blackout') ? .015 : 1); item.light.color.copy(effects.has('red_light') ? new THREE.Color(0xe92c1e) : item.color); }
     mats.glow.emissive.set(effects.has('red_light') ? 0xf72c1f : 0xbad6cb); mats.glow.emissiveIntensity = effects.has('blackout') ? .015 : 1.5;
     const exitMat = exitSign.material as THREE.MeshStandardMaterial; exitMat.map = effects.has('exit_false') ? exitWrong : exitNormal; exitMat.emissiveMap = exitMat.map;
@@ -346,15 +358,17 @@ export function createLocation(id: ExtraLocationId) {
       }
       positions.needsUpdate = true; curtainMesh.geometry.computeVertexNormals();
     }
+    clues.update(time);
   }
   function dispose() {
     if (disposed) return; disposed = true;
+    root.remove(clues.root); clues.dispose();
     const geometries = new Set<THREE.BufferGeometry>(); const materials = new Set<THREE.Material>();
     root.traverse(object => { const m = object as THREE.Mesh; if (m.geometry) geometries.add(m.geometry); if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach(mat => materials.add(mat)); });
     geometries.forEach(geo => geo.dispose()); materials.forEach(mat => mat.dispose()); textures.forEach(map => map.dispose()); reflectors.forEach(reflector => reflector.getRenderTarget().dispose());
   }
   setView(new Set());
-  return { id, root, targets, colliders, reflectors, lights, setView, update, dispose };
+  return { id, root, targets, colliders, reflectors, lights, setView, update, getReading: clues.getReading, dispose };
 }
 
 export type LocationWorld = ReturnType<typeof createLocation>;

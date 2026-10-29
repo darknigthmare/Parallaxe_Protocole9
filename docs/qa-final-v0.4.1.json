@@ -1,0 +1,84 @@
+{
+  "version": "0.4.1",
+  "date": "2026-10-29",
+  "timezone": "Europe/Paris",
+  "status": "integrated_local_tests_passed_release_checks_pending",
+  "code_commit": null,
+  "github_base": "2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65",
+  "site_source_commit": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
+  "runtime": {
+    "node": "24.22.1",
+    "three": "0.186.1",
+    "react": "19.2.6",
+    "typescript": "5.9.3",
+    "dependency_versions_changed": false
+  },
+  "content": {
+    "selectable_locations": 4,
+    "campaign_sectors": 3,
+    "playable_anomalies": 96,
+    "designed_anomalies": 120
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "status": "passed",
+      "count": null,
+      "scope": "TypeScript contracts"
+    },
+    {
+      "command": "npm test",
+      "status": "passed",
+      "count": 165,
+      "scope": "rules, sessions, adapters, real UI callbacks with simulated browser boundaries"
+    },
+    {
+      "command": "npm run test:scene",
+      "status": "passed",
+      "count": 31,
+      "scope": "Three.js geometry and scene state, CPU renderer boundaries"
+    },
+    {
+      "command": "npm run test:cabin",
+      "status": "passed",
+      "count": 9,
+      "scope": "Chalet geometry, collisions and inspection"
+    },
+    {
+      "command": "npm run test:inspection",
+      "status": "passed",
+      "count": 13,
+      "scope": "private readings and comparisons"
+    },
+    {
+      "command": "npm run test:radio",
+      "status": "passed",
+      "count": 42,
+      "scope": "audio/RTC with simulated browser boundaries and PCM synthesis"
+    },
+    {
+      "command": "npm run test:radio-ui",
+      "status": "passed",
+      "count": 15,
+      "scope": "4 actions and11 PTT/input tests"
+    },
+    {
+      "command": "npm run test:radio-config",
+      "status": "passed",
+      "count": 59,
+      "scope": "configuration and URL validation, no TURN connectivity"
+    }
+  ],
+  "release": {
+    "hosted_build": "initial_build_passed_final_build_pending",
+    "portable_build": "initial_build_passed_final_build_pending",
+    "archive_test": "pending_clean_commit",
+    "ci": "pending",
+    "deployment": "not_started"
+  },
+  "limits": [
+    "Browser preview could not access the shared dependency installation through its mounted checkout; browser QA unverified.",
+    "No physical GPU, touchscreen, microphones, Windows launcher or TURN connectivity test in this pass.",
+    "D1 handlers use a CAS storage double; deployed D1 service not exercised."
+  ]
+}

@@ -27,8 +27,8 @@
       "typescript": "5.9.3"
     },
     "reported_site_version": "0.4.0",
-    "site_version_evidence": "Capture textuelle de publication enregistrée le 28 octobre 2026 : 0.4.0 et quatre lieux. Métadonnées du Site : version sauvegardée 7 et commit source identifié. Code source non récupéré et état déployé non vérifié.",
-    "source_reconciliation": "blocked_source_retrieval",
+    "site_version_evidence": "Sources récupérées au commit6c8784e0cf5d64f6386f3448434b0bc659d3fc15, package0.4.0,4lieux et96anomalies ; fusion0.4.1 avec PR2.",
+    "source_reconciliation": "reconciled_in_0.4.1",
     "source_reconciliation_report": "docs/SOURCE_RECONCILIATION_2026-10-29.md",
     "implementation_base_commit": "1a7196f0151b3e755edc5670d8d571a9ec9e065c",
     "site_saved_version": 7,
@@ -168,5 +168,12 @@
     "Le catalogue consulté ne fournit pas les systèmes propres à PARALLAXE de consensus, perceptions privées, transport WebRTC et anomalies de miroir.",
     "Les sources amont ne sont pas installées comme dépendances et ne sont pas exécutées.",
     "Toute mise à jour de révision doit faire l'objet d'une comparaison et d'une vérification des versions."
-  ]
+  ],
+  "continuation": {
+    "version": "0.4.1",
+    "github_base": "2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65",
+    "site_source": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
+    "dependencies_changed": false,
+    "current_validation": "docs/qa-final-v0.4.1.json"
+  }
 }

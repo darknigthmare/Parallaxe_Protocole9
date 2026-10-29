@@ -1,6 +1,6 @@
 {
   "name": "parallaxe-protocole-9",
-  "version": "0.2.1",
+  "version": "0.4.1",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -25,6 +25,8 @@
     "test:resilience": "node tests/session-resilience.test.mjs",
     "test:radio-config": "node tests/radio-config.test.mjs",
     "check:radio-config": "node scripts/check-radio-config.mjs",
+    "test:inspection": "node tests/inspection.test.mjs",
+    "test:cabin": "node tests/cabin.geometry.test.mjs",
     "test:session-actions": "node tests/session-actions.test.mjs",
     "test:session-adapters": "node tests/session-adapters.test.mjs",
     "test:session-client": "node tests/session-scope.test.mjs",

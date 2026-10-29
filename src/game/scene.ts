@@ -3,13 +3,18 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { createInspector, type InspectorIdentity, type InspectorModel } from './avatar';
+import { createInspector, type InspectorIdentity, type InspectorModel, type InspectorAnimation } from './avatar';
 import { createLocation, reflectiveGlass, type LocationWorld } from './locations';
+import { createInspectionProps, INSPECTION_EFFECTS, type InspectionMember } from './inspection-props';
+import { CABIN_EFFECTS } from './cabin';
+import { isLevelId, type LevelId } from './levels';
 
 /** Original procedural environment. No downloaded models or textures are required. */
 export type SceneInput = { forward: number; strafe: number; lookX?: number; lookY?: number; sprint?: boolean };
 export type ScenePose = { x: number; y: number; z: number; yaw: number; pitch: number };
-export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: 'hotel' | 'metro' | 'clinic'; arrowDirection?: 'left' | 'right'; syncTime?: string };
+type InspectorTarget = { kind: 'self' | 'peer' | 'double'; id: string };
+type SceneTarget = { id: string; label: string; inspector?: InspectorTarget };
+export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string };
 export const SCENE_EFFECTS = [
   'clock_reverse', 'clock_missing', 'portrait_eyes', 'portrait_empty', 'door_number', 'door_open',
   'plant_dead', 'plant_tall', 'trolley_missing', 'red_light', 'blackout', 'shadow_figure',
@@ -18,6 +23,10 @@ export const SCENE_EFFECTS = [
   'reflection_delay', 'reflection_absent', 'reflection_independent', 'avatar_mannequin', 'avatar_double', 'avatar_shadow', 'radio_signal',
   'metro_train', 'metro_destination', 'metro_signal', 'metro_tracks', 'clinic_bed', 'clinic_monitor', 'clinic_curtain', 'clinic_wheelchair',
   'ceiling_lower', 'wall_pulse', 'luggage_breath', 'curtain_breath', 'clinic_bed_count', 'metro_shadow_train', 'paired_arrow', 'paired_clock',
+  'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
+  'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
+  'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS,
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -44,9 +53,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   world.name = 'Saint-Clair — hôtel';
   scene.add(world);
   const hotelLights = new THREE.Group(); hotelLights.name = 'Éclairage Saint-Clair'; scene.add(hotelLights);
-  const commonWorld = new THREE.Group(); commonWorld.name = 'Effets communs aux trois lieux'; scene.add(commonWorld);
-  let levelId: 'hotel' | 'metro' | 'clinic' = 'hotel';
-  let extraWorlds: Record<'metro' | 'clinic', LocationWorld>;
+  const commonWorld = new THREE.Group(); commonWorld.name = 'Effets communs aux quatre lieux'; scene.add(commonWorld);
+  let levelId: LevelId = 'hotel';
+  let extraWorlds: Record<Exclude<LevelId, 'hotel'>, LocationWorld>;
   const textures: THREE.Texture[] = [];
   const targets: THREE.Object3D[] = [];
   const lightSources: { light: THREE.PointLight | THREE.SpotLight; base: number; color: THREE.Color }[] = [];
@@ -66,14 +75,17 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   let currentHeight = 0;
   let flashlightOn = false;
   let frame = 0;
-  let target: { id: string; label: string } | null = null;
+  let target: SceneTarget | null = null;
   let shaderCompiled = false;
   let disposed = false;
   let relayCode = '0909';
   let arrowDirection: 'left' | 'right' = 'right';
   let syncTime = '03:09';
+  let environmentKey = '';
+  let environmentStarted = 0;
   let talking = false;
   let selfIdentity: InspectorIdentity = { id: 'local', name: 'Inspecteur', slot: 0 };
+  let inspectionRoster: InspectionMember[] | null = null;
   let selfAvatar = createInspector(selfIdentity, { local: true });
   let reflectionAvatar = createInspector(selfIdentity, { reflectionOnly: true, nameplate: false });
   let doubleAvatar = createInspector(selfIdentity, { nameplate: false });
@@ -81,9 +93,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   reflectionAvatar.root.visible = false; doubleAvatar.root.visible = false;
   const poseHistory: { time: number; pose: ScenePose; speed: number; talking: boolean }[] = [];
   const raycaster = new THREE.Raycaster();
+  raycaster.params.Line.threshold = .025;
   const center = new THREE.Vector2(0, 0);
   const vector = new THREE.Vector3();
   const peerGroup = new THREE.Group();
+  peerGroup.name = 'Connected inspectors';
   scene.add(peerGroup);
   const peers = new Map<string, { group: THREE.Group; model: InspectorModel; target: ScenePose; name: string; talking: boolean; slot: number }>();
 
@@ -207,8 +221,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   function sphere(r: number, x: number, y: number, z: number, mat: THREE.Material, parent: THREE.Object3D = world, segments = 32) {
     const m = mesh(new THREE.SphereGeometry(r, segments, Math.max(12, segments / 2)), mat, parent); m.position.set(x, y, z); return m;
   }
-  function tag(object: THREE.Object3D, id: string, label: string) {
-    object.userData.inspect = { id, label }; targets.push(object); return object;
+  function tag(object: THREE.Object3D, id: string, label: string, inspector?: InspectorTarget) {
+    object.userData.inspect = { id, label, ...(inspector ? { inspector } : {}) }; targets.push(object); return object;
   }
   function panel(w: number, h: number, x: number, y: number, z: number, map: THREE.Texture, parent: THREE.Object3D = world, emissive = 0) {
     const mat = new THREE.MeshStandardMaterial({ map, roughness: .68, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: emissive });
@@ -515,11 +529,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
 
   // Real planar reflection, with a separate matte cover for the no-reflection event.
   const mirrorGroup = wallGroup(1, 3.75);
-  box(1.38, 1.95, .09, 0, 1.99, .04, mats.woodDark, mirrorGroup, .06);
-  box(1.26, 1.83, .035, 0, 1.99, .103, mats.brass, mirrorGroup, .03);
-  const mirror = new Reflector(new THREE.PlaneGeometry(1.14, 1.70), { color: 0x91a59c, textureWidth: 512, textureHeight: 768, clipBias: .004 });
-  mirror.position.set(0, 1.99, .13); mirrorGroup.add(mirror);
-  const mirrorCover = panel(1.14, 1.70, 0, 1.99, .139, labelTexture('', '#121c1c', '#121c1c'), mirrorGroup);
+  box(1.38, 2.75, .09, 0, 1.65, .04, mats.woodDark, mirrorGroup, .06);
+  box(1.26, 2.63, .035, 0, 1.65, .103, mats.brass, mirrorGroup, .03);
+  const mirror = new Reflector(new THREE.PlaneGeometry(1.14, 2.50), { color: 0x91a59c, textureWidth: 512, textureHeight: 768, clipBias: .004 });
+  mirror.position.set(0, 1.65, .13); mirrorGroup.add(mirror);
+  const mirrorCover = panel(1.14, 2.50, 0, 1.65, .139, labelTexture('', '#121c1c', '#121c1c'), mirrorGroup);
   mirrorCover.visible = false;
   tag(mirrorGroup, 'mirror', 'Miroir du vestibule');
 
@@ -618,7 +632,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const shadowMaterial = new THREE.MeshBasicMaterial({ color: 0x010707, transparent: true, opacity: .79, depthWrite: false });
   independentShadow.traverse(object => { const m = object as THREE.Mesh; if (m.isMesh) { m.material = shadowMaterial; m.castShadow = false; } });
   anomaly('avatar_shadow', independentShadow); tag(independentShadow, 'player', 'Ombre sans inspecteur');
-  const convergence = wallGroup(-1, 9.85); commonWorld.add(convergence);
+  const convergence = wallGroup(-1, 10.85); commonWorld.add(convergence);
   box(1.20, .80, .07, 0, 2.06, .08, mats.darkMetal, convergence, .025);
   function convergenceTexture(direction: 'left' | 'right', time: string) {
     return texture((ctx, size) => {
@@ -631,6 +645,107 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   }
   const convergenceDisplay = panel(1.10, .70, 0, 2.06, .121, convergenceTexture('right', '03:09'), convergence, .45);
   tag(convergence, 'radio', 'Flèche et horodatage de convergence');
+  const reflectionSeat = new THREE.Group(); reflectionSeat.position.set(2.05, 0, 4.40); commonWorld.add(reflectionSeat);
+  box(.48, .075, .48, 0, .465, 0, mats.darkMetal, reflectionSeat, .045);
+  for (const x of [-.18, .18]) for (const z of [-.18, .18]) cylinder(.018, .43, x, .22, z, mats.brass, reflectionSeat);
+  tag(reflectionSeat, 'chair', 'Siège vide du contrôle des reflets');
+  const inspectionProps = createInspectionProps(); world.add(inspectionProps.root); targets.push(...inspectionProps.targets); occluders.push(...inspectionProps.colliders);
+
+  // These reference stands have identical collision bounds for every observer.
+  // When nobody else is present, numbered mannequins make the reflection count
+  // observable in solo too. Only their reflected bodies can disappear.
+  const witnessCenters = [{ x: .95, z: 3.05 }, { x: .95, z: 4.45 }];
+  const witnessBodies: THREE.Group[] = [];
+  const witnessMaterial = new THREE.MeshStandardMaterial({ color: 0xb8a887, roughness: .74 });
+  const witnessJoints = new THREE.MeshStandardMaterial({ color: 0x3b5050, roughness: .5, metalness: .4 });
+  for (const [index, center] of witnessCenters.entries()) {
+    const stand = new THREE.Group(); stand.name = `Reflection witness stand ${index + 1}`; stand.position.set(center.x, 0, center.z); commonWorld.add(stand);
+    cylinder(.16, .07, 0, .04, 0, mats.darkMetal, stand, .16, 24);
+    cylinder(.022, .78, 0, .45, 0, mats.brass, stand, .022, 16);
+    const body = new THREE.Group(); body.name = `Reflection witness body ${index + 1}`; body.userData.reflectionWitness = true; body.position.y = .1; body.rotation.y = Math.PI / 2; stand.add(body); witnessBodies.push(body);
+    const torso = sphere(.19, 0, .84, 0, witnessMaterial, body, 20); torso.scale.set(1, 1.55, .52);
+    sphere(.065, 0, 1.14, 0, witnessJoints, body, 16);
+    const head = sphere(.12, 0, 1.29, 0, witnessMaterial, body, 24); head.scale.set(.82, 1.22, .86);
+    for (const side of [-1, 1]) {
+      sphere(.045, side * .22, 1.0, 0, witnessJoints, body, 16);
+      const arm = cylinder(.039, .47, side * .235, .76, 0, witnessMaterial, body, .039, 16); arm.rotation.z = side * .07;
+      sphere(.04, side * .252, .52, 0, witnessJoints, body, 16);
+      cylinder(.048, .50, side * .085, .33, 0, witnessMaterial, body, .048, 16);
+      box(.10, .065, .20, side * .085, .065, .025, witnessJoints, body, .025);
+    }
+    panel(.18, .13, 0, .91, .105, labelTexture(`T${index + 1}`, '#e1e9d6', '#253d3a'), body, .14);
+  }
+  function updateWitnessVisibility() {
+    const alone = ![...peers.values()].some(peer => peer.group.visible);
+    witnessBodies.forEach(body => { body.visible = active && alone; });
+  }
+  function updateInspectionRoster() {
+    inspectionProps.setRoster(inspectionRoster ?? [selfIdentity, ...[...peers.entries()].filter(([, peer]) => peer.group.visible).map(([id, peer]) => ({ id, name: peer.name, slot: peer.slot }))]);
+  }
+
+  // Additional doors use actual frame, leaf, handle and number geometry.
+  // No collision is introduced by a private visual perception.
+  function additionalDoor(side: number, z: number, number: string, name: string) {
+    const group = wallGroup(side, z); group.name = name;
+    box(1.55, 2.76, .10, 0, 1.38, .08, mats.woodDark, group, .025);
+    box(1.35, 2.54, .10, 0, 1.30, .15, mats.wood, group, .02);
+    box(1.10, 1.40, .025, 0, 1.42, .215, mats.woodDark, group, .01);
+    for (const x of [-.73, .73]) box(.065, 2.74, .055, x, 1.37, .185, mats.brass, group);
+    box(1.52, .065, .055, 0, 2.73, .185, mats.brass, group);
+    panel(.36, .24, 0, 2.30, .216, labelTexture(number, '#ddc797', '#282e25'), group, .16);
+    box(.055, .27, .035, .52, 1.1, .22, mats.brass, group, .01);
+    box(.18, .045, .065, .46, 1.16, .26, mats.brass, group, .012);
+    return group;
+  }
+  const extraDoor = additionalDoor(1, -12.2, '905', 'Additional fifth chamber'); anomaly('extra_door', extraDoor); tag(extraDoor, 'door', 'Porte 905');
+  const reflectedDoor = additionalDoor(-1, 3.75, '909', 'Reflection-only chamber'); reflectedDoor.visible = false;
+  reflectedDoor.traverse(object => { const m = object as THREE.Mesh; if (m.isMesh) m.castShadow = false; });
+
+  const rootGrowth = new THREE.Group(); rootGrowth.name = 'Roots below chamber 901'; rootGrowth.position.set(-3.43, .035, 0); world.add(rootGrowth);
+  anomaly('root_under_door', rootGrowth); tag(rootGrowth, 'door', 'Seuil de la chambre 901');
+  const rootMaterial = new THREE.MeshStandardMaterial({ color: 0x9b8e58, roughness: .91 });
+  for (let branch = 0; branch < 5; branch++) {
+    const z = (branch - 2) * .22;
+    const path = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0, z), new THREE.Vector3(.30, .035, z - .05),
+      new THREE.Vector3(.66, .018, z + Math.sin(branch) * .13), new THREE.Vector3(1.16 - branch * .065, .008, z + Math.cos(branch) * .19),
+    ]);
+    mesh(new THREE.TubeGeometry(path, 36, .023 + (4 - branch) * .003, 7, false), rootMaterial, rootGrowth);
+    const fork = new THREE.CatmullRomCurve3([path.getPoint(.40), path.getPoint(.63).add(new THREE.Vector3(.04, 0, .14)), path.getPoint(.81).add(new THREE.Vector3(-.04, -.008, .30))]);
+    mesh(new THREE.TubeGeometry(fork, 20, .013, 6, false), rootMaterial, rootGrowth);
+  }
+  const water = new THREE.Group(); water.name = 'Upward wall droplets'; water.position.set(3.50, 0, -2.25); water.rotation.y = -Math.PI / 2; world.add(water);
+  anomaly('water_up_wall', water); tag(water, 'portrait', 'Panneau du couloir');
+  const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x548e99, roughness: .23, metalness: .24, emissive: 0x0d282d, emissiveIntensity: .3 });
+  const waterTrailMaterial = new THREE.MeshStandardMaterial({ color: 0x457985, roughness: .25, transparent: true, opacity: .64, depthWrite: false });
+  const wallDrops: THREE.Mesh[] = [], wallTrails: THREE.Mesh[] = [];
+  for (let index = 0; index < 8; index++) {
+    const drop = sphere(.031, (index - 3.5) * .14, .30, .015, waterMaterial, water, 16); drop.scale.set(.72, 1.65, .55); drop.name = `Ascending wall drop ${index + 1}`; wallDrops.push(drop);
+    const trail = mesh(new THREE.PlaneGeometry(.033, .46), waterTrailMaterial, water); trail.position.set(drop.position.x, .07, .001); wallTrails.push(trail);
+  }
+  // A fixed gasket is part of the reference. The anomaly opens its dark gap
+  // along the frame without moving the door, terminal, player or collision.
+  const gasket = new THREE.Group(); gasket.name = 'Diagnostic exit gasket'; world.add(gasket);
+  const gasketMaterial = new THREE.MeshStandardMaterial({ color: 0x06100e, roughness: .98 });
+  const gasketParts = [
+    box(.025, 2.68, .016, -.8425, 1.41, -15.32, gasketMaterial, gasket),
+    box(.025, 2.68, .016, .8425, 1.41, -15.32, gasketMaterial, gasket),
+    box(1.71, .025, .016, 0, .07, -15.32, gasketMaterial, gasket),
+    box(1.71, .025, .016, 0, 2.75, -15.32, gasketMaterial, gasket),
+  ];
+  tag(gasket, 'exit', 'Joint du sas de diagnostic');
+  function updateEnvironment(time: number) {
+    rootGrowth.scale.x = effects.has('root_under_door') ? Math.min(1, .18 + time * .24) : 1;
+    rootGrowth.userData.growth = rootGrowth.scale.x;
+    wallDrops.forEach((drop, index) => {
+      const progress = effects.has('water_up_wall') ? (index / wallDrops.length + time * .12) % 1 : index / wallDrops.length;
+      drop.userData.progress = progress; drop.position.y = .32 + progress * 2.35;
+      wallTrails[index].position.y = drop.position.y - .25;
+    });
+    const breath = effects.has('exit_breath') ? .5 + .5 * Math.sin(time * 1.1 - Math.PI / 2) : 0;
+    gasket.userData.opening = breath;
+    gasketParts.forEach((part, index) => { part.scale.set(index < 2 ? 1 + breath * 5 : 1, index < 2 ? 1 : 1 + breath * 5, 1); });
+  }
 
   [desk, trolley, floatingChair, duplicateChair, sideTable, radio, phone, phoneReceiver, ...doorLeaves].forEach(batchGroup);
 
@@ -663,9 +778,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const particleGeometry = new THREE.BufferGeometry(); particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
   const particles = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0xb9c5ad, size: .014, transparent: true, opacity: .30, depthWrite: false, sizeAttenuation: true })); scene.add(particles);
   const flashlight = new THREE.SpotLight(0xf1e8d2, 0, 19, .37, .45, 1.4); flashlight.position.copy(camera.position); scene.add(flashlight, flashlight.target);
-  extraWorlds = { metro: createLocation('metro'), clinic: createLocation('clinic') };
+  extraWorlds = { metro: createLocation('metro'), clinic: createLocation('clinic'), cabin: createLocation('cabin') };
   for (const location of Object.values(extraWorlds)) { scene.add(location.root); location.root.visible = false; targets.push(...location.targets); }
-  const reflectors = [mirror, hotelWindowGlass, ...extraWorlds.metro.reflectors, ...extraWorlds.clinic.reflectors];
+  const reflectors = [mirror, hotelWindowGlass, ...Object.values(extraWorlds).flatMap(location => location.reflectors)];
   let reflectionDepth = 0;
   for (const reflector of reflectors) {
     reflector.getReflectionCamera(camera).layers.enable(1);
@@ -677,20 +792,34 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       const surfaceVisibility = reflectors.map(surface => surface.visible);
       const localVisible = selfAvatar.root.visible;
       const delayedVisible = reflectionAvatar.root.visible;
+      const reflectedDoorVisible = reflectedDoor.visible;
+      const peerVisibility = [...peers.values()].map(peer => ({ group: peer.group, visible: peer.group.visible }));
+      const witnessVisibility = witnessBodies.map(body => body.visible);
       for (const surface of reflectors) if (surface !== reflector) surface.visible = false;
       reflector.getReflectionCamera(renderingCamera).layers.enable(1);
       if (effects.has('reflection_absent')) selfAvatar.root.visible = false;
-      else if (effects.has('reflection_delay') || effects.has('reflection_independent')) { selfAvatar.root.visible = false; reflectionAvatar.root.visible = active; }
+      else if (['reflection_delay', 'reflection_independent', 'reflection_seated', 'reflection_badge_code'].some(effect => effects.has(effect))) { selfAvatar.root.visible = false; reflectionAvatar.root.visible = active; }
+      reflectedDoor.visible = active && levelId === 'hotel' && reflector === mirror && effects.has('mirror_extra_door');
+      if (effects.has('reflection_no_team')) {
+        peerVisibility.forEach(({ group }) => { group.visible = false; });
+        witnessBodies.forEach(body => { body.visible = false; });
+      }
+      const capturedModels = [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)];
+      capturedModels.forEach(model => model.setReflectionPass(true));
       try { capture.call(reflector, gl, renderingScene, renderingCamera, geometry, material, group); }
       finally {
+        capturedModels.forEach(model => model.setReflectionPass(false));
         reflectors.forEach((surface, index) => { surface.visible = surfaceVisibility[index]; });
+        reflectedDoor.visible = reflectedDoorVisible;
+        peerVisibility.forEach(({ group, visible }) => { group.visible = visible; });
+        witnessBodies.forEach((body, index) => { body.visible = witnessVisibility[index]; });
         selfAvatar.root.visible = localVisible; reflectionAvatar.root.visible = delayedVisible; reflectionDepth--;
       }
     };
   }
-  tag(selfAvatar.root, 'player', 'Votre tenue d’inspection');
+  tag(selfAvatar.root, 'player', 'Votre tenue d’inspection', { kind: 'self', id: selfIdentity.id });
   tag(selfAvatar.radio, 'radio', 'Votre talkie-walkie');
-  tag(doubleAvatar.root, 'player', 'Un inspecteur en trop');
+  tag(doubleAvatar.root, 'player', 'Un inspecteur en trop', { kind: 'double', id: selfIdentity.id });
 
   function look(dx: number, dy: number) {
     if (!active) return;
@@ -698,6 +827,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   }
   function fits(x: number, z: number) {
     if (x < -3.32 || x > 3.32 || z < -15.10 || z > 11.3) return false;
+    if (Math.abs(x - 2.05) < .43 && Math.abs(z - 4.40) < .43) return false;
+    if (witnessCenters.some(center => Math.abs(x - center.x) < .35 && Math.abs(z - center.z) < .35)) return false;
     const currentObstacles = levelId === 'hotel' ? occluders : extraWorlds[levelId].colliders;
     for (const c of currentObstacles) {
       if (effects.has('trolley_missing') && c.x === 2.66 && c.z === -3.76) continue;
@@ -707,13 +838,19 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     return true;
   }
   function applyView(view: PersonalView) {
-    effects = new Set((view.effects || []).filter(e => (SCENE_EFFECTS as readonly string[]).includes(e)));
     phase = view.phase || phase; loop = view.loop || 0;
-    const nextLevel = view.levelId === 'metro' || view.levelId === 'clinic' ? view.levelId : view.levelId === 'hotel' ? 'hotel' : levelId;
+    effects = new Set((phase === 'reference' ? [] : view.effects || []).filter(e => (SCENE_EFFECTS as readonly string[]).includes(e)));
+    const nextLevel = isLevelId(view.levelId) ? view.levelId : levelId;
     if (nextLevel !== levelId) { levelId = nextLevel; pose.x = 0; pose.z = 9; pose.yaw = 0; pose.pitch = 0; poseHistory.length = 0; }
+    const nextEnvironmentKey = `${levelId}:${phase}:${loop}:${[...effects].sort().join(',')}`;
+    if (nextEnvironmentKey !== environmentKey) { environmentKey = nextEnvironmentKey; environmentStarted = elapsed; }
     world.visible = levelId === 'hotel'; hotelLights.visible = levelId === 'hotel';
+    inspectionProps.setView({ ...view, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
+    reflectedDoor.visible = false;
+    updateEnvironment(elapsed - environmentStarted);
+    updateWitnessVisibility();
     clockBody.visible = !effects.has('clock_missing');
     (paintingCanvas.material as THREE.MeshStandardMaterial).map = effects.has('portrait_empty') ? portraitEmpty : portraitNormal;
     doorNumberMaterials.forEach((material, i) => { material.map = i === 0 && effects.has('door_number') ? wrongNumberMap : doorNumberMaps[i]; material.emissiveMap = material.map; });
@@ -761,9 +898,10 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       mat.map = convergenceTexture(arrowDirection, syncTime); mat.emissiveMap = mat.map;
       if (old) { const index = textures.indexOf(old); if (index >= 0) textures.splice(index, 1); old.dispose(); }
     }
-    pulseWallMaterial.color.set(levelId === 'hotel' ? 0xc9be9e : levelId === 'metro' ? 0x9ca9a1 : 0xd1d9d2);
+    pulseWallMaterial.color.set(levelId === 'hotel' ? 0xc9be9e : levelId === 'metro' ? 0x9ca9a1 : levelId === 'cabin' ? 0x846348 : 0xd1d9d2);
     selfAvatar.root.visible = active; reflectionAvatar.root.visible = false;
     doubleAvatar.root.visible = active && effects.has('avatar_double');
+    reflectionAvatar.animate({ time: elapsed, speed: 0, independent: effects.has('reflection_independent'), seated: effects.has('reflection_seated'), badgeCode: effects.has('reflection_badge_code') ? String((Math.abs(selfIdentity.slot) + 1) % 4 + 1).padStart(2, '0') : undefined });
     refreshAvatarAppearance(0);
   }
   function setQuality(q: 'low' | 'medium' | 'high') {
@@ -776,7 +914,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   }
   function createPeer(id: string, name: string, slot: number, color?: number) {
     const model = createInspector({ id, name, slot, color }); const group = model.root; peerGroup.add(group);
-    tag(group, 'player', name);
+    tag(group, 'player', name, { kind: 'peer', id });
     tag(model.radio, 'radio', `Talkie-walkie de ${name}`);
     const result = { group, model, target: { x: 0, y: 1.67, z: 9, yaw: 0, pitch: 0 }, name, talking: false, slot };
     peers.set(id, result); return result;
@@ -800,11 +938,21 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       peerGroup.remove(peer.group); peers.delete(id);
       removeInspectionTargets(peer.group); peer.model.dispose();
     }
+    updateWitnessVisibility(); updateInspectionRoster();
   }
   function refreshAvatarAppearance(speed: number) {
     const visiblePeers = [...peers.values()].filter(peer => peer.group.visible).sort((a, b) => a.slot - b.slot);
-    selfAvatar.animate({ time: elapsed, speed, talking, pitch: pose.pitch, mannequin: effects.has('avatar_mannequin') && visiblePeers.length === 0, radioSignal: effects.has('radio_signal') });
-    for (const peer of visiblePeers) peer.model.animate({ time: elapsed, speed: 0, talking: peer.talking, pitch: peer.target.pitch, mannequin: effects.has('avatar_mannequin') && peer === visiblePeers[0] });
+    selfAvatar.animate({ time: elapsed, speed, talking, pitch: pose.pitch, ...avatarAnomalies(visiblePeers.length === 0, true), radioSignal: effects.has('radio_signal') });
+    for (const peer of visiblePeers) peer.model.animate({ time: elapsed, speed: 0, talking: peer.talking, pitch: peer.target.pitch, ...avatarAnomalies(peer === visiblePeers[0]) });
+  }
+  function avatarAnomalies(selected: boolean, local = false): Partial<InspectorAnimation> {
+    const reflectingPlaneX = Math.abs(pose.z + 12.25) < Math.abs(pose.z - 3.75) ? -3.5 : 3.5;
+    return {
+      mannequin: selected && effects.has('avatar_mannequin'), badgeMissing: selected && effects.has('avatar_badge_missing'),
+      heightOffset: selected && effects.has('avatar_height_offset'), handsSwap: selected && effects.has('avatar_hands_swap'),
+      noContact: selected && effects.has('avatar_no_contact'),
+      visorTarget: selected && effects.has('avatar_visor_watch') ? new THREE.Vector3(local ? 2 * reflectingPlaneX - pose.x : pose.x, pose.y, pose.z) : undefined,
+    };
   }
   function setIdentity(identity: InspectorIdentity) {
     const next = { id: String(identity.id || 'local'), name: String(identity.name || 'Inspecteur').slice(0, 24), slot: Number.isInteger(identity.slot) ? identity.slot : 0, color: identity.color };
@@ -813,10 +961,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     selfIdentity = next;
     selfAvatar = createInspector(next, { local: true }); reflectionAvatar = createInspector(next, { reflectionOnly: true, nameplate: false }); doubleAvatar = createInspector(next, { nameplate: false });
     scene.add(selfAvatar.root, reflectionAvatar.root, doubleAvatar.root);
-    tag(selfAvatar.root, 'player', 'Votre tenue d’inspection'); tag(doubleAvatar.root, 'player', 'Un inspecteur en trop');
+    tag(selfAvatar.root, 'player', 'Votre tenue d’inspection', { kind: 'self', id: selfIdentity.id });
+    tag(doubleAvatar.root, 'player', 'Un inspecteur en trop', { kind: 'double', id: selfIdentity.id });
     tag(selfAvatar.radio, 'radio', 'Votre talkie-walkie');
     selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double');
-    poseHistory.length = 0; refreshAvatarAppearance(0);
+    poseHistory.length = 0; refreshAvatarAppearance(0); updateInspectionRoster();
   }
   function removeInspectionTargets(root: THREE.Object3D) {
     root.traverse(object => { const index = targets.indexOf(object); if (index >= 0) targets.splice(index, 1); });
@@ -867,10 +1016,13 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     camera.getWorldDirection(vector); flashlight.target.position.copy(camera.position).addScaledVector(vector, 8);
     particles.rotation.y = Math.sin(elapsed * .02) * .01;
     if (levelId !== 'hotel') extraWorlds[levelId].update(elapsed);
+    if (levelId === 'hotel') inspectionProps.update(elapsed);
+    updateEnvironment(elapsed - environmentStarted);
+    updateWitnessVisibility();
     const selfSpeed = active && dt > 0 ? Math.hypot(pose.x - oldX, pose.z - oldZ) / dt : 0;
     selfAvatar.root.position.set(pose.x, 0, pose.z); selfAvatar.root.rotation.y = pose.yaw; selfAvatar.root.visible = active;
     const connectedPeers = [...peers.values()].filter(peer => peer.group.visible).sort((a, b) => a.slot - b.slot);
-    selfAvatar.animate({ time: elapsed, speed: selfSpeed, talking, pitch: pose.pitch, mannequin: effects.has('avatar_mannequin') && connectedPeers.length === 0, radioSignal: effects.has('radio_signal') });
+    selfAvatar.animate({ time: elapsed, speed: selfSpeed, talking, pitch: pose.pitch, ...avatarAnomalies(connectedPeers.length === 0, true), radioSignal: effects.has('radio_signal') });
     // Keep a full second of history without making its duration depend on refresh rate.
     if (active && dt > 0 && (!poseHistory.length || elapsed - poseHistory[poseHistory.length - 1].time >= 1 / 120)) {
       poseHistory.push({ time: elapsed, pose: { ...pose }, speed: selfSpeed, talking });
@@ -883,17 +1035,18 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       for (const sample of poseHistory) { if (sample.time <= elapsed - 1) remembered = sample; else break; }
     }
     reflectionAvatar.root.position.set(remembered.pose.x, 0, remembered.pose.z); reflectionAvatar.root.rotation.y = remembered.pose.yaw;
-    reflectionAvatar.animate({ time: effects.has('reflection_delay') ? remembered.time : elapsed, speed: remembered.speed, talking: remembered.talking, pitch: remembered.pose.pitch, independent: effects.has('reflection_independent') });
+    if (effects.has('reflection_seated')) { reflectionAvatar.root.position.set(2.05, 0, 4.40); reflectionAvatar.root.rotation.y = -Math.PI / 2; }
+    reflectionAvatar.animate({ time: effects.has('reflection_delay') ? remembered.time : elapsed, speed: remembered.speed, talking: remembered.talking, pitch: remembered.pose.pitch, independent: effects.has('reflection_independent'), seated: effects.has('reflection_seated'), badgeCode: effects.has('reflection_badge_code') ? String((Math.abs(selfIdentity.slot) + 1) % 4 + 1).padStart(2, '0') : undefined });
     reflectionAvatar.root.visible = false;
     doubleAvatar.root.position.set(-1.15, 0, -4.8); doubleAvatar.root.rotation.y = Math.atan2(-(pose.x + 1.15), -(pose.z + 4.8));
     doubleAvatar.root.visible = active && effects.has('avatar_double'); doubleAvatar.animate({ time: elapsed, speed: 0 });
     for (const peer of peers.values()) {
       const before = peer.group.position.clone();
-      peer.group.position.lerp(new THREE.Vector3(peer.target.x, 0, peer.target.z), 1 - Math.exp(-dt * 12));
+      peer.group.position.lerp(new THREE.Vector3(peer.target.x, peer.group.position.y, peer.target.z), 1 - Math.exp(-dt * 12));
       const delta = Math.atan2(Math.sin(peer.target.yaw - peer.group.rotation.y), Math.cos(peer.target.yaw - peer.group.rotation.y));
       peer.group.rotation.y += delta * (1 - Math.exp(-dt * 12));
       const speed = dt > 0 ? before.distanceTo(peer.group.position) / dt : 0;
-      peer.model.animate({ time: elapsed, speed, talking: peer.talking, pitch: peer.target.pitch, mannequin: effects.has('avatar_mannequin') && peer === connectedPeers[0] });
+      peer.model.animate({ time: elapsed, speed, talking: peer.talking, pitch: peer.target.pitch, ...avatarAnomalies(peer === connectedPeers[0]) });
     }
     if (frame % 4 === 0 && active) {
       raycaster.setFromCamera(center, camera); raycaster.far = 5.8;
@@ -917,11 +1070,27 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     });
     function count(group: THREE.Object3D) { let total = 0; group.traverse(object => { const m = object as THREE.Mesh; if (m.isMesh) total += (m.geometry.index?.count || m.geometry.attributes.position?.count || 0) / 3; }); return Math.round(total); }
     const common = count(commonWorld);
-    const levelTriangles = { hotel: count(world) + common, metro: count(extraWorlds.metro.root) + common, clinic: count(extraWorlds.clinic.root) + common };
+    const levelTriangles = { hotel: count(world) + common, metro: count(extraWorlds.metro.root) + common, clinic: count(extraWorlds.clinic.root) + common, cabin: count(extraWorlds.cabin.root) + common };
     return { sceneTriangles: Math.round(triangles), meshes, levelId, levelTriangles, activeLevelTriangles: levelTriangles[levelId], inspectorTriangles: count(selfAvatar.root), reflectiveSurfaces: reflectors.length, activeReflectiveSurfaces: 2, drawCalls: renderer.info.render.calls, renderedTriangles: renderer.info.render.triangles, quality, supportedEffects: [...SCENE_EFFECTS] };
+  }
+  function getInspection() {
+    const observed = target;
+    if (observed?.id === 'player' || observed?.id === 'mirror') {
+      let model: InspectorModel | undefined;
+      if (observed.id === 'mirror' && !effects.has('reflection_absent') && !effects.has('missing_reflection')) model = ['reflection_delay', 'reflection_independent', 'reflection_seated', 'reflection_badge_code'].some(effect => effects.has(effect)) ? reflectionAvatar : selfAvatar;
+      if (observed.id === 'player' && observed.inspector) {
+        // Display names are not unique and may equal labels used by authored anomalies.
+        const identity = observed.inspector;
+        if (identity.kind === 'peer') model = peers.get(identity.id)?.model;
+        else if (identity.id === selfIdentity.id) model = identity.kind === 'self' ? selfAvatar : doubleAvatar;
+      }
+      if (model) return { title: observed.id === 'mirror' ? 'Badge dans le miroir' : 'Badge physique', location: observed.label, lines: model.badge.userData.code ? [`INSPECTEUR ${model.badge.userData.code}`, 'PARALLAXE'] : ['PLAQUE VIERGE'] };
+    }
+    return levelId === 'hotel' ? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
   }
   function dispose() {
     if (disposed) return; disposed = true; alive = false;
+    world.remove(inspectionProps.root); inspectionProps.dispose();
     for (const model of [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)]) { scene.remove(model.root); peerGroup.remove(model.root); model.dispose(); }
     for (const location of Object.values(extraWorlds)) { scene.remove(location.root); location.dispose(); }
     const geometries = new Set<THREE.BufferGeometry>(); const materials = new Set<THREE.Material>();
@@ -945,11 +1114,13 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     },
     setPeers,
     setIdentity,
+    setInspectionRoster(members: InspectionMember[] | null) { inspectionRoster = members?.map(member => ({ ...member })) ?? null; updateInspectionRoster(); },
     setTalking(next: boolean) { talking = !!next; },
     setQuality,
     setFlashlight(on: boolean) { flashlightOn = on; },
-    setActive(next: boolean) { active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); },
+    setActive(next: boolean) { active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); updateWitnessVisibility(); },
     getTarget: () => target,
+    getInspection,
     dispose,
     getStats,
   };

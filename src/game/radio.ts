@@ -1,24 +1,15 @@
 import type {RadioSignal} from './session';
+import {getProbePattern,renderProbePcm,renderBreathPcm,createRoomImpulse,normalizeRadioEvidence,RADIO_NORMAL_REVERB_SECONDS,RADIO_LONG_REVERB_SECONDS,type RadioProfile,type RadioEvidenceContext,type RadioProbeEvidence} from './radio-evidence';
+export {profileForEffects,getProbePattern,getRadioReferenceCaption,radioReferenceCaption} from './radio-evidence';
+export type {RadioProfile,RadioEvidenceContext,RadioProbeEvidence} from './radio-evidence';
 
-export type RadioProfile='normal'|'echo'|'chop'|'static'|'detune'|'wrong_channel'|'aftertone';
-export type RadioStatus={enabled:boolean;microphone:boolean;talking:boolean;secure:boolean;supported:boolean;micLevel:number;error:string|null;caption:string;peers:{id:string;state:string;talking:boolean;signalingState:string;iceGatheringState:string;iceConnectionState:string;localDescription:boolean;remoteDescription:boolean;localCandidateCount:number;remoteCandidateCount:number}[]};
+export type RadioStatus={enabled:boolean;microphone:boolean;talking:boolean;secure:boolean;supported:boolean;micLevel:number;error:string|null;caption:string;probeActive:boolean;peers:{id:string;state:string;talking:boolean;signalingState:string;iceGatheringState:string;iceConnectionState:string;localDescription:boolean;remoteDescription:boolean;localCandidateCount:number;remoteCandidateCount:number}[]};
 export type RadioPeer={id:string;connected:boolean;radioEnabled?:boolean;radioEpoch?:string;talking?:boolean};
 export type RadioFrame={players:RadioPeer[];radioInbox?:RadioSignal[];serverTime?:number};
 export type RadioOptions={selfId:string;send:(action:string,payload:Record<string,unknown>)=>Promise<unknown>;onState:(state:RadioStatus)=>void;iceServers?:RTCIceServer[]};
-export const radioReferenceCaption='Contrôle normal : 1 · 2 · 3. Trois tonalités nettes, puis silence.';
-const profiles:Record<string,RadioProfile>={radio_echo:'echo',radio_chop:'chop',radio_static:'static',radio_detune:'detune',radio_wrong_channel:'wrong_channel',radio_aftertone:'aftertone'};
-export function profileForEffects(effects:string[]):RadioProfile{return effects.map(id=>profiles[id]).find(Boolean)??'normal';}
 export function isPolitePeer(selfId:string,otherId:string):boolean{return selfId>otherId;}
-export function getProbePattern(profile:RadioProfile){
-  const frequencies=profile==='wrong_channel'?[1320,1320,330]:[660,880,1100];
-  const tones=frequencies.map((frequency,i)=>({at:0.18+i*0.55,frequency,duration:0.18,gain:profile==='chop'&&i===1?0:0.055}));
-  if(profile==='echo')tones.push(...tones.map(t=>({...t,at:t.at+0.25,gain:t.gain*0.5})));
-  if(profile==='aftertone')tones.push({at:2.25,frequency:165,duration:0.7,gain:0.05});
-  const captions:Record<RadioProfile,string>={normal:radioReferenceCaption,echo:'Contrôle reçu : 1 · 1 · 2 · 2 · 3 · 3. Chaque tonalité revient en écho.',chop:'Contrôle reçu : 1 · [coupure] · 3. La deuxième tonalité manque.',static:'Contrôle reçu : [grésillement] 1 · 2 · 3 [grésillement].',detune:'Contrôle reçu : 1 · 2 · 3, avec une modulation métallique sur les trois tonalités.',wrong_channel:'Contrôle reçu : 9 · 9 · 0. La séquence diffère de la référence 1 · 2 · 3.',aftertone:'Contrôle reçu : 1 · 2 · 3 · silence · [porteuse basse après la fin].'};
-  return {tones,noise:profile==='static',modulated:profile==='detune',caption:captions[profile],duration:profile==='aftertone'?3.1:2.2};
-}
 
-type Receiver={source:MediaStreamAudioSourceNode;high:BiquadFilterNode;low:BiquadFilterNode;compressor:DynamicsCompressorNode;shape:WaveShaperNode;mod:GainNode;osc:OscillatorNode;depth:GainNode;gate:GainNode;dry:GainNode;delay:DelayNode;wet:GainNode;feedback:GainNode;noise:AudioBufferSourceNode;noiseGain:GainNode};
+type Receiver={source:MediaStreamAudioSourceNode;high:BiquadFilterNode;low:BiquadFilterNode;compressor:DynamicsCompressorNode;shape:WaveShaperNode;mod:GainNode;osc:OscillatorNode;depth:GainNode;gate:GainNode;dry:GainNode;delay:DelayNode;wet:GainNode;feedback:GainNode;noise:AudioBufferSourceNode;noiseGain:GainNode;mix:GainNode;pan:StereoPannerNode;reverb:ConvolverNode;roomWet:GainNode};
 type Peer={id:string;epoch:string;pc:RTCPeerConnection;transceiver:RTCRtpTransceiver;makingOffer:boolean;ignoreOffer:boolean;settingAnswer:boolean;polite:boolean;candidates:(RTCIceCandidateInit|null)[];sending:Promise<void>;channel:RTCDataChannel|null;receiver:Receiver|null;talking:boolean;lastTalkData:number;restartCount:number;restartTimer:ReturnType<typeof setTimeout>|null;connectTimer:ReturnType<typeof setTimeout>|null;localCandidateCount:number;remoteCandidateCount:number};
 const freshEpoch=()=>globalThis.crypto?.randomUUID?.()??`radio-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
 
@@ -28,8 +19,11 @@ export class RadioClient {
   private enabled=false;private microphone=false;private talking=false;private disposed=false;
   private epoch='';private joiningUntil=0;private error:string|null=null;private caption='';private micLevel=0;
   private clearedPreviousSession=false;
-  private profile:RadioProfile='normal';private volume=0.7;
-  private ctx:AudioContext|null=null;private master:GainNode|null=null;private noiseBuffer:AudioBuffer|null=null;
+  private profile:RadioProfile='normal';private volume=0.7;private monoOutput=false;
+  private evidenceContext=normalizeRadioEvidence();
+  private ctx:AudioContext|null=null;private master:GainNode|null=null;private output:GainNode|null=null;private noiseBuffer:AudioBuffer|null=null;
+  private probeSource:AudioBufferSourceNode|null=null;private probeGeneration=0;private probeActive=false;
+  private transientStops=new Set<()=>void>();private roomBuffers=new Map<number,AudioBuffer>();
   private mic:MediaStream|null=null;private micSource:MediaStreamAudioSourceNode|null=null;private analyser:AnalyserNode|null=null;private silent:GainNode|null=null;
   private peers=new Map<string,Peer>();private frame:RadioFrame={players:[]};
   private seen=new Set<string>();private acknowledgements=new Set<string>();private receiving=Promise.resolve();private receiveScheduled=false;
@@ -46,7 +40,7 @@ export class RadioClient {
     this.emit();
   }
   get status():RadioStatus{return this.getStatus();}
-  getStatus():RadioStatus{return {enabled:this.enabled,microphone:this.microphone,talking:this.talking,secure:typeof window!=='undefined'&&window.isSecureContext,supported:typeof RTCPeerConnection!=='undefined',micLevel:this.micLevel,error:this.error,caption:this.caption,peers:[...this.peers.values()].map(p=>({id:p.id,state:p.pc.connectionState,talking:p.talking,signalingState:p.pc.signalingState,iceGatheringState:p.pc.iceGatheringState,iceConnectionState:p.pc.iceConnectionState,localDescription:!!p.pc.localDescription,remoteDescription:!!p.pc.remoteDescription,localCandidateCount:p.localCandidateCount,remoteCandidateCount:p.remoteCandidateCount}))};}
+  getStatus():RadioStatus{return {enabled:this.enabled,microphone:this.microphone,talking:this.talking,secure:typeof window!=='undefined'&&window.isSecureContext,supported:typeof RTCPeerConnection!=='undefined',micLevel:this.micLevel,error:this.error,caption:this.caption,probeActive:this.probeActive,peers:[...this.peers.values()].map(p=>({id:p.id,state:p.pc.connectionState,talking:p.talking,signalingState:p.pc.signalingState,iceGatheringState:p.pc.iceGatheringState,iceConnectionState:p.pc.iceConnectionState,localDescription:!!p.pc.localDescription,remoteDescription:!!p.pc.remoteDescription,localCandidateCount:p.localCandidateCount,remoteCandidateCount:p.remoteCandidateCount}))};}
   private emit(){if(!this.disposed)this.options.onState(this.getStatus());}
   private isCurrentSession(generation:number):boolean{return !this.disposed&&this.enabled&&generation===this.playbackGeneration;}
   private isCurrentPeer(peer:Peer):boolean{return !this.disposed&&this.enabled&&this.peers.get(peer.id)===peer;}
@@ -63,7 +57,8 @@ export class RadioClient {
     if(!this.ctx){
       const Constructor=globalThis.AudioContext??(typeof window!=='undefined'?(window as unknown as {webkitAudioContext?:typeof AudioContext}).webkitAudioContext:undefined);
       if(!Constructor)throw new Error('Audio indisponible sur cet appareil. La transcription du contrôle reste accessible.');
-      this.ctx=new Constructor({latencyHint:'interactive'});this.master=this.ctx.createGain();this.master.gain.value=this.volume;this.master.connect(this.ctx.destination);
+      this.ctx=new Constructor({latencyHint:'interactive'});this.master=this.ctx.createGain();this.master.gain.value=this.volume;
+      this.output=this.ctx.createGain();this.output.channelCount=this.monoOutput?1:2;this.output.channelCountMode='explicit';this.output.channelInterpretation='speakers';this.master.connect(this.output);this.output.connect(this.ctx.destination);
       this.noiseBuffer=this.ctx.createBuffer(1,this.ctx.sampleRate*2,this.ctx.sampleRate);const channel=this.noiseBuffer.getChannelData(0);for(let i=0;i<channel.length;i++)channel[i]=(Math.random()*2-1)*0.5;
       this.meter=setInterval(()=>this.tick(),100);
     }
@@ -128,7 +123,7 @@ export class RadioClient {
     for(const peer of this.peers.values())if(peer.channel?.readyState==='open')try{peer.channel.send(JSON.stringify({type:'ptt',talking:active}));}catch{/* A closing channel must not keep the microphone open. */}
     if(this.enabled)void this.updateStatus({enabled:true,talking:active,epoch:this.epoch}).catch(()=>{this.error='Signalisation interrompue. Relâchez le talkie puis réessayez.';if(active)this.setTalking(false);this.emit();});
     if(active){this.keepAlive=setInterval(()=>{void this.updateStatus({enabled:true,talking:true,epoch:this.epoch}).catch(()=>this.setTalking(false));},3000);this.pttLimit=setTimeout(()=>{this.setTalking(false);this.caption='Transmission limitée à 30 secondes. Relâchez puis appuyez pour reprendre.';this.emit();},30_000);}
-    this.squelch(active?0.045:0.07);this.emit();
+    if(active||this.profile!=='no_squelch')this.squelch(active?0.045:0.07);this.emit();
   }
   setVolume(value:number):void{this.volume=Math.max(0,Math.min(1,Number.isFinite(value)?value:0.7));if(this.master&&this.ctx)this.master.gain.setTargetAtTime(this.volume,this.ctx.currentTime,0.03);}
   setIceServers(iceServers:RTCIceServer[]):void{
@@ -145,22 +140,32 @@ export class RadioClient {
   }
   disablePlayback():void{
     this.invalidateSignaling();
-    const epoch=this.epoch;this.disableMicrophone();this.enabled=false;for(const id of [...this.peers.keys()])this.closePeer(id);
+    this.stopProbe();const epoch=this.epoch;this.disableMicrophone();this.stopTransientCues();this.enabled=false;for(const id of [...this.peers.keys()])this.closePeer(id);
     void this.updateStatus({enabled:false,talking:false,epoch}).catch(()=>{});this.error=null;this.emit();
   }
-  setProfile(profile:RadioProfile):void{if(this.profile===profile)return;this.profile=profile;for(const peer of this.peers.values())this.tune(peer);}
-  async probe():Promise<{caption:string;audible:boolean}>{
-    const pattern=getProbePattern(this.profile);this.caption=pattern.caption;let audible=false;
+  setMonoOutput(value:boolean):void{this.monoOutput=value===true;if(this.output)this.output.channelCount=this.monoOutput?1:2;this.emit();}
+  setEvidence(context:RadioEvidenceContext):void{const normalized=normalizeRadioEvidence(context);if(normalized.relayCode===this.evidenceContext.relayCode)return;this.stopProbe();this.evidenceContext=normalized;this.caption='';this.emit();}
+  setProfile(profile:RadioProfile):void{if(this.profile===profile)return;this.stopProbe();this.stopTransientCues();this.profile=profile;this.caption='';for(const peer of this.peers.values())this.tune(peer);this.emit();}
+  /** Cancel both a playing buffer and a calibration waiting for an AudioContext to resume. */
+  stopProbe():void{
+    this.probeGeneration++;const source=this.probeSource;this.probeSource=null;this.probeActive=false;
+    if(source){source.onended=null;try{source.stop();}catch{/* Already ended. */}source.disconnect();}this.emit();
+  }
+  async probe():Promise<{caption:string;audible:boolean;evidence:RadioProbeEvidence}>{
+    this.stopProbe();const generation=this.probeGeneration;const profile=this.profile,context={...this.evidenceContext};
+    const pattern=getProbePattern(profile,context);const caption=pattern.caption+(this.monoOutput?' Sortie mono d’accessibilité : le relevé G/D décrit le signal généré avant mixage.':'');
+    this.caption=caption;let audible=false;
     try{
-      const ctx=await this.context();const start=ctx.currentTime;
-      for(const tone of pattern.tones){if(tone.gain===0)continue;const oscillator=ctx.createOscillator();const envelope=ctx.createGain();oscillator.frequency.value=tone.frequency;oscillator.type='sine';envelope.gain.setValueAtTime(0,start+tone.at);envelope.gain.linearRampToValueAtTime(tone.gain,start+tone.at+0.012);envelope.gain.setValueAtTime(tone.gain,start+tone.at+tone.duration-0.02);envelope.gain.linearRampToValueAtTime(0,start+tone.at+tone.duration);oscillator.connect(envelope);envelope.connect(this.master!);
-        if(pattern.modulated){const mod=ctx.createOscillator();const amount=ctx.createGain();mod.frequency.value=32;amount.gain.value=70;mod.connect(amount);amount.connect(oscillator.frequency);mod.start(start+tone.at);mod.stop(start+tone.at+tone.duration);mod.onended=()=>{mod.disconnect();amount.disconnect();};}
-        oscillator.start(start+tone.at);oscillator.stop(start+tone.at+tone.duration+0.01);oscillator.onended=()=>{oscillator.disconnect();envelope.disconnect();};
-      }
-      if(pattern.noise)this.squelch(2.1,0.022);
-      audible=ctx.state==='running';
-    }catch(error){this.error=error instanceof Error?error.message:'Audio indisponible. Utilisez le résultat écrit du contrôle.';}
-    this.emit();return {caption:pattern.caption,audible};
+      const ctx=await this.context();
+      if(this.disposed||generation!==this.probeGeneration)return {caption,audible:false,evidence:pattern.evidence};
+      if(ctx.state!=='running')throw new Error('Lecture audio indisponible. Le relevé du signal généré reste utilisable.');
+      const pcm=renderProbePcm(profile,context,ctx.sampleRate);const buffer=ctx.createBuffer(2,pcm.channels[0].length,ctx.sampleRate);
+      pcm.channels.forEach((data,index)=>buffer.getChannelData(index).set(data));
+      const source=ctx.createBufferSource();source.buffer=buffer;source.connect(this.master!);this.probeSource=source;
+      source.onended=()=>{source.disconnect();if(this.probeSource===source){this.probeSource=null;this.probeActive=false;this.emit();}};
+      source.start(ctx.currentTime);this.probeActive=true;audible=true;
+    }catch(error){if(!this.disposed&&generation===this.probeGeneration){this.stopProbe();this.error=error instanceof Error?error.message:'Audio indisponible. Utilisez le résultat écrit du contrôle.';}}
+    this.emit();return {caption,audible,evidence:pattern.evidence};
   }
   syncPublicRoom(frame:RadioFrame):void{this.sync(frame);}
   sync(frame:RadioFrame):void{
@@ -269,28 +274,42 @@ export class RadioClient {
     channel.onopen=()=>{if(this.isCurrentPeer(peer)&&peer.channel===channel&&channel.readyState==='open')channel.send(JSON.stringify({type:'ptt',talking:this.talking}));};
     channel.onmessage=event=>{if(!this.isCurrentPeer(peer)||peer.channel!==channel||typeof event.data!=='string'||event.data.length>160)return;try{const data=JSON.parse(event.data);if(data.type==='ptt'&&typeof data.talking==='boolean'){peer.lastTalkData=Date.now();this.remoteTalking(peer,data.talking);}}catch{/* Ignore malformed peer control messages. */}};
   }
-  private remoteTalking(peer:Peer,value:boolean){const changed=peer.talking!==value;const ended=peer.talking&&!value;peer.talking=value;if(changed)this.squelch(value?0.045:0.065,0.011);if(ended&&this.profile==='aftertone')this.aftertone();this.tune(peer);this.emit();}
+  private remoteTalking(peer:Peer,value:boolean){const changed=peer.talking!==value;const ended=peer.talking&&!value;peer.talking=value;if(changed&&(value||this.profile!=='no_squelch'))this.squelch(value?0.045:0.065,0.011);if(ended&&this.profile==='aftertone')this.aftertone();if(ended&&this.profile==='pulse_inside')this.breathCue();this.tune(peer);this.emit();}
   private attachReceiver(peer:Peer,stream:MediaStream){
     if(!this.ctx||!this.master)return;this.dropReceiver(peer);const ctx=this.ctx;
-    const source=ctx.createMediaStreamSource(stream),high=ctx.createBiquadFilter(),low=ctx.createBiquadFilter(),compressor=ctx.createDynamicsCompressor(),shape=ctx.createWaveShaper(),mod=ctx.createGain(),osc=ctx.createOscillator(),depth=ctx.createGain(),gate=ctx.createGain(),dry=ctx.createGain(),delay=ctx.createDelay(1),wet=ctx.createGain(),feedback=ctx.createGain(),noise=ctx.createBufferSource(),noiseGain=ctx.createGain();
+    const source=ctx.createMediaStreamSource(stream),high=ctx.createBiquadFilter(),low=ctx.createBiquadFilter(),compressor=ctx.createDynamicsCompressor(),shape=ctx.createWaveShaper(),mod=ctx.createGain(),osc=ctx.createOscillator(),depth=ctx.createGain(),gate=ctx.createGain(),dry=ctx.createGain(),delay=ctx.createDelay(1),wet=ctx.createGain(),feedback=ctx.createGain(),noise=ctx.createBufferSource(),noiseGain=ctx.createGain(),mix=ctx.createGain(),pan=ctx.createStereoPanner(),reverb=ctx.createConvolver(),roomWet=ctx.createGain();
     high.type='highpass';low.type='lowpass';compressor.threshold.value=-26;compressor.knee.value=18;compressor.ratio.value=5;compressor.attack.value=0.004;compressor.release.value=0.13;
     const curve=new Float32Array(2048);for(let i=0;i<curve.length;i++){const x=i*2/(curve.length-1)-1;curve[i]=Math.tanh(x*1.65)/Math.tanh(1.65);}shape.curve=curve;shape.oversample='2x';
-    source.connect(high);high.connect(low);low.connect(compressor);compressor.connect(shape);shape.connect(mod);mod.connect(gate);gate.connect(dry);dry.connect(this.master);gate.connect(delay);delay.connect(wet);wet.connect(this.master);delay.connect(feedback);feedback.connect(delay);osc.connect(depth);depth.connect(mod.gain);osc.frequency.value=32;osc.start();
-    noise.buffer=this.noiseBuffer;noise.loop=true;noise.connect(noiseGain);noiseGain.connect(this.master);noise.start();
-    peer.receiver={source,high,low,compressor,shape,mod,osc,depth,gate,dry,delay,wet,feedback,noise,noiseGain};this.tune(peer);
+    source.connect(high);high.connect(low);low.connect(compressor);compressor.connect(shape);shape.connect(mod);mod.connect(gate);gate.connect(dry);dry.connect(mix);gate.connect(delay);delay.connect(wet);wet.connect(mix);delay.connect(feedback);feedback.connect(delay);osc.connect(depth);depth.connect(mod.gain);osc.frequency.value=32;osc.start();
+    reverb.normalize=false;gate.connect(reverb);reverb.connect(roomWet);roomWet.connect(mix);mix.connect(pan);pan.connect(this.master);
+    noise.buffer=this.noiseBuffer;noise.loop=true;noise.connect(noiseGain);noiseGain.connect(mix);noise.start();
+    peer.receiver={source,high,low,compressor,shape,mod,osc,depth,gate,dry,delay,wet,feedback,noise,noiseGain,mix,pan,reverb,roomWet};this.tune(peer);
   }
   private tune(peer:Peer){const r=peer.receiver,ctx=this.ctx;if(!r||!ctx)return;const at=ctx.currentTime;
     r.high.frequency.setTargetAtTime(this.profile==='wrong_channel'?850:330,at,0.03);r.low.frequency.setTargetAtTime(this.profile==='wrong_channel'?1600:3300,at,0.03);
     r.depth.gain.setTargetAtTime(this.profile==='detune'?0.8:0,at,0.02);r.mod.gain.setTargetAtTime(1,at,0.02);r.delay.delayTime.setTargetAtTime(0.27,at,0.02);r.wet.gain.setTargetAtTime(this.profile==='echo'?0.6:0,at,0.02);r.feedback.gain.setTargetAtTime(this.profile==='echo'?0.26:0,at,0.02);
     r.noiseGain.gain.setTargetAtTime(this.profile==='static'&&peer.talking?0.018:0,at,0.02);
+    r.pan.pan.setTargetAtTime(this.profile==='left_only'?-1:0,at,0.02);
+    const seconds=this.profile==='wrong_room'?RADIO_LONG_REVERB_SECONDS:RADIO_NORMAL_REVERB_SECONDS;
+    let impulse=this.roomBuffers.get(seconds);
+    if(!impulse){const data=createRoomImpulse(ctx.sampleRate,seconds);impulse=ctx.createBuffer(1,data.length,ctx.sampleRate);impulse.getChannelData(0).set(data);this.roomBuffers.set(seconds,impulse);}
+    if(r.reverb.buffer!==impulse)r.reverb.buffer=impulse;
+    r.dry.gain.setTargetAtTime(this.profile==='wrong_room'?0.72:1,at,0.03);r.roomWet.gain.setTargetAtTime(this.profile==='wrong_room'?0.28:0.04,at,0.03);
   }
   private tick(){
     if(this.analyser&&this.microphone){const samples=new Uint8Array(this.analyser.frequencyBinCount);this.analyser.getByteTimeDomainData(samples);this.micLevel=Math.min(1,Math.sqrt(samples.reduce((sum,v)=>sum+((v-128)/128)**2,0)/samples.length)*4);}else this.micLevel=0;
     if(this.ctx)for(const peer of this.peers.values())if(peer.receiver)peer.receiver.gate.gain.setTargetAtTime(this.profile==='chop'&&Date.now()%850<260?0:0.95,this.ctx.currentTime,0.015);
     this.emit();
   }
-  private squelch(duration:number,gain=0.014){if(!this.ctx||!this.master||!this.noiseBuffer)return;const ctx=this.ctx;const source=ctx.createBufferSource();const envelope=ctx.createGain();source.buffer=this.noiseBuffer;envelope.gain.setValueAtTime(gain,ctx.currentTime);envelope.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+duration);source.connect(envelope);envelope.connect(this.master);source.start();source.stop(ctx.currentTime+duration);source.onended=()=>{source.disconnect();envelope.disconnect();};}
-  private aftertone(){if(!this.ctx||!this.master)return;const ctx=this.ctx;const oscillator=ctx.createOscillator(),gain=ctx.createGain();oscillator.frequency.value=165;gain.gain.setValueAtTime(0.035,ctx.currentTime+0.25);gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.85);oscillator.connect(gain);gain.connect(this.master);oscillator.start(ctx.currentTime+0.25);oscillator.stop(ctx.currentTime+0.9);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};}
+  private trackTransient(source:AudioScheduledSourceNode,nodes:AudioNode[]):void{
+    const release=()=>{source.onended=null;source.disconnect();nodes.forEach(node=>node.disconnect());this.transientStops.delete(stop);};
+    const stop=()=>{try{source.stop();}catch{/* Already stopped. */}release();};
+    this.transientStops.add(stop);source.onended=release;
+  }
+  private stopTransientCues():void{for(const stop of [...this.transientStops])stop();}
+  private squelch(duration:number,gain=0.014){if(!this.ctx||!this.master||!this.noiseBuffer)return;const ctx=this.ctx;const source=ctx.createBufferSource();const envelope=ctx.createGain(),pan=ctx.createStereoPanner();source.buffer=this.noiseBuffer;pan.pan.value=this.profile==='left_only'?-1:0;envelope.gain.setValueAtTime(gain,ctx.currentTime);envelope.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+duration);source.connect(envelope);envelope.connect(pan);pan.connect(this.master);this.trackTransient(source,[envelope,pan]);source.start();source.stop(ctx.currentTime+duration);}
+  private aftertone(){if(!this.ctx||!this.master)return;const ctx=this.ctx;const oscillator=ctx.createOscillator(),gain=ctx.createGain();oscillator.frequency.value=165;gain.gain.setValueAtTime(0.035,ctx.currentTime+0.25);gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.85);oscillator.connect(gain);gain.connect(this.master);this.trackTransient(oscillator,[gain]);oscillator.start(ctx.currentTime+0.25);oscillator.stop(ctx.currentTime+0.9);}
+  private breathCue(){if(!this.ctx||!this.master)return;const ctx=this.ctx,data=renderBreathPcm(ctx.sampleRate),buffer=ctx.createBuffer(1,data.length,ctx.sampleRate);buffer.getChannelData(0).set(data);const source=ctx.createBufferSource();source.buffer=buffer;source.connect(this.master);this.trackTransient(source,[]);source.start();}
   private dropReceiver(peer:Peer){const r=peer.receiver;if(!r)return;try{r.osc.stop();r.noise.stop();}catch{}for(const node of Object.values(r))node.disconnect();peer.receiver=null;}
   private closePeer(id:string){
     const peer=this.peers.get(id);if(!peer)return;this.peers.delete(id);
@@ -299,9 +318,9 @@ export class RadioClient {
     peer.pc.onicecandidate=null;peer.pc.onconnectionstatechange=null;peer.pc.onnegotiationneeded=null;peer.pc.ontrack=null;peer.pc.ondatachannel=null;peer.pc.close();
   }
   dispose():void{
-    if(this.disposed)return;this.invalidateSignaling();this.setTalking(false);this.disableMicrophone();if(this.enabled)void this.updateStatus({enabled:false,talking:false,epoch:this.epoch}).catch(()=>{});this.enabled=false;this.disposed=true;
+    if(this.disposed)return;this.invalidateSignaling();this.stopProbe();this.setTalking(false);this.disableMicrophone();this.stopTransientCues();if(this.enabled)void this.updateStatus({enabled:false,talking:false,epoch:this.epoch}).catch(()=>{});this.enabled=false;this.disposed=true;
     for(const id of [...this.peers.keys()])this.closePeer(id);if(this.meter)clearInterval(this.meter);if(this.keepAlive)clearInterval(this.keepAlive);if(this.pttLimit)clearTimeout(this.pttLimit);
-    this.master?.disconnect();void this.ctx?.close().catch(()=>{});this.ctx=null;this.master=null;
+    this.master?.disconnect();this.output?.disconnect();this.roomBuffers.clear();void this.ctx?.close().catch(()=>{});this.ctx=null;this.master=null;this.output=null;
     if(typeof window!=='undefined')window.removeEventListener('blur',this.stopOnBlur);if(typeof document!=='undefined')document.removeEventListener('visibilitychange',this.stopWhenHidden);
   }
 }

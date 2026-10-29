@@ -1,0 +1,42 @@
+{
+  "verification": "CPU geometry, transforms, materials, collision and raycasting only",
+  "passed": 25,
+  "checks": [
+    "all geometry positions, normals and bounds are finite",
+    "wall landmarks face inward; floor faces upward",
+    "wall lights align with their physical fixtures",
+    "all registered visual effects apply and restore baseline visibility/materials",
+    "relay values are legible text inputs, stable on repeat, and previous textures disposed",
+    "all 25 clue locations are raycast-inspectable from walkable positions",
+    "the 23 new visual clues are raycast-inspectable in their actual location",
+    "reflection passes select the full local body, absent body or delayed body without recursion",
+    "the delayed reflection follows one-second history and the independent reflection gestures alone",
+    "the extra chamber exists only in the primary hotel mirror capture and is restored after a failed capture",
+    "group absence affects only reflected peers and provides a persistent solo mannequin comparison in every location",
+    "roots grow below the threshold, wall drops rise and the exit gasket opens without changing the inspection route",
+    "the new environmental clues remain reachable through actual full-scene inspection rays",
+    "the 14 added character and location clues are visible to inspection rays from walkable positions",
+    "avatar changes affect real joints and restore identity, handedness, eyes, scale and ground contact",
+    "badge readings resolve raycast identities despite duplicate names and reserved-looking labels",
+    "seated reflection has bent legs at the empty seat, and badge identity changes only in the reflection",
+    "metro readings, controlled count and gradual physical horizon reset without stale textures",
+    "clinic has distinct bed labels, a separate flat occupant shadow and genuinely reversed drops",
+    "the seven hotel exhibits remain inspectable in the complete scene and expose the exact current reading",
+    "the seven added comparison exhibits are reachable in the complete hotel, without exposing another observer’s reading",
+    "solo perspective changes keep a stable inspection roster, and releasing it restores current connected identities",
+    "each of the three locations has a walkable loop, a solid podium and two exit approaches",
+    "the cabin can be inspected and crossed using the same guarded route in all its private views",
+    "quality caps, peer cleanup and ready callback are consistent"
+  ],
+  "sceneTriangles": 582153,
+  "sceneMeshesIncludingInactiveAnomalies": 1244,
+  "trianglesByLocationIncludingInactiveAnomalies": {
+    "hotel": 252932,
+    "metro": 102766,
+    "clinic": 126607,
+    "cabin": 75956
+  },
+  "trianglesPerInspector": 53990,
+  "planarReflectiveSurfacesTotal": 8,
+  "visualRendering": "UNVERIFIED — no WebGL context, pixel, shader, lighting-appearance or FPS test"
+}

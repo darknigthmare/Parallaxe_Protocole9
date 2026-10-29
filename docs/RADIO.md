@@ -1,4 +1,4 @@
-# Talkies — PARALLAXE v0.2.1
+# Talkies — PARALLAXE v0.3.0
 
 ## Utilisation
 
@@ -8,29 +8,64 @@ La perte de focus, une page masquée, l’extinction du talkie, une liaison voca
 
 Depuis la v0.2.1, couper le microphone ou éteindre le talkie invalide aussi une demande de permission encore en attente. Si le navigateur fournit ensuite un flux pour cette ancienne demande, ses pistes sont immédiatement rendues muettes et arrêtées. Son accord, son refus ou sa finalisation ne peuvent pas remplacer, interrompre ou modifier l’état d’une activation plus récente. Quitter le salon conserve la même protection contre un flux reçu après la fermeture du talkie.
 
-Le bouton **Test de calibration** fonctionne sans microphone et sans partenaire parlant. Il joue un contrôle local et fournit une transcription accessible. Une panne réseau ou un refus de microphone apparaît comme une erreur technique séparée : ce n’est jamais une anomalie de gameplay. Le volet **Diagnostic de liaison** permet de consulter les états de négociation et ICE ainsi que les nombres de candidats de chaque partenaire.
+Le bouton **Test de calibration** fonctionne sans microphone et sans partenaire parlant. Il joue un contrôle local et fournit un relevé accessible. **Arrêter le test**, disponible aussi en solo, coupe immédiatement le signal en cours. Relancer remplace le test précédent. Une panne réseau ou un refus de microphone apparaît comme une erreur technique séparée : ce n’est jamais une anomalie de gameplay. Le volet **Diagnostic de liaison** permet de consulter les états de négociation et ICE ainsi que les nombres de candidats de chaque partenaire.
+
+Le réglage persistant **Radio mono** envoie la même réception aux deux oreilles. Le relevé gauche/droite continue de décrire le signal généré avant ce mixage. Il fournit ainsi l’indice d’une anomalie de canal avec un appareil mono ou en mode silencieux. Il ne mesure ni l’état d’un écouteur, ni l’audition du joueur.
 
 ## Voix réelle et traitement
 
 Chaque paire d’inspecteurs utilise une connexion WebRTC. Une équipe de quatre produit donc au maximum six liaisons entre pairs. La voix est transmise par les pistes WebRTC ; les messages PTT passent aussi par un DataChannel afin de réagir sans attendre le prochain sondage HTTP.
 
-La réception traverse un filtre passe-haut à 330 Hz et passe-bas à 3 300 Hz, une compression dynamique, une saturation légère et une enveloppe de réception. Un bref souffle de porteuse accompagne le début et la fin d’une transmission, localement et chez les destinataires. Les profils d’anomalies peuvent ajouter un écho, une modulation, des coupures, du bruit ou un retour de porteuse. Ces effets concernent la perception du destinataire ; la source vocale d’un joueur n’est pas modifiée pour tous ses partenaires.
+La réception traverse un filtre passe-haut à 330 Hz et passe-bas à 3 300 Hz, une compression dynamique, une saturation légère et une enveloppe de réception. Un bref souffle de porteuse accompagne normalement le début et la fin d’une transmission. Les profils peuvent modifier les retours de porteuse, ajouter écho, modulation, coupures, bruit, longue réverbération, routage à gauche ou souffle synthétique après la fin. Ces effets concernent la perception du destinataire ; la source vocale d’un joueur n’est pas modifiée pour tous ses partenaires.
+
+La longue réverbération utilise une réponse impulsionnelle originale, produite dans le code et envoyée à un `ConvolverNode`. Le déplacement à gauche utilise un `StereoPannerNode`. Le contre-code et l’ordre inversé concernent la calibration synthétique : ils ne réécrivent pas les paroles humaines.
 
 Le serveur de jeu ne reçoit pas de fichiers audio et n’enregistre pas la voix. Il transporte les descriptions SDP, les candidats ICE et les états nécessaires à la connexion. Le code n’utilise ni `MediaRecorder`, ni capture permanente avant permission, ni clonage de voix.
 
-## Contrôles locaux des six anomalies radio
+## Référence commune et douze anomalies radio
 
-| Profil | Observation reproductible | Transcription accessible |
+La calibration normale suit cet ordre : **clic d’ouverture → quatre chiffres du panneau RELAIS → séquence 1, 2, 3 → clic de fermeture → silence**. Les chiffres sont encodés en doubles tonalités téléphoniques DTMF et transcrits à l’écran. Ils ne sont pas prononcés par une voix. La référence du code vient du même panneau que les inspecteurs peuvent lire ; elle peut changer au passage suivant.
+
+Le signal normal est centré, avec 50 % de la puissance générée à gauche et 50 % à droite. Sa réponse de réverbération dure 0,12 seconde. Les quatre chiffres d’identification forment une section distincte des trois tonalités de la séquence principale : le compte de trois ou quatre impulsions désigne cette dernière séquence.
+
+| Identifiant | Observation reproductible | Indice du relevé accessible |
 | --- | --- | --- |
-| Normal | Trois tonalités distinctes puis silence | `1 · 2 · 3` |
-| Écho | Chaque tonalité revient en écho | `1 · 1 · 2 · 2 · 3 · 3` |
-| Coupure | La deuxième tonalité manque | `1 · [coupure] · 3` |
-| Parasites | Bruit ajouté au contrôle | `[grésillement] 1 · 2 · 3 [grésillement]` |
-| Modulation | Les trois tonalités deviennent métalliques | `1 · 2 · 3, avec modulation métallique` |
-| Mauvais canal | Séquence distincte de la référence | `9 · 9 · 0` |
-| Après la fin | Une porteuse basse revient après le silence | `1 · 2 · 3 · silence · [porteuse basse]` |
+| Normal | Code identique au panneau, trois tonalités, deux clics | Code de référence et code reçu identiques ; `1 · 2 · 3` ; G 50 % / D 50 % ; 0,12 s |
+| `radio_echo` | Chaque tonalité principale revient en écho | `1 · 1 · 2 · 2 · 3 · 3` |
+| `radio_chop` | La deuxième tonalité principale manque | `1 · [coupure] · 3` |
+| `radio_static` | Grésillement ajouté au code et à la séquence | Bruit synthétique explicitement indiqué |
+| `radio_detune` | Les tonalités principales deviennent métalliques | Modulation sur les trois tonalités |
+| `radio_wrong_channel` | Une séquence distincte remplace la référence | `9 · 9 · 0` |
+| `radio_aftertone` | Une porteuse basse revient après le clic final | Silence, puis porteuse basse |
+| `radio_no_squelch` | Seul le clic de fermeture manque | Clic d’ouverture présent, clic final absent ; fin de séquence confirmée |
+| `radio_countercode` | Le dernier chiffre reçu diffère du panneau, y compris après un 9 | Par exemple : référence `3142`, code reçu `3143` |
+| `radio_left_only` | La calibration se trouve entièrement à gauche | Routage généré G 100 % / D 0 %, avant le mixage mono éventuel |
+| `radio_wrong_room` | Une longue queue de réverbération persiste après la clôture | Réponse synthétique de 2,40 s, au lieu de 0,12 s |
+| `radio_order_swap` | Les deuxième et troisième tonalités sont échangées | `1 · 3 · 2`, avec toujours trois tonalités claires |
+| `radio_pulse_inside` | Une quatrième impulsion lente et soufflée apparaît après la clôture | `1 · 2 · 3`, puis quatrième impulsion avec souffle synthétique |
 
-Les tonalités et les transcriptions dépendent uniquement du profil de perception assigné au joueur. La permission microphone, le débit réseau et l’état de WebRTC ne changent pas le résultat du contrôle. Si WebAudio est indisponible, la transcription reste une preuve utilisable ; l’impossibilité de jouer le son est indiquée séparément.
+Les douze profils sont utilisables dans les trois lieux. Leurs preuves dépendent du profil personnel et du code RELAIS fourni au client. La permission microphone, le débit réseau et l’état de WebRTC ne changent pas le résultat du contrôle. Sans WebAudio, le relevé reste utilisable et l’impossibilité de jouer le son est indiquée séparément. Aucune prise de son de la pièce ou mesure du matériel n’intervient dans le diagnostic.
+
+### Repères temporels de la calibration
+
+| Partie du test | Temps après le lancement |
+| --- | --- |
+| Clic d’ouverture | 0,015 à 0,050 s |
+| Quatre chiffres DTMF | Débuts à 0,18 / 0,55 / 0,92 / 1,29 s ; durée de 0,18 s chacun |
+| Trois tonalités principales | Débuts à 2,00 / 2,55 / 3,10 s ; durée de 0,18 s chacune |
+| Clic de fermeture normal | 3,64 à 3,685 s |
+| Quatrième souffle de `radio_pulse_inside` | 4,05 à 4,90 s |
+| Fin du buffer normal / salle longue / quatrième souffle | 3,95 / 5,85 / 5,15 s |
+
+Le test joue un unique buffer stéréo calculé de façon déterministe. Son arrêt ou son remplacement stoppe et déconnecte cette source ; aucun retardateur ne peut déclencher ensuite un morceau de l’ancien test. L’annulation fonctionne aussi pendant une reprise du contexte audio. La fin du test n’ouvre jamais le microphone et ne falsifie pas l’indicateur PTT.
+
+### Adaptations des fiches de conception
+
+La fiche « Les chiffres au mauvais endroit » décrivait un code parlé. La réalisation emploie du DTMF synthétique et sa transcription pour éviter un service vocal externe ou une voix navigateur variable. Les chiffres restent comparables au panneau commun. La référence comporte désormais une section d’identification avant les trois tonalités ; les fiches relatives au compte et à l’ordre des impulsions concernent la séquence principale. Le relevé de canal et la durée de réverbération décrivent le signal produit par le jeu, sans prétendre analyser le casque ou la pièce réelle.
+
+### Contrat d’intégration
+
+Le client reçoit `setEvidence({relayCode})`, `setProfile(profileForEffects(view.effects))` et `setMonoOutput(boolean)`. `getRadioReferenceCaption({relayCode})` produit la référence commune à afficher. `probe()` renvoie `{caption, audible, evidence}` ; `evidence` contient `referenceCode`, `receivedCode`, `sequence`, `channels`, `reverbSeconds`, `closingClick` et `pulseCount`. `RadioStatus.probeActive` suit le buffer en cours, tandis que `stopProbe()` l’annule. L’interface arrête également le test lors d’un changement de phase, de passage, de perception, de client ou à la fermeture du panneau radio.
 
 ## HTTPS et réseau local
 
@@ -83,7 +118,9 @@ Les rôles de négociation sont déterminés par les identifiants des joueurs. E
 
 ## Validation et limites
 
-Les **19 tests automatisés** de `tests/radio.test.mjs` réussissent pour la v0.2.1. Ils vérifient le consentement explicite, le démarrage muet, les coupures PTT, la fermeture des pistes, les transcriptions déterministes, l’isolation et les limites de signalisation, les rôles de négociation, l’offre initiale sans microphone et les identifiants TURN temporaires. Sept nouveaux cas couvrent les permissions tardives, les annulations et les activations concurrentes. Les faux périphériques utilisés dans ces tests ne remplacent pas une écoute humaine sur du matériel réel.
+Les **32 tests automatisés** de `tests/radio.test.mjs` réussissent pour la v0.3.0. Les 19 contrôles précédents préservent consentement, démarrage muet, PTT, fermeture des pistes, transcriptions, signalisation privée, limites, négociation et identifiants TURN temporaires ; ils comprennent les sept cas d’annulation corrigés en v0.2.1.
+
+Les 13 nouveaux contrôles analysent les véritables échantillons PCM fournis à l’`AudioBuffer` de production : déterminisme et amplitudes, suppression du clic final, fréquences des chiffres DTMF, silence exact du canal droit, queue de réverbération, ordre des tonalités et souffle supplémentaire. Ils vérifient également la construction et la remise à zéro du graphe de réception, le mono, la transcription sans WebAudio et le nettoyage des sources, y compris pendant une reprise audio en attente. Les tests du graphe utilisent des doublures des API navigateur ; ils ne constituent pas un essai matériel d’un navigateur ou d’un casque. Le [rapport radio v0.3](qa-radio-v0.3.json) conserve les mesures et leurs limites.
 
 La régression a d’abord été reproduite sur le code v0.2 : après extinction pendant une permission en attente, l’état pouvait devenir `enabled=false`, `microphone=true`, avec une piste muette mais non arrêtée. Six des sept nouveaux contrôles échouaient avant le correctif ; le cas de fermeture complète du client était déjà protégé. Après correction, les sept réussissent, ainsi que les douze tests existants et le contrôle TypeScript. Le [rapport d’annulation v0.2.1](qa-radio-cancellation-v0.2.1.json) conserve les scénarios, résultats et limites ; aucun microphone physique n’a été sollicité.
 
@@ -101,5 +138,7 @@ Les tests de consentement et de pistes muettes utilisent des périphériques sim
 
 - [MDN — Perfect negotiation](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation)
 - [MDN — getUserMedia et contexte sécurisé](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+- [MDN — ConvolverNode](https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode)
+- [MDN — StereoPannerNode](https://developer.mozilla.org/en-US/docs/Web/API/StereoPannerNode)
 - [WebRTC — TURN server](https://webrtc.org/getting-started/turn-server)
 - [coturn — mécanisme TURN REST](https://github.com/coturn/coturn/blob/master/README.turnserver)

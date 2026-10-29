@@ -1,0 +1,17 @@
+{
+  "passed": 9,
+  "checks": [
+    "fourth optional location preserves three-stage campaign identity",
+    "all cabin meshes have finite geometry, normals and nonzero bounds",
+    "two original planar surfaces face the walkable interior",
+    "normal table clearance and oversized left edge have observable geometry",
+    "table and cold hearth can be inspected from unobstructed standing positions",
+    "shared routes, mirror witness positions and colliders survive both private effects",
+    "shared lighting, exit and relay effects restore their normal states",
+    "metro arches fit below the actual ceiling and join the supporting posts",
+    "cabin disposal releases geometry, materials, textures and reflection targets once"
+  ],
+  "cabinTriangles": 29930,
+  "cabinMeshes": 69,
+  "limit": "CPU geometry, collision, state, text inputs and raycasts only; no pixel, shader, frame-rate or device claim."
+}

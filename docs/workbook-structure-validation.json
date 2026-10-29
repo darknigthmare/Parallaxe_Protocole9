@@ -1,10 +1,11 @@
 {
-  "version": "0.2.1",
+  "version": "0.4.0",
   "file": "docs/PARALLAXE_Design_Complet.xlsx",
-  "bytes": 132586,
+  "bytes": 156179,
+  "sha256": "9c46c32e0fed05d0ed508e545642e99f8c0355e33cc64a12f945d2ab20df6255",
   "sheets": 15,
   "tables": 14,
-  "formulas": 17,
+  "formulas": 18,
   "formulaErrors": [],
   "dataValidations": 15,
   "rows": [
@@ -12,8 +13,7 @@
       "sheet": "Synthèse",
       "formulas": 14,
       "pane": null,
-      "validations": 0,
-      "tableParts": 0
+      "validations": 0
     },
     {
       "sheet": "Boucle",
@@ -25,8 +25,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Anomalies",
@@ -38,8 +37,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 3,
-      "tableParts": 1
+      "validations": 3
     },
     {
       "sheet": "Coopération",
@@ -51,8 +49,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Radio",
@@ -64,8 +61,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Personnages",
@@ -77,12 +73,11 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Niveaux",
-      "formulas": 3,
+      "formulas": 4,
       "pane": {
         "xSplit": "1",
         "ySplit": "5",
@@ -90,8 +85,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Lieux",
@@ -103,8 +97,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Direction artistique",
@@ -116,8 +109,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Audio",
@@ -129,8 +121,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Commandes",
@@ -142,8 +133,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Narration",
@@ -155,8 +145,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Production",
@@ -168,8 +157,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "QA",
@@ -181,8 +169,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 1,
-      "tableParts": 1
+      "validations": 1
     },
     {
       "sheet": "Références",
@@ -194,8 +181,7 @@
         "activePane": "bottomRight",
         "state": "frozen"
       },
-      "validations": 0,
-      "tableParts": 1
+      "validations": 0
     }
   ],
   "tableRanges": [
@@ -206,42 +192,42 @@
     },
     {
       "name": "P9_Anomalies",
-      "range": "A5:V125",
+      "range": "A5:W125",
       "filter": true
     },
     {
       "name": "P9_Cooperation",
-      "range": "A5:G30",
+      "range": "A5:G35",
       "filter": true
     },
     {
       "name": "P9_Radio",
-      "range": "A5:H35",
+      "range": "A5:H45",
       "filter": true
     },
     {
       "name": "P9_Personnages",
-      "range": "A5:H26",
+      "range": "A5:H34",
       "filter": true
     },
     {
       "name": "P9_Niveaux",
-      "range": "A5:J8",
+      "range": "A5:J9",
       "filter": true
     },
     {
       "name": "P9_Lieux",
-      "range": "A5:H26",
+      "range": "A5:H33",
       "filter": true
     },
     {
       "name": "P9_Directionartistique",
-      "range": "A5:G39",
+      "range": "A5:G40",
       "filter": true
     },
     {
       "name": "P9_Audio",
-      "range": "A5:G22",
+      "range": "A5:G25",
       "filter": true
     },
     {
@@ -256,18 +242,43 @@
     },
     {
       "name": "P9_Production",
-      "range": "A5:H61",
+      "range": "A5:H72",
       "filter": true
     },
     {
       "name": "P9_QA",
-      "range": "A5:H86",
+      "range": "A5:H140",
       "filter": true
     },
     {
       "name": "P9_References",
-      "range": "A5:G34",
+      "range": "A5:G49",
       "filter": true
     }
-  ]
+  ],
+  "unchangedSheetsCompared": [
+    "Commandes",
+    "Narration"
+  ],
+  "unchangedContentFormatsAndNativeFeatures": true,
+  "originalAnomalyIdsAndOrderPreserved": true,
+  "cachedCounts": {
+    "designed": 120,
+    "runtime": 96,
+    "planned": 24,
+    "qaScenarios": 135
+  },
+  "cachedPools": {
+    "hotel": 76,
+    "metro": 48,
+    "clinic": 48,
+    "cabin": 35
+  },
+  "campaign": [
+    "hotel",
+    "metro",
+    "clinic"
+  ],
+  "cabinMode": "single",
+  "zipCRC": "passed"
 }

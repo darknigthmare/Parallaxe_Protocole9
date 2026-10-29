@@ -1,17 +1,24 @@
 {
-  "version": "0.2.1",
-  "date": "2026-10-26",
+  "version": "0.4.0",
+  "date": "2026-10-28",
   "counts": {
     "total": 120,
-    "code": 54,
-    "planned": 66
+    "code": 96,
+    "planned": 24
   },
   "pools": {
-    "hotel": 43,
-    "metro": 30,
-    "clinic": 31
+    "hotel": 76,
+    "metro": 48,
+    "clinic": 48,
+    "cabin": 35
   },
   "poolsAreOverlapping": true,
+  "campaign": [
+    "hotel",
+    "metro",
+    "clinic"
+  ],
+  "cabinMode": "single",
   "sheets": [
     "Synthèse",
     "Boucle",
@@ -32,30 +39,33 @@
   "rows": {
     "Anomalies": 120,
     "Boucle": 27,
-    "Coopération": 25,
-    "Radio": 30,
-    "Personnages": 21,
-    "Niveaux": 3,
-    "Lieux": 21,
-    "Direction artistique": 34,
-    "Audio": 17,
+    "Coopération": 30,
+    "Radio": 40,
+    "Personnages": 29,
+    "Niveaux": 4,
+    "Lieux": 28,
+    "Direction artistique": 35,
+    "Audio": 20,
     "Commandes": 24,
     "Narration": 18,
-    "Production": 56,
-    "QA": 81,
-    "Références": 29
+    "Production": 67,
+    "QA": 135,
+    "Références": 44
   },
   "runtimeStatus": "Implémenté — QA partielle",
-  "sourceHash": "5977c78042deef5fbd11916a3a297b597b61e062dfcca80b1e3a07d953a756ee",
+  "sourceHash": "0ce9b84d395989a0b04350469df74ac4e8e6f29932c1ae4af6df0ec874bdace8",
   "liveInputCheck": {
     "originalStatus": "Implémenté — QA partielle",
     "changedValidated": 1,
-    "changedImplemented": 53,
-    "initialImplemented": 54,
+    "changedImplemented": 95,
+    "initialImplemented": 96,
     "initialValidated": 0,
     "restored": true,
-    "hotelBefore": 43,
-    "hotelChanged": 42
+    "hotelBefore": 76,
+    "hotelChanged": 75,
+    "cabinRow": 15,
+    "cabinBefore": 35,
+    "cabinChanged": 34
   },
   "formulaScan": "{\"kind\":\"notice\",\"message\":\"Cell search matched 0 entries.\"}"
 }

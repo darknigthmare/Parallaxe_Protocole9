@@ -13,10 +13,12 @@ for(const name of ['levels','catalog','rules','session']){
   const output=stripTypeScriptTypes(source).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");
   await writeFile(join(temp,`${name}.mjs`),output);
 }
+const {SELECTABLE_LEVELS}=await import(pathToFileURL(join(temp,'levels.mjs')));
 const {ANOMALIES}=await import(pathToFileURL(join(temp,'catalog.mjs')));
 const {createRun,advanceRun,evaluateRun,getPersonalView,migrateRun}=await import(pathToFileURL(join(temp,'rules.mjs')));
 const {createRoom,joinRoom,actRoom:applyRoom,projectRoom,makePlayer,authenticate,cleanPose,PRESENCE_TIMEOUT}=await import(pathToFileURL(join(temp,'session.mjs')));
 test.after(async()=>{await rm(temp,{recursive:true,force:true});});
+
 // Ordinary rule scenarios issue a fresh decision from the latest displayed room.
 // Captured/replayed decisions are exercised without this helper in session-actions.
 function actRoom(room,id,action,payload,at){
@@ -29,9 +31,9 @@ function roomWithTwo(){
   return room;
 }
 
-test('54 unique catalog entries have valid location scopes and include relational clues',()=>{
-  assert.equal(ANOMALIES.length,54);
-  assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,54);
+test('96 unique catalog entries have valid location scopes and include relational clues',()=>{
+  assert.equal(ANOMALIES.length,96);
+  assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,96);
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));
 });
@@ -54,7 +56,7 @@ test('seeded cases are deterministic with both clean and anomalous passages',()=
 });
 test('every anomaly has a witness and a baseline observer for 2–4 players',()=>{
   const seen=new Set();
-  for(const levelId of ['hotel','metro','clinic'])for(const players of [2,3,4])for(let seed=0;seed<900;seed++){
+  for(const levelId of SELECTABLE_LEVELS)for(const players of [2,3,4])for(let seed=0;seed<900;seed++){
     const run=advanceRun(createRun({seed:`coverage-${seed}`,players,mode:'single',levelId}));
     if(!run.currentAnomalyId)continue;
     seen.add(run.currentAnomalyId);
@@ -70,7 +72,7 @@ test('every anomaly has a witness and a baseline observer for 2–4 players',()=
       assert.ok(Array.from({length:players},(_,s)=>getPersonalView(run,s).effects).some(e=>e.length===0));
     }
   }
-  assert.equal(seen.size,54);
+  assert.equal(seen.size,96);
 });
 test('nine correct consecutive decisions win; repeated calls cannot double-score',()=>{
   let run=createRun({seed:'winning',mode:'single'});
@@ -109,6 +111,27 @@ test('v0.1 saves migrate to single hotel without losing progression, malformed s
   const migrated=migrateRun(old);assert.equal(migrated.schemaVersion,2);assert.equal(migrated.mode,'single');assert.equal(migrated.levelId,'hotel');assert.equal(migrated.streak,3);assert.deepEqual(getPersonalView(migrated,1).effects,['plant_dead']);
   assert.equal(migrateRun({phase:'invented',seed:1}),null);assert.equal(migrateRun(null),null);
 });
+test('optional chalet runs preserve save and room identity without extending the campaign',()=>{
+  let run=createRun({seed:'cabin-save',mode:'single',levelId:'cabin',players:4});
+  assert.equal(run.levelId,'cabin');
+  assert.deepEqual(migrateRun(run),run);
+  for(let i=0;i<9;i++){
+    run=advanceRun(run);
+    assert.equal(run.levelId,'cabin');
+    assert.equal(run.phase,'inspect');
+    run=evaluateRun(run,!!run.currentAnomalyId);
+    assert.deepEqual(migrateRun(run),run);
+  }
+  assert.equal(run.phase,'won');
+  assert.equal(createRun({seed:'campaign',mode:'campaign',levelId:'cabin'}).levelId,'hotel');
+  let room=createRoom('CHALTT',makePlayer('a','Alpha','secret-a',0,1000),'standard','chalet-room',1000,{mode:'single',levelId:'cabin'});
+  room=joinRoom(room,makePlayer('b','Bravo','secret-b',1,1000));
+  room=actRoom(room,'a','start',{},1100);
+  const publicRoom=projectRoom(room,'b',1100);
+  assert.equal(publicRoom.levelId,'cabin');
+  assert.equal(publicRoom.view.levelId,'cabin');
+  assert.equal(publicRoom.mode,'single');
+});
 test('a wrong diagnosis resets the streak and third standard error ends the run',()=>{
   let run=advanceRun(createRun({seed:'losing'}));
   run=evaluateRun(run,!!run.currentAnomalyId);assert.equal(run.streak,1);
@@ -129,6 +152,23 @@ test('private projection never sends the seed, answer, hashes or another observe
   assert.equal(state.reveal,null);assert.deepEqual(state.view.effects,[]);
   for(const secret of ['test-seed','secret-a','secret-b','currentAnomalyId','observerSlots','shadow_figure','tokenHash'])assert.ok(!json.includes(secret),secret);
   assert.deepEqual(projectRoom(room,'b',1200).view.effects,['shadow_figure']);
+});
+test('inspection pings identify a prop without publishing its private reading or changing the verdict',()=>{
+  let room=actRoom(roomWithTwo(),'a','start',{},1100);
+  room=actRoom(room,'a','next',{},1200);
+  room.run.currentAnomalyId='paired_stamp';room.run.observerSlots=[1];
+  const before=structuredClone(room.run);
+  const targets=['assignment','luggage','document','newspaper','hourglass','cup','keys','iv','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace'];
+  for(const [index,target] of targets.entries()){
+    room=actRoom(room,'b','ping',{target,reading:'private-value-must-not-be-forwarded'},1300+index);
+    const state=projectRoom(room,'a',1400+index);
+    assert.equal(state.pings.at(-1).target,target);
+    assert.ok(!JSON.stringify(state).includes('private-value-must-not-be-forwarded'));
+    assert.deepEqual(state.view.effects,[]);
+    assert.equal(state.reveal,null);
+  }
+  assert.deepEqual(room.run,before);
+  assert.throws(()=>actRoom(room,'b','ping',{target:'invented-private-object'},1500),/Repère inconnu/);
 });
 test('team disagreements do not resolve; changing a vote to unanimity resolves exactly once',()=>{
   let room=actRoom(roomWithTwo(),'a','start',{},1100);

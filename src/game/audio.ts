@@ -1,3 +1,5 @@
+import type { LevelId } from './levels';
+
 /** Original synthesized ambience. No recordings or external audio dependencies. */
 export class Atmosphere {
   private context: AudioContext | null = null;
@@ -6,13 +8,14 @@ export class Atmosphere {
   private volume = 0.38;
   private lastStep = 0;
   private enabled = true;
-  private location: 'hotel' | 'metro' | 'clinic' = 'hotel';
+  private location: LevelId = 'hotel';
   private oscillators: OscillatorNode[] = [];
   private airFilter: BiquadFilterNode | null = null;
   private profiles = {
     hotel: { frequencies: [47, 94.07, 141.03], air: 290, step: [65, 28, .09, .10] },
     metro: { frequencies: [41.2, 82.45, 247.15], air: 720, step: [112, 44, .12, .085] },
     clinic: { frequencies: [52, 104.03, 208.05], air: 440, step: [88, 36, .075, .075] },
+    cabin: { frequencies: [36.7, 73.45, 146.83], air: 185, step: [79, 31, .13, .085] },
   };
 
   async start() {
@@ -53,7 +56,7 @@ export class Atmosphere {
     if(this.master&&this.context)this.master.gain.setTargetAtTime(this.enabled?this.volume:0,this.context.currentTime,0.15);
   }
   setEnabled(enabled:boolean){this.enabled=enabled;this.setVolume(this.volume);}
-  setLocation(location:'hotel'|'metro'|'clinic') {
+  setLocation(location:LevelId) {
     this.location=location;
     const c=this.context;if(!c)return;
     const profile=this.profiles[location];

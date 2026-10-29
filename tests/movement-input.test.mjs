@@ -10,7 +10,7 @@ function between(start,end){
   assert.ok(a>=0&&b>a,`Game callback boundaries: ${start}`);
   return game.slice(a,b);
 }
-const controls=between('  const resetJoystick=useCallback(','  const suspendTalking=useCallback(');
+const controls=between('  const stopCalibration=useCallback(','  const suspendTalking=useCallback(');
 const session=between('  const resetSession=useCallback(','  const cancelOpening=useCallback(');
 const modals=between('  const openModal=useCallback(','  const acceptState=useCallback(');
 const accepted=between('  const acceptState=useCallback(','  useEffect(()=>()=>{sessionScope.current!.invalidate();},[]);');
@@ -29,6 +29,7 @@ function makeHarness(){
   const setModal=v=>state.modal=typeof v==='function'?v(state.modal):v;
   const setOnline=v=>state.online=v,setCredentials=v=>state.credentials=v,setBusy=()=>{},setNetworkDown=()=>{},setRun=v=>state.run=v;
   const useCallback=fn=>fn,useEffect=fn=>fn(),cancelOpening=()=>state.cancelled++,suspendTalking=()=>state.talking=false;
+  const probeActions={current:{cancel(){}}},radio={current:{stopProbe(){}}},setRadioCaption=()=>{};
   const sessionScope={current:{replace(){},accept:()=>true}},credRef={current:null},postInFlight={current:false};
   const lastPhase={current:''},lastReveal={current:''},audio={current:{tone(){}}};
   const currentDecision=()=>true,submitDecision=async()=>null,notify=()=>{},online=null,phase='inspect',run={phase:'inspect'},evaluateRun=()=>({phase:'reveal'});
@@ -73,7 +74,7 @@ test('joystick and look preserve normal movement, clamp and sensitivity',()=>{
   h.beginLook(h.event(8));h.moveLook(h.event(8,110,95),1.6);
   assert.deepEqual(h.state.looks,[{x:32,y:-16}]);
 });
-for(const modal of ['pause','journal','vote','radio']){
+for(const modal of ['pause','journal','vote','radio','observation']){
   test('opening '+modal+' stops live gestures before controls unmount',()=>{
     const h=harness();moveBoth(h);h.openModal(modal);
     stopped(h);assert.equal(h.state.modal,modal);assert.equal(h.state.talking,false);

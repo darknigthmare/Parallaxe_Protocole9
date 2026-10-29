@@ -9,9 +9,9 @@ import {stripTypeScriptTypes} from 'node:module';
 // Compile real modules and real Game callbacks. No copied transport implementation.
 const temp=await mkdtemp(join(tmpdir(),'parallaxe-session-client-'));
 test.after(()=>rm(temp,{recursive:true,force:true}));
-for(const name of ['session-scope','radio-input','levels','catalog','rules']){
+for(const name of ['session-scope','radio-input','radio-actions','levels','catalog','rules']){
   const source=await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8');
-  await writeFile(join(temp,`${name}.mjs`),stripTypeScriptTypes(source).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'"));
+  await writeFile(join(temp,`${name}.mjs`),stripTypeScriptTypes(source,{mode:'transform'}).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'"));
 }
 const {SessionScope}=await import(pathToFileURL(join(temp,'session-scope.mjs')));
 const game=await readFile(new URL('../app/game.tsx',import.meta.url),'utf8');
@@ -20,7 +20,8 @@ function between(start,end){
   assert.ok(a>=0&&b>a,`Game callback boundaries: ${start}`);
   return game.slice(a,b);
 }
-const transport=between('  const resetJoystick=useCallback(','\n  useEffect(()=>{\n    const p=safeRead');
+const transport=between('  const stopCalibration=useCallback(','\n  useEffect(()=>{\n    const p=safeRead');
+const calibration=between('  const probeRadio=','  const sendChat=');
 const decisions=between('  const beginSolo=','  const switchView=');
 const leaveAndResume=between('  const returnMenu=','  const fullscreen=');
 const open=between('  const startNetwork=','  const runRadioAction=');
@@ -30,20 +31,22 @@ const controllerSample=between('        const focused=','        if(s.playing&&!
 const harnessSource=`
 import {SessionScope} from './session-scope.mjs';
 import {HoldToTalkGate} from './radio-input.mjs';
+import {RadioActionGate} from './radio-actions.mjs';
 import {createRun,advanceRun,evaluateRun} from './rules.mjs';
 export function harness(fetch){
-  const state={busy:false,networkDown:false,error:'',online:null,credentials:null,run:null,modal:'none',savedSession:null,talking:false,radioStatus:null};
+  const state={busy:false,networkDown:false,error:'',online:null,credentials:null,run:null,modal:'none',savedSession:null,talking:false,radioStatus:null,radioCaption:'',probePending:false,probeStops:0};
   const sessionScope={current:new SessionScope()},credRef={current:null},postInFlight={current:false};
   const lastPhase={current:''},lastReveal={current:''},audio={current:null},engine={current:null},frameState={current:{playing:false}};
-  const padTalk={current:new HoldToTalkGate()},radio={current:{setTalking:v=>state.talking=v,disablePlayback(){},disableMicrophone(){}}};
+  const padTalk={current:new HoldToTalkGate()},radio={current:{setTalking:v=>state.talking=v,disablePlayback(){},disableMicrophone(){},stopProbe(){state.probeStops++;}}};
   const radioActions={current:{cancel(){},invalidate(){},begin(){return {finish(){}};}}};
+  const probeActions={current:new RadioActionGate(v=>state.probePending=v)},setRadioCaption=v=>state.radioCaption=v;
   const radioSetup={current:{volume:0.75,profile:'normal',frame:null}},refreshRadioConfig={current:async()=>{}};
   const cleanups=[],storage=new Map(),intervals=new Map(),timeouts=new Map(),notices=[],clients=[];let timer=0;
   // The lifecycle's callbacks are real; the RTC/audio boundary is controllable here.
   class RadioClient {
     constructor(options){this.options=options;clients.push(this);}
-    setVolume(){} setProfile(){} sync(){} setIceServers(servers){this.servers=servers;}
-    setTalking(v){state.talking=v;} disablePlayback(){} disableMicrophone(){} dispose(){this.disposed=true;}
+    setVolume(){} setProfile(){} setEvidence(){} setMonoOutput(){} sync(){} setIceServers(servers){this.servers=servers;}
+    setTalking(v){state.talking=v;} stopProbe(){state.probeStops++;} disablePlayback(){} disableMicrophone(){} dispose(){this.disposed=true;}
   }
   const setRadioStatus=v=>state.radioStatus=v;
   let online=null,credentials=null,savedSession=null;
@@ -63,8 +66,10 @@ export function harness(fetch){
   function render(snapshot=state.online){
     // Each call models one render: its callbacks retain that render's values.
     const online=snapshot,run=state.run,phase=online?.phase??run?.phase??'menu',networkDown=state.networkDown;
+    const renderedSessionTicket=sessionScope.current.ticket();
     ${decisions}
-    return {beginSolo,nextRound,vote,startProtocol};
+    ${calibration}
+    return {beginSolo,nextRound,vote,startProtocol,probeRadio};
   }
   const beginSolo=(...args)=>render().beginSolo(...args);
   ${leaveAndResume}
@@ -82,7 +87,7 @@ export function harness(fetch){
       return talkEdge;
     };
   }
-  return {state,storage,intervals,timeouts,notices,clients,resetSession,acceptState,request,beginSolo,returnMenu,resumeSession,startNetwork,mountPoll,mountRadio,capturePadFrame,render,openModal,closeModal,togglePause,
+  return {state,storage,intervals,timeouts,notices,clients,radio,resetSession,acceptState,request,beginSolo,returnMenu,resumeSession,startNetwork,mountPoll,mountRadio,capturePadFrame,render,openModal,closeModal,togglePause,
     padFrame:(down,allowed=true)=>{const edge=padTalk.current.update(down,allowed);if(edge!==null)radio.current.setTalking(edge);return edge;},
     unmount:()=>{for(const cleanup of cleanups)cleanup?.();},tick:()=>{for(const fn of intervals.values())fn();}};
 }
@@ -97,6 +102,34 @@ function setup(){const calls=[];const h=harness((url,options)=>{const pending=de
 const reply=(state,status=200)=>({ok:status>=200&&status<300,status,json:async()=>({state,error:status===401?'Expired':undefined})});
 const opened=(identity=a)=>({ok:true,status:201,json:async()=>({...identity,state:frame(identity)})});
 const settle=async()=>{for(let i=0;i<5;i++)await Promise.resolve();};
+
+for(const outcome of ['success','failure']){
+  test('session replacement cancels a pending calibration before effect cleanup: '+outcome,async()=>{
+    const {h}=setup();h.resetSession(a);const pending=deferred();
+    h.radio.current.probe=()=>pending.promise;
+    const work=h.render().probeRadio();assert.equal(h.state.probePending,true);
+    h.state.radioCaption='Former reading';h.resetSession(a);
+    assert.equal(h.state.probePending,false);assert.equal(h.state.radioCaption,'');
+    assert.equal(h.state.probeStops,2,'the real stopCalibration callback stops the client synchronously');
+    if(outcome==='success')pending.resolve({caption:'Retired reading'});else pending.reject(new Error('Retired failure'));
+    await work;assert.equal(h.state.radioCaption,'');assert.equal(h.state.probePending,false);
+  });
+}
+test('a calibration callback from a retired render cannot start another probe',async()=>{
+  const {h}=setup();h.resetSession(a);let calls=0;
+  h.radio.current.probe=async()=>{calls++;return {caption:'Stale'};};
+  const oldProbe=h.render().probeRadio;h.resetSession(b);await oldProbe();
+  assert.equal(calls,0);assert.equal(h.state.probePending,false);assert.equal(h.state.radioCaption,'');
+});
+test('a retired calibration completion cannot release or overwrite the new calibration',async()=>{
+  const {h}=setup();h.resetSession(a);const old=deferred(),fresh=deferred();
+  h.radio.current.probe=()=>old.promise;const oldWork=h.render().probeRadio();
+  h.resetSession(b);h.radio.current.probe=()=>fresh.promise;const freshWork=h.render().probeRadio();
+  old.resolve({caption:'Former room'});await oldWork;
+  assert.equal(h.state.probePending,true);assert.equal(h.state.radioCaption,'');
+  fresh.resolve({caption:'Current room'});await freshWork;
+  assert.equal(h.state.probePending,false);assert.equal(h.state.radioCaption,'Current room');
+});
 
 test('scope rejects states before a room is established',()=>{
   const scope=new SessionScope();assert.equal(scope.accept(frame()),false);

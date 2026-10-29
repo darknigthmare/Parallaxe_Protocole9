@@ -106,7 +106,7 @@ print(json.dumps({
         "ZIP CRC and SHA256",
         "complete compiled build",
         "embedded source archive",
-        "server and two clients launched from ZIP extraction",
+        "server with two clients and a four-player Chalet run launched from ZIP extraction",
     ],
     "webgl": "unverified",
     "windowsLauncher": "unverified",

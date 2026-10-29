@@ -12,7 +12,7 @@
 | Paquet de cette base | `package.json` : 0.2.1 |
 | Dépendances résolues | `package-lock.json` : Three.js 0.186.1, types Three.js 0.186.0, React 19.2.6, TypeScript 5.9.3 |
 | Catalogue de guides | Commit `19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9` ; guides Three.js ciblant r186 |
-| Version du site | Capture du 28 octobre : 0.4.0 / quatre lieux. Métadonnées : version sauvegardée 7, commit source identifié. Sources non récupérées ; [comparaison en attente](SOURCE_RECONCILIATION_2026-10-29.md) |
+| Version du site | Sources de la version sauvegardée 7 récupérées au commit `6c8784e` : 0.4.0, quatre lieux et 96 anomalies ; [réconciliation 0.4.1 appliquée](SOURCE_RECONCILIATION_2026-10-29.md) |
 
 Les versions ci-dessus décrivent le relevé, pas une instruction de rétrograder une version plus récente. Vérifier les métadonnées du code lors de la reprise.
 
@@ -135,3 +135,7 @@ Le [suivi de jouabilité du 29 octobre](suivi-jouabilite-20261029.json) part du 
 Les contrôles des deux jobs CI utilisent maintenant le même SHA explicite. Après compilation, `npm run package:release` produit le manifeste, le commit et les empreintes des archives. `python3 tests/package-archive.test.py` vérifie leur contenu puis lance les clients du test portable depuis une extraction neuve. Les artefacts de CI portent la révision et l'identifiant d'exécution ; les ZIP historiques suivis dans `public/downloads` restent des éditions antérieures.
 
 Cette validation ne remplace pas les essais GPU, l'écoute, les microphones, les périphériques réels ou la récupération des sources 0.4.0.
+
+## Réconciliation appliquée en 0.4.1
+
+Les sources du Site ont été récupérées et comparées à la PR. Les quatre lieux, 96 anomalies, lectures privées, radio synthétique et sortie mono sont conservés avec les barrières de session, les contrôles tactiles et la traçabilité du paquet. La calibration annule ses opérations lors d'un remplacement de session. Les scénarios Site et PR sont réunis, notamment `test:cabin` et `test:inspection`. Les preuves actuelles et leurs limites sont consignées dans [qa-final-v0.4.1.json](qa-final-v0.4.1.json) ; les relevés précédents restent historiques.

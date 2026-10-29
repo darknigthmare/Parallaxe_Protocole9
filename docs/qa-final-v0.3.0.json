@@ -1,0 +1,202 @@
+{
+  "version": "0.3.0",
+  "date": "2026-10-27",
+  "scope": "Final code after duplicate-name badge fix and canonical portable path fix. Archive validation is recorded separately after assembly.",
+  "catalog": {
+    "implemented": 81,
+    "visual": 69,
+    "radio": 12,
+    "designedTotal": 120,
+    "planned": 39,
+    "locationPools": {
+      "hotel": 63,
+      "metro": 47,
+      "clinic": 47
+    },
+    "poolsOverlap": true
+  },
+  "automated": {
+    "rules": {
+      "passed": 18,
+      "failed": 0
+    },
+    "sceneCpu": {
+      "passed": 18,
+      "failed": 0
+    },
+    "inspectionProps": {
+      "passed": 8,
+      "failed": 0
+    },
+    "radio": {
+      "passed": 32,
+      "failed": 0
+    },
+    "radioUiController": {
+      "passed": 4,
+      "failed": 0
+    },
+    "total": 80
+  },
+  "typecheck": "passed: project tsconfig strict true",
+  "buildLocal": "passed after final scene correction",
+  "buildHosted": "passed after final scene correction; non-blocking large scene-chunk warning",
+  "portable": {
+    "status": "passed on real local HTTP server",
+    "clients": 2,
+    "nodeModulesRequired": false,
+    "canonicalPrivatePaths": "10 GET variants 404, encoded HEAD 404, outside-root fixture 403; public HTML/JS/CSS remain accessible",
+    "evidence": "qa-portable-path-v0.3.0.json",
+    "extractedFinalArchiveTest": "passed: executable payload extracted from assembled ZIP, local HTTP, two clients, protected paths",
+    "buildAssets": {
+      "index-D8Zqv1Mt.js": 337421,
+      "index-DAQuBDzG.css": 146732,
+      "scene-Bq6Er6tT.js": 679180
+    },
+    "extractedRuntimePayloadSha256": "10d47d19df02924f7b17b3c7c1231221083275f6f4d9a5874836afd50e9b2c64",
+    "extractedRuntimeFiles": {
+      "LANCER_COOP_RESEAU_WINDOWS.cmd": "5abf979e10a8fa3baa932315c11643568e31cdb80e4e16fc5284d971ffa8857b",
+      "LANCER_JEU_WINDOWS.cmd": "3c0dc43c989895f6653a723ea48083a99caedd50b6135ce2587a39a5d8b5be83",
+      "LIRE_AVANT_DE_JOUER.txt": "a3232ff2e674ea311bad758870b8ffb66f205c75251c79a0c12dfd9f8f5cd8b4",
+      "THIRD_PARTY_NOTICES.txt": "4cb445aef5db8c54be893e01e1b85094ea0a6cb1346db95257a1cd61220dfc79",
+      "lancer_coop_reseau.sh": "a0e44316fba5860741c95a2da173f3a0220c75f5428fd40cbc4f9d2baebdf986",
+      "lancer_jeu.sh": "86f39df728ef7e75dd04c4cb5cc0840137105346d34da106ad66f031c2c62b91",
+      "package.json": "cfa2dd4e13d802b94550c4779940e43512852f7e3aa2481b0fb9f6438c935b53",
+      "scripts/start-local.mjs": "0d5a8aaaa628527732f04b4d6a12c37c1818e8b78adaf9ec4bddada7ac638520",
+      "standalone-dist/assets/index-D8Zqv1Mt.js": "b9bff05722ad738e314d688b01e572d616a8ee10c74eef53d77f35f8767198a0",
+      "standalone-dist/assets/index-DAQuBDzG.css": "fa6b7c715fce943f7f20d5b9562e090c444e955f803d6814fd1dfdf5f3bc03f6",
+      "standalone-dist/assets/scene-Bq6Er6tT.js": "5ab4132833f069ff1d72d1957ef1a0eebfd237908959923e78b48a97aac9e7d3",
+      "standalone-dist/favicon.svg": "2f1318a6626492419d4af3a2574422c1d98a285563fcf90147c2212c09b8c9dc",
+      "standalone-dist/index.html": "4db0baa426655f656c55117322f4b45901c6acf80db236f367802404c4f05f94",
+      "standalone-dist/models/inspecteur-parallaxe.glb": "dfbf18ed3ddfcf7e60112ad416c1abb5784214235d7532c868b4eee93159c506",
+      "standalone-dist/models/inspecteur-parallaxe.manifest.json": "a3ca95bffeaef196b95b464edb2e2d863deae09a5c5aec13308f0ac198c642fa",
+      "standalone-dist/server/catalog.mjs": "9cb1e1196304fdd55f1b0401532dd8d633f420ba3d9471504b144a344d450c65",
+      "standalone-dist/server/levels.mjs": "93144d24fedd989015bb6077e61d8328ba74e31783f6ae4de0d0b54e3c12db6f",
+      "standalone-dist/server/radio-config.mjs": "3ef1249f5e3b9b8a2ca484b6e593523eff1f17e471bd5f1146c2a13cd2c7a86a",
+      "standalone-dist/server/rules.mjs": "51b105b0afe4f283d3efe4d16ac9b836a54e5b1014e8689d1a00051c2cce4136",
+      "standalone-dist/server/session.mjs": "c0e65cf07dd17226aae8a6055ed0dd9da2c9af8440741bd9f32b9ec69a1ab04c"
+    }
+  },
+  "glb": {
+    "file": "inspecteur-parallaxe.glb",
+    "format": "glTF 2.0 binary",
+    "bytes": 4825784,
+    "origin": "Original procedural geometry created for PARALLAXE; no downloaded third-party model",
+    "materialScope": "PBR base materials. Runtime canvas badge lettering and name sprites are not embedded.",
+    "rig": "12 articulated transform nodes; rigid pieces attached to joints, no skinned deformation",
+    "animations": [
+      {
+        "name": "Marche",
+        "durationSeconds": 0.7662420868873596,
+        "tracks": 12
+      },
+      {
+        "name": "Radio",
+        "durationSeconds": 1.5,
+        "tracks": 12
+      },
+      {
+        "name": "Salut",
+        "durationSeconds": 2,
+        "tracks": 12
+      }
+    ],
+    "dimensionsMetres": {
+      "width": 0.6853,
+      "height": 1.7522,
+      "depth": 0.508
+    },
+    "triangles": 53990,
+    "meshes": 58,
+    "validation": "Round-trip GLTFExporter → GLTFLoader passed; finite vertices; 3 animation clips",
+    "visualValidation": "Not performed: no GPU render or screenshot certified",
+    "source": "src/game/avatar.ts",
+    "rebuild": "node scripts/export-inspector.mjs",
+    "sourceVersion": "0.3.0",
+    "sourceSha256": "91382accb8c43ae2d90c4f90f078115d6105615c81b49e9419576d9cfccf112f"
+  },
+  "archives": {
+    "status": "passed",
+    "sourcesFiles": 185,
+    "portableFiles": 52,
+    "checks": [
+      "CRC both ZIPs and embedded XLSX",
+      "source bytes match complete checkout inventory",
+      "compiled assets match tested standalone build",
+      "portable documents and launcher match checkout",
+      "embedded source ZIP matches external ZIP",
+      "GLB manifest matches current avatar source",
+      "all names relative and without traversal",
+      "no installed dependencies, runtime sessions, environment files, private keys or self-embedded portable ZIP",
+      "referenced historical screenshot present"
+    ],
+    "extractedPortableRetested": true,
+    "finalAssembly": "Documentation embeds these results; release integrity report records final ZIP hashes separately to avoid a self-referential archive hash."
+  },
+  "workbook": {
+    "status": "passed",
+    "sheets": 15,
+    "anomalies": 120,
+    "implemented": 81,
+    "planned": 39,
+    "formulas": 17,
+    "tables": 14,
+    "dataValidations": 15,
+    "qaScenarios": 114,
+    "references": 37,
+    "reviewedRanges": 34,
+    "changedSheetsReviewed": 14,
+    "unchangedNarrationCompared": true,
+    "bytes": 146230,
+    "sha256": "4d903bb05110bd18febdfa26c9ed25eeb76458a3fb659a0dff84cd58be2eefa6",
+    "evidence": [
+      "workbook-validation.json",
+      "workbook-structure-validation.json",
+      "workbook-visual-review.json"
+    ]
+  },
+  "github": {
+    "version03Published": false,
+    "ciRunForVersion03": false,
+    "reason": "GitHub create_blob authorization rejected with user rejected MCP tool call; no alternate publishing path attempted."
+  },
+  "baselineResults": {
+    "d1FourClients": {
+      "version": "0.2.0",
+      "rerunInThisRelease": false,
+      "evidence": "qa-network-v0.2.json"
+    },
+    "browserIce": {
+      "version": "0.2.0",
+      "rerunInThisRelease": false,
+      "evidence": "qa-radio-browser-v0.2.json"
+    }
+  },
+  "browser": {
+    "status": "preview URL connection refused",
+    "evidence": "qa-browser-v0.3.0.json",
+    "newVisualValidation": false
+  },
+  "limitations": [
+    "No new GPU pixel, shader, lighting-appearance, comfort or FPS validation",
+    "No physical microphone or human listening test",
+    "No connected browser voice or real TURN route validation",
+    "Portable HTTP tests executed on Linux / Node 24.22.1; no native Windows/macOS run"
+  ],
+  "sourceSha256": {
+    "app/game.tsx": "45d99c311ae63679a7274d2d18f9b8c1700b200b1007df712a9bdc16676d6537",
+    "app/radio-panel.tsx": "b6d858b337b1ad894a7a7844c2c73258ebd2145b0b6fcd7c75f29d708a9387ef",
+    "src/game/catalog.ts": "654153be50187e0367b7da7cce1613f62e2a2517d1e07573ee2939a57192616a",
+    "src/game/rules.ts": "64c320f076e21f43092de898930cfb29c9c59aad447f755267b7886d4d4976b1",
+    "src/game/session.ts": "2283c114d6ec700091893e83043963dac53f6e3cc3475250bb5bf2150a09cc54",
+    "src/game/scene.ts": "152aa9559f10a3e989e8b775e63c3c46b352356361d0e01af7cb1de8c5f8f480",
+    "src/game/avatar.ts": "91382accb8c43ae2d90c4f90f078115d6105615c81b49e9419576d9cfccf112f",
+    "scripts/start-local.mjs": "0d5a8aaaa628527732f04b4d6a12c37c1818e8b78adaf9ec4bddada7ac638520",
+    "tests/rules.test.mjs": "bd4e1c3be5b9a16769fb039b2eb5799eeec17555a3b7274268352320a6acbf12",
+    "tests/scene.geometry.test.mjs": "0fa4a3f4f7c7b2e64d66fc0be4396190bb698d2f0fe546665cdb31d9342fa295",
+    "tests/inspection.test.mjs": "b14a4682f9316fdf8bb14339e77074aa92b6249c011b516305a03580b759de7e",
+    "tests/radio.test.mjs": "8eab1308d0858421479aa5b9ab33c065a27424369f0567167b44fd43eb8be599",
+    "tests/radio-actions.test.mjs": "027c9edc46cccdd140ef28b2798e454551bdf5223bb11ca9c87841db62c234a7",
+    "tests/portable.test.mjs": "e3bebda80a74a8f64644021e41d467b1c013c9a3096ebcad5c3eeb38c5caf2c7"
+  }
+}

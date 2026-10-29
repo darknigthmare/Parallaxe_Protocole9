@@ -4,7 +4,7 @@
 
 Lire `README.md`, `package.json`, `package-lock.json` et [le guide du projet](docs/GAMEDEV_GUIDANCE.md). Vérifier la branche, le commit de départ et les changements déjà en cours avant toute modification.
 
-L'examen des guides du 29 octobre 2026 porte sur la PR #2, commit `f1cadcca96dd94a84eaf68bdf821f235fb50b2cf`, dont le paquet déclare **0.2.1**. Les correctifs qui suivent partent du commit documentaire `1a7196f0151b3e755edc5670d8d571a9ec9e065c`. Les métadonnées du Site identifient sa version sauvegardée 7 et son commit source ; une capture du 28 octobre affiche **0.4.0 / quatre lieux**. Le téléchargement des sources reste bloqué et leur comparaison n'est pas faite : consulter le [relevé des sources](docs/SOURCE_RECONCILIATION_2026-10-29.md). Retrouver et comparer ces sources avant une livraison destinée à remplacer le site ; poursuivre les corrections isolées sur une base explicitement nommée.
+L'examen initial des guides portait sur la base GitHub 0.2.1. Les sources du Site 0.4.0 ont maintenant été récupérées au commit `6c8784e0cf5d64f6386f3448434b0bc659d3fc15`, puis comparées à la PR #2 après `2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65`. La version consolidée **0.4.1** conserve les quatre lieux et 96 anomalies ainsi que les corrections de sessions, radio et commandes. Lire le [relevé des sources](docs/SOURCE_RECONCILIATION_2026-10-29.md) et les [preuves actuelles](docs/qa-final-v0.4.1.json). Ne pas remplacer ce contenu par les archives historiques 0.2.1.
 
 ## Moteur et sélection des guides
 
@@ -20,7 +20,7 @@ Conserver le moteur, les versions, la direction artistique et les deux cibles ex
 - **Consensus :** respecter l'unanimité, la présence de toute l'équipe et les transitions existantes. Après une absence d'au moins 45 secondes, invalider les anciens votes et calculer la succession du chef parmi les inspecteurs restés présents avant de rafraîchir la présence ; aucune reconnexion ne doit rétablir un diagnostic ou une priorité périmés.
 - **Intention du joueur :** `start`, `next` et `vote` portent le `decisionEpoch` observé dans le rendu, avec l'identité du salon concerné. Ne jamais remplacer ce contexte par la dernière valeur serveur pendant un réessai. Une décision ancienne renvoie 409 avec `projectRoom()` après persistance du nettoyage de session ; demander une nouvelle décision explicite. Les réponses d'une session abandonnée ne doivent pas restaurer ses identifiants.
 - **Anomalies :** chaque cas possède une référence normale, un lieu compatible, une preuve observable et une comparaison explicite. Les codes, heures ou flèches variables se comparent entre joueurs du même passage. Réinitialiser intégralement les effets entre deux passages.
-- **Voix :** capture uniquement après activation explicite, microphone initialement muet, écoute sans capture conservée. Une autorisation tardive annulée doit fermer ses pistes. Couper la transmission au relâchement, à la perte de focus, au masquage, à la sortie et à la limite de 30 secondes ; une manette maintenue ne la réactive pas sans relâchement. Invalider aussi les négociations, réessais et callbacks RTC après extinction ou remplacement de la connexion.
+- **Voix :** capture uniquement après activation explicite, microphone initialement muet, écoute sans capture conservée. Une autorisation tardive annulée doit fermer ses pistes. Couper la transmission au relâchement, à la perte de focus, au masquage, à la sortie et à la limite de 30 secondes ; une manette maintenue ne la réactive pas sans relâchement. Invalider aussi les négociations, réessais et callbacks RTC après extinction ou remplacement de la connexion. Annuler immédiatement une calibration au changement de session ; une ancienne réponse ou fin de tâche ne doit pas modifier la nouvelle.
 - **Commandes :** une pause, une modale, un verdict, un changement de session ou une perte de focus invalide les gestes de déplacement et de regard. Réinitialiser les actions et leurs origines avant le retrait des contrôles ; rejeter les anciens événements et traiter la perte de capture sans annuler le geste d'un autre pointeur.
 - **Accessibilité :** conserver la calibration écrite, les preuves solo et les modes silencieux/confort. Une erreur WebRTC n'est jamais la preuve d'une anomalie.
 - **Corps et reflets :** conserver le corps complet dans les captures de l'état normal, ainsi que les variations intentionnelles des anomalies prévues. Éviter la récursion des miroirs et restaurer les états temporaires même en cas d'erreur. Une qualité graphique réduite doit laisser chaque indice reconnaissable.
@@ -35,9 +35,10 @@ Faire une modification ciblée, vérifier son effet observable, puis mettre à j
 | --- | --- |
 | Règles, perceptions, sessions, sauvegardes | `npm test` ; ciblage avec `npm run test:resilience`, `npm run test:session-actions` ou `npm run test:session-adapters` |
 | Commandes, gestes tactiles, pause et focus | `npm run test:movement` ; essai sur périphérique pour le comportement physique |
-| Lieux, avatars, collisions, reflets | `npm run test:scene` + contrôle visuel sur GPU pour les pixels et indices |
+| Lieux, avatars, collisions, reflets | `npm run test:scene`, `npm run test:cabin`, `npm run test:inspection` + contrôle visuel sur GPU pour les pixels et indices |
 | Radio et permissions | `npm run test:radio`, `npm run test:radio-ui`, `npm run test:radio-config` + écoute réelle si l'audio change |
 | Contrats TypeScript | `npm run typecheck` |
+| Cible hébergée | `npm run build` ; publication avec les sources et l’identité Sites conservées |
 | Cible portable | `npm run build:local`, puis `npm run test:portable` |
 | Paquet PC archivé | `npm run package:release`, puis `python3 tests/package-archive.test.py` depuis un checkout propre ; serveur lancé depuis une extraction neuve |
 | Backend D1 | `npm run test:session-adapters` vérifie les handlers avec stockage CAS simulé ; `npm run test:network` vers une instance D1 de test pour valider le service réel |

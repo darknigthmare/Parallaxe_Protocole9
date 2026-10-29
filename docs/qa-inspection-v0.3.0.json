@@ -1,0 +1,25 @@
+{
+  "version": "0.3.0",
+  "date": "2026-10-27",
+  "command": "npm run test:inspection",
+  "passed": 8,
+  "failed": 0,
+  "scope": "Real local object data, Three.js geometry, raycasts, particle transforms and resource ownership; Canvas drawing stubbed.",
+  "checks": [
+    "Normal values are shared within a passage and vary across passages; reference remains clean",
+    "All sixteen ordinary room, luggage, stamp and newspaper combinations are representable",
+    "Each paired clue changes only its intended observer-local reading",
+    "Reference phase resets all seven effects and exposes matching readings",
+    "All seven supports are raycast reachable from walkable corridor positions; vertices/normals finite",
+    "Sand and steam trajectories actually reverse; duplicate key geometry restores",
+    "Observers retain independent props and defensive reading copies; non-hotel objects hidden",
+    "Geometries, materials and textures disposed exactly once"
+  ],
+  "visualValidation": false,
+  "networkTransmission": "The scene only returns local readings. Session tests separately verify that pings transmit target names without private reading values.",
+  "sourceSha256": {
+    "src/game/inspection-data.ts": "70d1eef8da2feaa69622ce43ace34285bfd25b4b5bd6f5111264f52dae9e28e4",
+    "src/game/inspection-props.ts": "335b0d3b1e9d0e2f88ed5a2a258593055ea2db7b2d61812d7b48be7a52c8943a",
+    "tests/inspection.test.mjs": "b14a4682f9316fdf8bb14339e77074aa92b6249c011b516305a03580b759de7e"
+  }
+}

@@ -3,7 +3,7 @@ import {isLevelId,type LevelId,type GameMode} from './levels';
 
 export const PRESENCE_TIMEOUT=45_000;
 export const SESSION_TTL=12*60*60*1000;
-export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair'];
+export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace'];
 export const SIGNAL_TTL=60_000;
 export type RadioSignal={id:string;from:string;to:string;fromEpoch:string;toEpoch:string;at:number;description?:{type:'offer'|'answer';sdp:string};candidate?:{candidate:string;sdpMid:string|null;sdpMLineIndex:number|null;usernameFragment?:string|null}|null;reset?:boolean};
 export type Pose={x:number;y:number;z:number;yaw:number;pitch:number};

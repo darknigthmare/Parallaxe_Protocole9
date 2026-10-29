@@ -1,0 +1,17 @@
+{
+  "version": "0.3.0",
+  "date": "2026-10-27",
+  "status": "not validated: preview browser route unavailable",
+  "steps": [
+    "Supported Sites preview started successfully at its returned URL.",
+    "The managed browser attempted to open that exact URL.",
+    "Navigation failed with net::ERR_CONNECTION_REFUSED.",
+    "Sites preview status still reported running; no concrete source defect or route recovery was established.",
+    "Preview was stopped. No browser setting, network permission, isolation, security policy or alternative automation path was changed."
+  ],
+  "newBrowserVisualChecks": false,
+  "gpuRenderingValidated": false,
+  "physicalMicrophoneValidated": false,
+  "connectedVoiceValidated": false,
+  "note": "The disabled GPU and zero-ICE observations in the v0.2 report remain historical. They were not remeasured during this update. CPU scene, audio-buffer and domain tests are reported separately."
+}

@@ -53,12 +53,18 @@ jobs:
         run: npm test
       - name: Vérifier les géométries et les changements de lieu
         run: npm run test:scene
+      - name: Vérifier le chalet et la voûte du métro
+        run: npm run test:cabin
+      - name: Vérifier les documents et les objets physiques d’inspection
+        run: npm run test:inspection
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
         run: npm run test:radio-ui
       - name: Vérifier les adresses radio et les identifiants TURN
         run: npm run test:radio-config
+      - name: Compiler le site et le Worker hébergés
+        run: npm run build
       - name: Compiler l’édition indépendante
         run: npm run build:local
       - name: Construire les ZIP PC et sources de cette révision

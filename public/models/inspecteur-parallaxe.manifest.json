@@ -1,7 +1,7 @@
 {
   "file": "inspecteur-parallaxe.glb",
   "format": "glTF 2.0 binary",
-  "bytes": 4826384,
+  "bytes": 4825784,
   "origin": "Original procedural geometry created for PARALLAXE; no downloaded third-party model",
   "materialScope": "PBR base materials. Runtime canvas badge lettering and name sprites are not embedded.",
   "rig": "12 articulated transform nodes; rigid pieces attached to joints, no skinned deformation",
@@ -24,13 +24,15 @@
   ],
   "dimensionsMetres": {
     "width": 0.6853,
-    "height": 1.7287,
+    "height": 1.7522,
     "depth": 0.508
   },
-  "triangles": 52444,
-  "meshes": 51,
+  "triangles": 53990,
+  "meshes": 58,
   "validation": "Round-trip GLTFExporter → GLTFLoader passed; finite vertices; 3 animation clips",
   "visualValidation": "Not performed: no GPU render or screenshot certified",
   "source": "src/game/avatar.ts",
-  "rebuild": "node scripts/export-inspector.mjs"
+  "rebuild": "node scripts/export-inspector.mjs",
+  "sourceVersion": "0.3.0",
+  "sourceSha256": "91382accb8c43ae2d90c4f90f078115d6105615c81b49e9419576d9cfccf112f"
 }
