@@ -132,6 +132,12 @@ Les fiches précisent référence normale, perceptions, comparaison attendue, d�
 
 Le classeur livré se modifie directement dans Excel. Son générateur `scripts/build-design-workbook.mjs` utilise `@oai/artifact-tool`, fourni par l’environnement d’édition des documents et absent des dépendances du jeu. La compilation et l’exécution du jeu ne nécessitent pas cet outil.
 
+## Guides de développement
+
+Les [consignes du dépôt](AGENTS.md) et le [guide adapté à PARALLAXE](docs/GAMEDEV_GUIDANCE.md) relient dix références de `awesome-gamedev-agent-skills` aux scènes Three.js, aux anomalies, aux personnages, à la radio et aux vérifications existantes. Les sources sont [fixées à une révision précise](docs/gamedev-sources.json).
+
+Le relevé distingue cette base GitHub 0.2.1 de l'édition 0.4.0 signalée dans la [PR de reprise #2](https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2). Consulter le guide pour la réconciliation des sources et les limites de validation avant une nouvelle livraison.
+
 ## Vérification
 
 ```sh
