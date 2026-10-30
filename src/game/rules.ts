@@ -76,7 +76,7 @@ export function getPersonalView(run:Run,slot:number):PersonalView {
   const minutes=run.phase==='reference'?189:hashSeed(`${run.seed}:clock:${run.loop}`)%1440;
   const shownMinutes=run.currentAnomalyId==='paired_clock'&&visible?(minutes+7)%1440:minutes;
   const syncTime=`${String(Math.floor(shownMinutes/60)).padStart(2,'0')}:${String(shownMinutes%60).padStart(2,'0')}`;
-  return {effects:visible&&!['relay_mismatch','paired_arrow','paired_clock'].includes(run.currentAnomalyId!)?[run.currentAnomalyId!]:[],variant:0,phase:run.phase,loop:run.loop,relayCode,levelId:run.levelId,arrowDirection,syncTime};
+  return {effects:visible&&!['relay_mismatch','paired_arrow','paired_clock'].includes(run.currentAnomalyId!)?[run.currentAnomalyId!]:[],variant:run.phase==='reference'?0:hashSeed(`${run.seed}:inspection:${run.loop}`)%16,phase:run.phase,loop:run.loop,relayCode,levelId:run.levelId,arrowDirection,syncTime};
 }
 
 /** Evaluates a single final team answer. Never call with an individual unconfirmed vote. */

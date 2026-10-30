@@ -1,6 +1,6 @@
 {
   "name": "parallaxe-protocole-9",
-  "version": "0.2.1",
+  "version": "0.4.1",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -12,7 +12,7 @@
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "test": "node tests/rules.test.mjs && node tests/session-resilience.test.mjs",
+    "test": "node tests/rules.test.mjs && node tests/session-resilience.test.mjs && node tests/session-actions.test.mjs && node tests/session-adapters.test.mjs && node tests/session-scope.test.mjs && node tests/movement-input.test.mjs",
     "test:scene": "node tests/scene.geometry.test.mjs",
     "test:network": "node tests/network.integration.mjs",
     "local": "node scripts/start-local.mjs",
@@ -21,10 +21,16 @@
     "test:radio": "node tests/radio.test.mjs",
     "test:portable": "node tests/portable.test.mjs",
     "package:release": "node scripts/package-release.mjs",
-    "test:radio-ui": "node tests/radio-actions.test.mjs",
+    "test:radio-ui": "node tests/radio-actions.test.mjs && node tests/radio-input.test.mjs",
     "test:resilience": "node tests/session-resilience.test.mjs",
     "test:radio-config": "node tests/radio-config.test.mjs",
-    "check:radio-config": "node scripts/check-radio-config.mjs"
+    "check:radio-config": "node scripts/check-radio-config.mjs",
+    "test:inspection": "node tests/inspection.test.mjs",
+    "test:cabin": "node tests/cabin.geometry.test.mjs",
+    "test:session-actions": "node tests/session-actions.test.mjs",
+    "test:session-adapters": "node tests/session-adapters.test.mjs",
+    "test:session-client": "node tests/session-scope.test.mjs",
+    "test:movement": "node tests/movement-input.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -16,7 +16,12 @@ try {
   }
 }catch(error){await rm(temp,{recursive:true,force:true});throw error;}
 test.after(()=>rm(temp,{recursive:true,force:true}));
-const {createRoom,joinRoom,actRoom,projectRoom,makePlayer,PRESENCE_TIMEOUT,SIGNAL_TTL}=await import(pathToFileURL(join(temp,'session.mjs')));
+const {createRoom,joinRoom,actRoom:applyRoom,projectRoom,makePlayer,PRESENCE_TIMEOUT,SIGNAL_TTL}=await import(pathToFileURL(join(temp,'session.mjs')));
+// These scenarios make fresh decisions from the displayed room. Delayed payloads
+// retain their original epoch in the dedicated session-actions regression suite.
+function actRoom(room,id,action,payload,at){
+  return applyRoom(room,id,action,['start','next','vote'].includes(action)?{decisionEpoch:room.decisionEpoch,...payload}:payload,at);
+}
 const now=1_000;
 const later=now+PRESENCE_TIMEOUT;
 const epochA='radio_epoch_alpha_01',epochB='radio_epoch_bravo_01';
@@ -64,10 +69,12 @@ test('votes are not banked while another inspector remains disconnected',()=>{
   assert.equal(projectRoom(room,'a',later).paused,true);
   assert.equal(room.run.phase,'inspect');
 });
-test('a returning vote invalidates all older votes before recording the new one',()=>{
+test('a returning vote invalidates the ballot and requires a refreshed confirmation',()=>{
   let room=actRoom(roomWith(),'a','vote',{vote:true},now);
   room.players[1].lastSeen=later-1;
   room=actRoom(room,'a','vote',{vote:false},later);
+  assert.deepEqual(votes(room),[null,null]);assert.equal(messageCount(room),1);
+  room=actRoom(room,'a','vote',{vote:false},later+1);
   assert.deepEqual(votes(room),[false,null]);assert.equal(messageCount(room),1);
 });
 test('ordinary presence packets clear stale votes without repeating control messages',()=>{
@@ -222,4 +229,25 @@ test('expired and future pings are removed even without a new object ping',()=>{
   room.pings=[{id:'old',name:'Alpha',target:'mirror',at:now-15_000},{id:'future',name:'Alpha',target:'mirror',at:now+1},{id:'valid',name:'Alpha',target:'mirror',at:now}];
   room=keep(room,'a',now);
   assert.deepEqual(room.pings.map(p=>p.id),['valid']);
+});
+
+test('returning expired host cannot preempt already-present inspectors',()=>{
+  const room=roomWith(3);room.players[1].lastSeen=later-1;room.players[2].lastSeen=later-1;
+  const resumed=keep(room,'a',later);
+  assert.equal(resumed.hostId,'b');assert.equal(resumed.players[0].lastSeen,later);assert.equal(room.hostId,'a');
+});
+test('expired host cannot open a passage by refreshing itself within next',()=>{
+  const room=roomWith(3);room.run.phase='reference';room.players[1].lastSeen=later-1;room.players[2].lastSeen=later-1;
+  assert.throws(()=>actRoom(room,'a','next',{decisionEpoch:room.decisionEpoch},later),error=>error.status===403);
+});
+test('current host is retained when a stale non-host returns',()=>{
+  const room=roomWith(3);room.players[0].lastSeen=later-1;
+  assert.equal(keep(room,'b',later).hostId,'a');
+});
+test('returning inspector becomes host when nobody was still present',()=>{
+  const room=roomWith(3);assert.equal(keep(room,'c',later).hostId,'c');
+});
+test('host election uses the lowest already-live slot, not a returning lower slot',()=>{
+  const room=roomWith(4);room.players[2].lastSeen=later-1;room.players[3].lastSeen=later-1;
+  assert.equal(keep(room,'b',later).hostId,'c');
 });

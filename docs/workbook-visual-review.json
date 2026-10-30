@@ -1,74 +1,227 @@
 {
-  "version": "0.2.1",
-  "date": "2026-10-26",
-  "renderedRanges": 9,
-  "reviewedRanges": 9,
-  "sheetsCovered": 6,
+  "version": "0.4.0",
+  "date": "2026-10-28",
+  "file": "docs/PARALLAXE_Design_Complet.xlsx",
+  "bytes": 156179,
+  "sha256": "9c46c32e0fed05d0ed508e545642e99f8c0355e33cc64a12f945d2ab20df6255",
+  "renderedRanges": 33,
+  "reviewedRanges": 33,
+  "sheetsCovered": 13,
   "sheets": [
     "Synthèse",
+    "Niveaux",
+    "Boucle",
+    "Coopération",
     "Radio",
+    "Personnages",
+    "Lieux",
+    "Direction artistique",
+    "Audio",
+    "Anomalies",
     "Production",
     "QA",
-    "Références",
-    "Anomalies"
+    "Références"
   ],
-  "issues": [],
-  "method": "Artifact-tool render PNG ; inspection visuelle ciblée des six feuilles modifiées ; contrôle XML en lecture seule et recalcul avec changements temporaires restaurés.",
+  "method": "Rendu artifact-tool des 33 plages modifiées, lecture visuelle au zoom natif, puis dernière passe après deux corrections éditoriales et gel du bilan QA. Avant modification, classeur importé et trois aperçus de référence lus.",
   "ranges": [
     {
-      "sheetName": "Synthèse",
+      "sheet": "Synthèse",
       "range": "A1:H35",
-      "file": "01-Synthese.png"
+      "image": "01-Synthese.png"
     },
     {
-      "sheetName": "Radio",
-      "range": "A1:H9",
-      "file": "02-Radio.png"
+      "sheet": "Niveaux",
+      "range": "A1:F9",
+      "image": "02-Niveaux.png"
     },
     {
-      "sheetName": "Radio",
-      "range": "A33:H35",
-      "file": "03-Radio.png"
+      "sheet": "Niveaux",
+      "range": "G5:J9",
+      "image": "03-Niveaux.png"
     },
     {
-      "sheetName": "Production",
-      "range": "A60:H61",
-      "file": "04-Production.png"
+      "sheet": "Boucle",
+      "range": "A20:G28",
+      "image": "04-Boucle.png"
     },
     {
-      "sheetName": "QA",
-      "range": "A52:H55",
-      "file": "05-QA.png"
+      "sheet": "Coopération",
+      "range": "A33:G35",
+      "image": "05-Cooperation.png"
     },
     {
-      "sheetName": "QA",
-      "range": "A82:H86",
-      "file": "06-QA.png"
+      "sheet": "Radio",
+      "range": "A42:H45",
+      "image": "06-Radio.png"
     },
     {
-      "sheetName": "Références",
-      "range": "A8:G10",
-      "file": "07-References.png"
+      "sheet": "Personnages",
+      "range": "A32:H34",
+      "image": "07-Personnages.png"
     },
     {
-      "sheetName": "Références",
-      "range": "A32:G34",
-      "file": "08-References.png"
+      "sheet": "Lieux",
+      "range": "A14:H15",
+      "image": "08-Lieux.png"
     },
     {
-      "sheetName": "Anomalies",
-      "range": "P100:V105",
-      "file": "09-Anomalies.png"
+      "sheet": "Lieux",
+      "range": "A31:H33",
+      "image": "09-Lieux.png"
+    },
+    {
+      "sheet": "Direction artistique",
+      "range": "A29:G30",
+      "image": "10-Directionartistique.png"
+    },
+    {
+      "sheet": "Direction artistique",
+      "range": "A40:G40",
+      "image": "11-Directionartistique.png"
+    },
+    {
+      "sheet": "Audio",
+      "range": "A5:G7",
+      "image": "12-Audio.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "A32:G36",
+      "image": "13-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "H33:N36",
+      "image": "14-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "H58:N60",
+      "image": "15-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "H64:N66",
+      "image": "16-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "H73:N77",
+      "image": "17-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "H81:N82",
+      "image": "18-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "A91:G91",
+      "image": "19-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "H91:N91",
+      "image": "20-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "P81:W82",
+      "image": "21-Anomalies.png"
+    },
+    {
+      "sheet": "Anomalies",
+      "range": "P64:W66",
+      "image": "22-Anomalies.png"
+    },
+    {
+      "sheet": "Production",
+      "range": "A22:H22",
+      "image": "23-Production.png"
+    },
+    {
+      "sheet": "Production",
+      "range": "A30:H30",
+      "image": "24-Production.png"
+    },
+    {
+      "sheet": "Production",
+      "range": "A40:H40",
+      "image": "25-Production.png"
+    },
+    {
+      "sheet": "Production",
+      "range": "A69:H72",
+      "image": "26-Production.png"
+    },
+    {
+      "sheet": "QA",
+      "range": "A41:H41",
+      "image": "27-QA.png"
+    },
+    {
+      "sheet": "QA",
+      "range": "A120:E126",
+      "image": "28-QA.png"
+    },
+    {
+      "sheet": "QA",
+      "range": "F120:H126",
+      "image": "29-QA.png"
+    },
+    {
+      "sheet": "QA",
+      "range": "A127:E134",
+      "image": "30-QA.png"
+    },
+    {
+      "sheet": "QA",
+      "range": "F127:H134",
+      "image": "31-QA.png"
+    },
+    {
+      "sheet": "QA",
+      "range": "A135:H140",
+      "image": "32-QA.png"
+    },
+    {
+      "sheet": "Références",
+      "range": "A43:G49",
+      "image": "33-References.png"
     }
   ],
-  "retainedPriorReview": {
-    "version": "0.2.0",
-    "renderedRanges": 30,
-    "reviewedRanges": 30,
-    "sheetsCovered": 15
+  "issues": [],
+  "correctedIssues": [
+    "QA123 : témoin fictif solo explicitement inclus parmi les variantes ordinaires du registre, exclu du décompte réel.",
+    "QA115 : précision du bord gauche de la table."
+  ],
+  "nativeUnchangedSheets": [
+    "Commandes",
+    "Narration"
+  ],
+  "retainedPriorReview": "Commandes et Narration inchangées : contenu, styles résolus, largeurs, hauteurs, tables, validations et volets comparés à la version 0.3.0.",
+  "formulaChecks": {
+    "count": 18,
+    "errors": 0,
+    "temporaryInputChangesReverted": true,
+    "liveStatus": true,
+    "livePresence": true,
+    "liveCabinAvailability": true
   },
-  "file": "docs/PARALLAXE_Design_Complet.xlsx",
-  "bytes": 132586,
-  "sha256": "07fe3125a511f7ec33aaef2aafeb073213825d53044aa93f88a5b367537dd986",
-  "notes": "Aucune image GPU du jeu ni capture de microphone impliquée dans la vérification du classeur. 19 tests radio et 4 du contrôleur UI documentés séparément ; preuves antérieures v0.2 identifiées."
+  "nativeChecks": {
+    "sheets": 15,
+    "tablesWithFilters": 14,
+    "dataValidations": 15,
+    "frozenHeaderAndIdentifierColumns": true,
+    "anomalyTable": "A5:W125"
+  },
+  "historicalSupplement": {
+    "version": "0.2.1",
+    "currentMaster": "0.4.0",
+    "renderedAndReviewedRanges": 3,
+    "ciRun": "40681454450",
+    "formulaErrors": 0,
+    "temporaryStatusRestored": true
+  },
+  "scope": "Recette du classeur uniquement ; aucun rendu GPU du jeu, matériel audio, transport vocal connecté ou publication 0.4.0 certifiés."
 }

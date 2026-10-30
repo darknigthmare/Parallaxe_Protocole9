@@ -1,5 +1,5 @@
 {
-  "version": "0.2.1",
+  "version": "0.4.0",
   "date": "2026-10-26",
   "sheets": {
     "Boucle": {
@@ -167,7 +167,7 @@
           "Salle de deux joueurs",
           "La communication reste nécessaire.",
           "Présent",
-          "Les trois effets relationnels attribuent plutôt des codes, flèches ou heures SYNCHRO plausibles mais contradictoires."
+          "Les comparaisons relationnelles distribuent des codes, flèches, heures ou valeurs d’objets plausibles ; seule leur contradiction entre témoins est anormale."
         ],
         [
           "L17",
@@ -226,18 +226,18 @@
         [
           "L23",
           "Lieu au choix",
-          "Choisir l’un des trois lieux et y jouer toute la session.",
+          "Choisir Saint-Clair, Terminus 09, Aile blanche ou le Chalet de service et y jouer toute la session.",
           "Mode single",
           "Neuf diagnostics consécutifs ; chaque erreur remet la série à zéro.",
           "Implémenté — QA partielle",
-          "Utile pour apprendre une baseline ou rejouer un catalogue local."
+          "Le chalet est un quatrième lieu autonome. La campagne demeure Saint-Clair → Terminus 09 → Aile blanche, soit neuf validations."
         ],
         [
           "L24",
           "Étalonnage radio",
-          "Déclencher trois tonalités connues et lire le relevé privé.",
+          "Déclencher le contrôle : identifiant RELAIS, trois tonalités principales et clics, puis lire le relevé privé.",
           "Bouton Étalonner",
-          "Détecter les six anomalies radio même sans voix entrante ni microphone.",
+          "Détecter les douze anomalies de contrôle radio même sans voix entrante ni microphone.",
           "Implémenté — QA partielle",
           "Le relevé décrit un phénomène concret ; le joueur choisit son diagnostic."
         ],
@@ -386,11 +386,11 @@
         [
           "C11",
           "Déconnexion",
-          "Détecter les absents après 45 secondes ; suspendre le quorum et permettre la reprise.",
+          "Détecter l’absence à 45 secondes, annuler les votes antérieurs et demander un nouvel accord après la reprise.",
           "Présence et jeton du membre",
           "Implémenté — QA partielle",
           "{{networkQA}}",
-          "Un départ explicite retire le membre ; le transfert de responsable ne révèle pas les autres perceptions."
+          "Les 28 tests de résilience vérifient retours, votes périmés, migration du responsable, projections privées et files radio. Essais Internet prolongés distincts."
         ],
         [
           "C12",
@@ -416,7 +416,7 @@
           "Appliquer une couleur de talkie normale puis, selon la perception, un effet de réception.",
           "Traitement WebAudio individuel",
           "Implémenté — QA partielle",
-          "Les six effets radio sont également révélés par l’étalonnage déterministe.",
+          "Les douze profils radio disposent de preuves d’étalonnage déterministes ; contre-code et ordre inversé portent seulement sur le contrôle synthétique.",
           "Le partenaire continue de transmettre sa vraie voix ; aucune phrase personnelle n’est copiée ou rejouée à son insu."
         ],
         [
@@ -488,8 +488,8 @@
           "Accepter une configuration ICE incluant un relais TURN pour les réseaux restrictifs.",
           "URL TURN et secret REST serveur ; identifiants temporaires",
           "Implémenté — QA partielle",
-          "Identifiants calculés côté serveur ; le client ne reçoit pas le secret de signature.",
-          "Configuration et tests automatisés présents ; service TURN réel et trajet relay encore à éprouver."
+          "59 tests vérifient URI, limites, secrets, HMAC, expiration et précontrôle statique ; aucun secret de signature n’est transmis au client.",
+          "tests/radio-config.test.mjs ; scripts/check-radio-config.mjs. Ne mesure ni DNS, ni certificat, ni disponibilité réelle du relais TURN."
         ],
         [
           "C23",
@@ -517,12 +517,57 @@
           "Implémenté — QA partielle",
           "Un mannequin ou un double visuel ne crée pas de faux membre dans le salon.",
           "Le vrai roster et les noms de l’interface demeurent fiables."
+        ],
+        [
+          "C26",
+          "Repères plausibles",
+          "Comparer BUREAU D2, CONSIGNE C9, dossier 09 et journal au même passage.",
+          "Valeurs communes variables par passage ; variante privée pour les témoins.",
+          "Implémenté — QA partielle",
+          "Les deux lectures sont plausibles isolément ; leur désaccord stable donne la preuve.",
+          "Nommer l’appareil, le côté et le passage. Une différence entre deux passages peut être normale."
+        ],
+        [
+          "C27",
+          "Corps et interface",
+          "Les altérations d’avatar changent seulement le modèle perçu.",
+          "Slot ciblé, corps local ou pair, couche de reflet.",
+          "Implémenté — QA partielle",
+          "Le roster, la pose autoritaire et le nombre de participants restent fiables.",
+          "Tester départ / retour de la cible et empêcher un effet d’avatar de s’étendre aux autres corps."
+        ],
+        [
+          "C28",
+          "Lecture agrandie",
+          "E conserve le ping et l’ajout au carnet sur toute cible ; l’agrandissement s’ouvre seulement si cet objet possède une lecture actuelle.",
+          "Valeur de l’objet dans la perception locale ; aucune valeur privée dans le ping.",
+          "Implémenté — QA partielle",
+          "Les quatorze postes d’inspection de l’hôtel reprennent la valeur privée réellement affichée, sans verdict ; seuls les IDs du repère sont partagés.",
+          "L’inspection reste facultative ; le zoom ne remplace pas la preuve visuelle ou le dialogue."
+        ],
+        [
+          "C29",
+          "Roster et archives",
+          "Registre, photo et afficheur utilisent les indicatifs et pseudonymes des membres présents.",
+          "ID stable, slot, pseudonyme public ; pas de donnée personnelle externe.",
+          "Implémenté — QA partielle",
+          "Départ et retour actualisent le nombre et les signatures sans effacer l’effet privé.",
+          "En solo, Inspecteur reste le même membre lors du changement Alpha/Bêta ; le témoin fictif du registre ne compte pas comme connecté."
+        ],
+        [
+          "C30",
+          "Signalisation après reprise",
+          "Écarter les messages radio liés à une ancienne présence ou une ancienne identité radio.",
+          "Expéditeur, destinataire, epoch, date et présence courante.",
+          "Implémenté — QA partielle",
+          "Seul le destinataire actuel reçoit un message encore valide ; aucun résultat privé divulgué.",
+          "tests/session-resilience.test.mjs : contrôles automatisés ; voix réellement connectée à vérifier sur appareils."
         ]
       ]
     },
     "Lieux": {
       "title": "Zones, repères et extensions",
-      "subtitle": "Trois architectures présentes en v0.2. Chaque extension future garde un statut explicite.",
+      "subtitle": "Architecture, repères et extensions. Les lieux supplémentaires restent explicitement prévus.",
       "headers": [
         "ID",
         "Lieu",
@@ -611,7 +656,7 @@
           "Façade vitrée",
           "Vitre pluvieuse et miroir plan disposant d’un rendu réfléchi.",
           "Corps local, équipiers, décor réfléchi.",
-          "reflection_delay, reflection_absent, reflection_independent",
+          "reflection_delay, reflection_absent, reflection_independent, mirror_extra_door, reflection_no_team",
           "Implémenté — QA partielle",
           "La surface reflète le monde ; l’absence du corps doit conserver le décor. Rendu GPU à vérifier."
         ],
@@ -627,13 +672,13 @@
         ],
         [
           "Z09",
-          "Chalet",
-          "Usine de modules",
-          "Chalets successifs transportés dans un hangar d’inspection.",
-          "Foyer, table, étage, fenêtre.",
-          "cabine_table_size, cabine_chimney_face",
-          "Conçu — non implémenté",
-          "Quatrième lieu proposé ; prévoir assets originaux et baseline spécifique."
+          "Chalet de service",
+          "Module dans un hangar",
+          "Pièce originale en bois avec entrée, table, foyer, poutres et fenêtre sur le hangar fermé.",
+          "Table 2,10 × 1,40 m, tasse, carnet, cheminée froide et vide.",
+          "cabine_table_size, cabine_chimney_face ; 35 effets compatibles au total.",
+          "Implémenté — QA partielle",
+          "Quatrième lieu autonome uniquement ; passage de droite commun, table protégée par garde-corps ; campagne des trois lieux conservée."
         ],
         [
           "Z10",
@@ -689,7 +734,7 @@
           "Z15",
           "Commun",
           "Station de radio",
-          "Dispositif d’étalonnage et repères compatibles avec les trois architectures.",
+          "Dispositif d’étalonnage et repères compatibles avec les quatre architectures.",
           "1 / 2 / 3 ; retour au silence.",
           "radio_echo, radio_chop, radio_static, radio_detune, radio_wrong_channel, radio_aftertone",
           "Implémenté — QA partielle",
@@ -754,6 +799,76 @@
           "Transition de campagne",
           "Implémenté — QA partielle",
           "Aucun vote implicite par le franchissement d’une porte ; conserver le choix explicite du groupe."
+        ],
+        [
+          "Z22",
+          "Saint-Clair",
+          "Bureau D2",
+          "Bureau de contrôle près de l’entrée, distinct des vraies portes 901–904.",
+          "Chambre assignée 204/205, dossier 09 et journal 26/27 octobre.",
+          "PX-026,034,036 ; valeurs plausibles variables entre passages, communes entre témoins.",
+          "Implémenté — QA partielle",
+          "Lecture agrandie facultative ; mêmes repères pour tous et aucun verdict automatique."
+        ],
+        [
+          "Z23",
+          "Saint-Clair",
+          "Consigne C9",
+          "Deux valises de formes distinctes ; chariot original à une seule valise conservé.",
+          "Étiquettes 09 et 18 ; la position du 09 est commune au passage.",
+          "PX-029 ; les étiquettes sont interverties pour une perception.",
+          "Implémenté — QA partielle",
+          "Vérifier formes, côtés, texte et accès au repère ; ne pas confondre consigne et chariot."
+        ],
+        [
+          "Z24",
+          "Saint-Clair",
+          "Table témoin",
+          "Présenter sablier, tasse et râtelier à portée d’observation.",
+          "Sable descendant, vapeur montante et une seule clé 09.",
+          "PX-049,050,073 ; directions inversées ou seconde clé 09.",
+          "Implémenté — QA partielle",
+          "Aucun ramassage ; comparer plusieurs instants et maintenir les mouvements à qualité réduite."
+        ],
+        [
+          "Z25",
+          "Aile blanche",
+          "Salle vitrée et couloir",
+          "Deux espaces distincts, chacun avec son lit de référence.",
+          "Plaque 09 dans le couloir ; plaque 10 dans la salle vitrée.",
+          "PX-118 ; duplicata 09 sur la seconde plaque. Le couloir conserve un seul lit normal.",
+          "Implémenté — QA partielle",
+          "Distinguer clinic_tag_echo de clinic_bed_count ; lire depuis la zone sûre."
+        ],
+        [
+          "Z26",
+          "Saint-Clair",
+          "Archives R9",
+          "Panneau mural droit : registre, règlement et afficheur de présence.",
+          "ARRIVÉE 03:09 / LIGNE 09 ; SIGNALEZ TOUTE ANOMALIE ; PRÉSENTS exact.",
+          "paired_guestbook, rules_swap, guest_tally",
+          "Implémenté — QA partielle",
+          "Textes localisés et lecture E ; seuls les pseudonymes de session sont utilisés."
+        ],
+        [
+          "Z27",
+          "Saint-Clair",
+          "Galerie G9",
+          "Panneau mural gauche : météo du quai, équipe de nuit et plan.",
+          "Météo commune du passage ; A. MOREL / E. VIAL / N. ROCHER ; chambres 901–904.",
+          "paired_photo_weather, wrong_team_photo, map_missing_room",
+          "Implémenté — QA partielle",
+          "Pluie, neige et soleil lisibles par leurs formes ; la chambre 903 correspond à la porte réelle à gauche vers l’issue."
+        ],
+        [
+          "Z28",
+          "Saint-Clair",
+          "Plateau de la consigne C9",
+          "Gant posé avec paume, doigts et pouce modélisés ; marque ICI au sol.",
+          "Poignet vers le témoin placé sur ICI ; latéralité commune dans un passage.",
+          "paired_hand",
+          "Implémenté — QA partielle",
+          "Les deux latéralités sont ordinaires ; conserver un point de comparaison partagé et l’axe libre."
         ]
       ]
     },
@@ -783,7 +898,7 @@
         [
           "A01",
           "Direction",
-          "Trois atmosphères : hôtel laiton/bois, métro céramique/métal, clinique matière pâle/verre.",
+          "Quatre atmosphères : hôtel laiton/bois, métro céramique/métal, clinique pâle/verre, chalet de bois dans un hangar froid.",
           "Cohérence des repères ; silhouettes lisibles.",
           "Implémenté — QA partielle",
           "Chaque lieu se reconnaît avant la première anomalie.",
@@ -858,7 +973,7 @@
           "Rendu planaire du décor, du corps local et des équipiers.",
           "Désynchronisation ou masquage propre à la perception.",
           "Implémenté — QA partielle",
-          "Le décor reste réfléchi quand seul le corps disparaît.",
+          "Huit surfaces planaires, deux par lieu ; les effets retirent uniquement les corps ou ajouts concernés, en conservant le décor.",
           "Reflection pass temps réel ; pas de promesse de ray tracing ni de validation de pixels GPU."
         ],
         [
@@ -1003,7 +1118,7 @@
           "{{geometryQA}}",
           "Contrôle structurel partiel",
           "Contrôle de données et raycasts ; aucune mesure FPS implicite.",
-          "Le navigateur de contrôle ne fournit pas de renderer WebGL actif. Les shaders, reflets et images restent à éprouver sur GPU."
+          "La route de prévisualisation terminal.local:4173 a refusé la connexion en 0.4.0. Aucun pixel, shader, éclairage perçu ni FPS n’est validé ; anciens essais GPU/ICE conservés comme historiques."
         ],
         [
           "A26",
@@ -1085,6 +1200,15 @@
           "Conception définie",
           "Rythme calme entre apparitions ; débrief factuel.",
           "L’intensité est une intention de design, à confirmer en playtests de confort."
+        ],
+        [
+          "A35",
+          "Chalet et dégagements",
+          "Architecture originale, plateau paramétrique, foyer creux, poutres, fenêtre sur hangar et garde-corps.",
+          "Volumes physiques communs entre perceptions.",
+          "Implémenté — QA partielle",
+          "Neuf contrôles CPU dédiés : géométrie finie, accès, collisions, repères et reset.",
+          "Rendu et parcours sur appareils restent ouverts ; le comptage de triangles inclut les objets inactifs."
         ]
       ]
     },
@@ -1114,7 +1238,7 @@
         [
           "S01",
           "Ambiance des lieux",
-          "Souffle d’hôtel, résonance de station, ventilation clinique ; textures synthétiques originales.",
+          "Souffle d’hôtel, résonance de station, ventilation clinique et bois du chalet ; textures synthétiques originales.",
           "Ambiances procédurales par lieu",
           "Implémenté — QA partielle",
           "Volume ambiance et mute",
@@ -1123,7 +1247,7 @@
         [
           "S02",
           "Pas",
-          "Cadence de marche et timbre adaptés aux matières des trois lieux.",
+          "Cadence de marche et timbre adaptés aux matières des quatre lieux.",
           "Retour de locomotion procédural",
           "Implémenté — QA partielle",
           "Volume général et mute",
@@ -1177,7 +1301,7 @@
         [
           "S08",
           "Anomalies sonores",
-          "Six anomalies de réception radio et leur séquence d’étalonnage équivalente.",
+          "Douze profils de contrôle radio, dont dix modifient aussi la réception vocale locale ; relevés factuels accessibles.",
           "Effets privés sur réception",
           "Implémenté — QA partielle",
           "Relevé factuel 1 / 2 / 3 et variantes",
@@ -1222,7 +1346,7 @@
         [
           "S13",
           "Étalonnage",
-          "Trois sons courts connus, puis silence ; variante personnelle si anomalie radio.",
+          "Clic initial, identifiant RELAIS synthétique, trois étapes principales puis clic final ; variantes privées si anomalie radio.",
           "Oscillateurs et bruit synthétique",
           "Implémenté — QA partielle",
           "Transcription factuelle indépendante de l’audition",
@@ -1263,6 +1387,33 @@
           "Conçu — non implémenté",
           "Sous-titres privés et volume narration",
           "Le message système et le vrai roster demeurent fiables ; pas d’imitation d’un partenaire réel."
+        ],
+        [
+          "S18",
+          "Identifiant du contrôle",
+          "Quatre chiffres encodés en doubles tonalités téléphoniques, puis séquence principale distincte.",
+          "Oscillateurs synthétiques originaux",
+          "Implémenté — QA partielle",
+          "Code écrit complet et sections nommées",
+          "Pas de parole synthétisée ni de donnée vocale personnelle."
+        ],
+        [
+          "S19",
+          "Routage et queue",
+          "Centre normal ; variante gauche seule et réverbération longue.",
+          "WebAudio et relevé déterministe",
+          "Implémenté — QA partielle",
+          "Le relevé conserve la preuve en mono ou sans audition",
+          "L’écoute réelle et le confort de chaque profil demandent une recette matérielle."
+        ],
+        [
+          "S20",
+          "Séquences élargies",
+          "Début / fin, ordre 1-3-2 et quatrième impulsion soufflée.",
+          "Ordonnanceur et souffle synthétique",
+          "Implémenté — QA partielle",
+          "Étalonnage répétable sans microphone",
+          "Séparer la section d’identifiant des étapes principales pour éviter les erreurs de comptage."
         ]
       ]
     },
@@ -1322,8 +1473,8 @@
           "Clavier PC",
           "E",
           "Implémenté — QA partielle",
-          "Désigner un repère au centre de la vue.",
-          "Le nom de l’objet reste stable même si l’objet est invisible dans une perception."
+          "Désigner un repère, envoyer son ping, l’ajouter au carnet puis ouvrir sa lecture agrandie si elle existe.",
+          "Le ping ne transmet aucune valeur privée. Une lecture agrandie présente seulement l’état local du repère, sans verdict."
         ],
         [
           "K05",
@@ -1803,7 +1954,7 @@
           "P09",
           "P0",
           "QA visuelle",
-          "Inspecter toutes les anomalies et reflets dans les deux perceptions et les trois lieux.",
+          "Inspecter les 84 preuves visuelles et les reflets dans les perceptions pertinentes des quatre lieux.",
           "À tester sur GPU",
           "QA",
           "QA02, QA04, QA09, QA53–QA60",
@@ -1827,7 +1978,7 @@
           "Implémenté — QA partielle",
           "Réseau",
           "C11",
-          "État et perception conservés ; vérification Internet et voix sur appareils encore nécessaire."
+          "{{sessionResilienceQA}}"
         ],
         [
           "P12",
@@ -1883,20 +2034,20 @@
           "P17",
           "P1",
           "Relations",
-          "Produire douze anomalies nécessitant des témoignages complémentaires.",
-          "Conçu — non implémenté",
+          "Registre, gant et météo privés ; photo d’équipe, plan, règlement et occupants. La constellation reste à produire.",
+          "Partiel",
           "Gameplay",
-          "Catalogue relationnel",
-          "Les joueurs ne peuvent pas répondre avec une seule capture isolée."
+          "PX-028,030,031,035,069,070,071,072",
+          "Sept cas intégrés et testés en CPU ; recettes GPU et constellation PX-035 restent ouvertes."
         ],
         [
           "P18",
           "P1",
           "Audio privé",
-          "Six transformations de réception et étalonnage accessible sans micro.",
+          "Douze profils de contrôle, avec transformations de réception selon le profil et étalonnage accessible sans micro.",
           "Implémenté — QA partielle",
           "Audio / gameplay",
-          "radio_echo à radio_aftertone",
+          "Douze profils radio ; R12–R17 et R31–R38",
           "Relevé cohérent avec l’effet, sans dépendre d’une panne technique ni du silence d’un partenaire."
         ],
         [
@@ -1963,11 +2114,11 @@
           "P25",
           "P2",
           "Chalet",
-          "Créer module industriel de chalet inspectable.",
-          "Conçu — non implémenté",
+          "Chalet original : table, cheminée, hangar, collisions, ambiance et deux anomalies propres.",
+          "Implémenté — QA partielle",
           "Level design",
           "Z09",
-          "Nouvelle baseline, parcours complet et catalogue propre."
+          "Autonome à neuf validations ; 9 tests CPU réussis ; campagne des trois lieux conservée. Images et parcours sur appareils à vérifier."
         ],
         [
           "P26",
@@ -2067,7 +2218,7 @@
           "À vérifier",
           "Livraison",
           "Version {{build}}",
-          "Builds local / hébergé et test portable à deux clients HTTP réussis. Classeur synchronisé. Intégrité des nouvelles archives et GitHub CI à vérifier après assemblage / publication ; rapport docs/qa-final-v0.2.1.json."
+          "{{deliveryQA}}"
         ],
         [
           "P36",
@@ -2133,7 +2284,7 @@
           "P42",
           "P1",
           "Calibrations",
-          "Vérifier les six formes sonores et leur relevé écrit.",
+          "Vérifier les douze profils radio intégrés, leurs séquences et leur relevé écrit.",
           "Implémenté — QA partielle",
           "Audio / QA",
           "R12–R17",
@@ -2163,7 +2314,7 @@
           "P45",
           "P1",
           "Ambiances des lieux",
-          "Timbres de ventilation et pas propres aux trois lieux.",
+          "Timbres de ventilation et pas propres aux quatre lieux.",
           "Implémenté — QA partielle",
           "Son",
           "S01, S02",
@@ -2278,6 +2429,116 @@
           "UI / contrôleur",
           "Radio R30 ; QA80",
           "{{radioControllerQA}}"
+        ],
+        [
+          "P57",
+          "P1",
+          "Calibrations élargies",
+          "Six nouvelles preuves : clic, contre-code, canal gauche, réverbération, ordre et quatrième impulsion.",
+          "Implémenté — QA partielle",
+          "Radio / WebAudio",
+          "PX-101–106",
+          "Signal généré et relevé décrivent la même anomalie ; preuve indépendante du transport et de la permission micro."
+        ],
+        [
+          "P58",
+          "P1",
+          "Corps divergents",
+          "Badge absent, taille, main du talkie, regard et contact au sol.",
+          "Implémenté — QA partielle",
+          "Character / 3D",
+          "PX-107–111",
+          "Altération limitée au modèle désigné ; pose réseau, interface et collision partagées inchangées."
+        ],
+        [
+          "P59",
+          "P1",
+          "Reflets divergents",
+          "Pose assise et code de badge contradictoire dans le reflet.",
+          "Implémenté — QA partielle",
+          "Rendu / animation",
+          "PX-112–113",
+          "Corps réel préservé ; indices visibles en miroir ; référence et nettoyage contrôlés."
+        ],
+        [
+          "P60",
+          "P1",
+          "Quai étendu",
+          "Archives ferroviaires, plan, compteur et horizon anormaux.",
+          "Implémenté — QA partielle",
+          "Level design / 3D",
+          "PX-114–117",
+          "Quai de référence vide ; nouvelles preuves lisibles depuis une zone sûre."
+        ],
+        [
+          "P61",
+          "P1",
+          "Clinique étendue",
+          "Plaque de lit dupliquée, ombre occupée et gouttes ascendantes.",
+          "Implémenté — QA partielle",
+          "Level design / 3D",
+          "PX-118–120",
+          "Distinguer lits du couloir et de la salle vitrée ; aucun patient ni geste clinique réel."
+        ],
+        [
+          "P62",
+          "P1",
+          "Objets de contrôle",
+          "Bureau D2, consigne C9, sablier, vapeur et clé dupliquée.",
+          "Implémenté — QA partielle",
+          "Props / systèmes",
+          "PX-026,029,034,036,049,050,073",
+          "Quatre contradictions réellement privées ; mouvements inversés réels ; supports de référence inspectables."
+        ],
+        [
+          "P63",
+          "P1",
+          "Recette extension",
+          "Recette visuelle des 27 ajouts historiques de 0.3.0, maintenus dans 0.4.0 : passage normal, reset, accès et vue témoin.",
+          "À tester sur GPU",
+          "QA / coopération",
+          "QA82–QA108",
+          "{{sceneTests}} suites CPU de scène, 32 radio, 19 règles et 13 inspection réussies en 0.4.0. Rendus, mix et appareils restent ouverts."
+        ],
+        [
+          "P64",
+          "P1",
+          "Quinze ajouts 0.4.0",
+          "Intégrer les 15 fiches existantes : chalet, reflets, objets d’archives et phénomènes du couloir.",
+          "Implémenté — QA partielle",
+          "3D / inspection",
+          "QA115–QA129",
+          "96 entrées uniques au total ; normalité, vue privée et reset contrôlés ; capture GPU restante."
+        ],
+        [
+          "P65",
+          "P0",
+          "Roster de référence",
+          "Stabiliser les archives pendant un changement de perspective solo ; actualiser les membres présents en coop.",
+          "Implémenté — QA partielle",
+          "Systèmes / inspection",
+          "QA130 ; C29",
+          "Un changement Alpha/Bêta ne crée aucune contradiction normale ; déconnexion et retour actualisent le nombre exact."
+        ],
+        [
+          "P66",
+          "P0",
+          "Résilience et radio",
+          "Conserver les votes frais, projections privées, epochs radio et configuration STUN/TURN validée.",
+          "Implémenté — QA partielle",
+          "Réseau",
+          "QA133–QA134",
+          "28 tests de résilience et 59 de configuration réussis ; preuve réelle ICE/TURN sur appareils toujours distincte."
+        ],
+        [
+          "P67",
+          "P1",
+          "Chalet à quatre clients",
+          "Parcourir les neuf diagnostics autonomes sur le serveur portable sans node_modules.",
+          "Implémenté — QA partielle",
+          "Livraison / QA",
+          "QA132 ; tests/portable.test.mjs",
+          "{{portableQA}}"
         ]
       ]
     },
@@ -2310,7 +2571,7 @@
           "QA01",
           "P0",
           "Référence",
-          "Démarrer chacun des trois lieux, puis franchir un palier de campagne.",
+          "Démarrer chacun des quatre lieux en mode autonome, puis franchir un palier de la campagne des trois lieux.",
           "Aucune anomalie ni point pendant chaque nouvelle référence.",
           "À exécuter",
           "Solo et coop",
@@ -2611,7 +2872,7 @@
           "P0",
           "Sans audition",
           "Couper le son et le micro ; résoudre chaque type radio à l’aide du relevé.",
-          "Les six tests restent interprétables et les autres preuves accessibles.",
+          "Les douze contrôles restent interprétables et les autres preuves accessibles.",
           "À exécuter",
           "Deux clients / solo A-B",
           "La transcription décrit des faits sans attribuer automatiquement le vote."
@@ -2661,7 +2922,7 @@
           "P1",
           "Fichier Excel",
           "Contrôler IDs, couverture runtime, compteurs, statuts, tableaux et rendu.",
-          "120 fiches ; {{runtimeCount}} en code ; {{plannedCount}} futures ; 15 feuilles ; 80 parcours QA.",
+          "120 fiches ; {{runtimeCount}} en code ; {{plannedCount}} futures ; 15 feuilles ; {{qaScenarioCount}} parcours QA.",
           "À exécuter",
           "Artifact Tool / XLSX",
           "Tester une modification de statut puis restaurer ; aucune erreur de formule."
@@ -2830,7 +3091,7 @@
           "QA53",
           "P0",
           "Radio 1–2–3",
-          "Étalonner avec effet absent puis chacun des six IDs radio.",
+          "Étalonner avec effet absent puis chacun des douze IDs radio.",
           "Trace écrite et signal synthétique correspondent au contrat de chaque variante.",
           "À exécuter",
           "Code / WebAudio / écoute humaine",
@@ -2850,7 +3111,7 @@
           "QA55",
           "P0",
           "Reset audio",
-          "Alterner les six effets puis un tour normal et quitter.",
+          "Alterner les douze profils puis un tour normal et quitter.",
           "Pas de delay, bruit, modulation ou porteuse résiduelle ; nœuds libérés.",
           "À exécuter",
           "WebAudio et inspection code",
@@ -3110,11 +3371,551 @@
           "QA81",
           "P0",
           "Builds et édition portable",
-          "Compiler les éditions locale et hébergée ; lancer le serveur portable compilé avec deux clients HTTP, sans node_modules.",
-          "HTML servi ; modules serveur privés ; références et consensus justes ; départ des deux membres.",
+          "Compiler les éditions locale et hébergée ; lancer le serveur portable sans node_modules, scénario à deux clients puis chalet à quatre clients HTTP.",
+          "HTML et assets servis ; modules privés bloqués ; neuf diagnostics corrects du chalet mènent à la victoire ; tous les membres quittent.",
           "Réussi",
           "Build / HTTP portable",
-          "Preuve d’exécution injectée depuis build-status.json."
+          "0.4.0 : TypeScript strict, builds local et hébergé réussis. Portable sans node_modules sous Linux / Node 24.22.1 : deux clients puis chalet à quatre, neuf diagnostics et victoire ; 12 contrôles de chemins. Pas d’essai natif Windows/macOS. Publication et CI 0.4.0 suivies séparément."
+        ],
+        [
+          "QA82",
+          "P1",
+          "Le clic qui manque",
+          "Lancer deux calibrations normales puis affectées ; comparer clic initial, section RELAIS et clic final.",
+          "L’absence reproductible d’un clic de référence constitue une anomalie légère.",
+          "À exécuter",
+          "WebAudio simulé + écoute matérielle",
+          "Fiche PX-101 · radio_no_squelch. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA83",
+          "P1",
+          "Les chiffres au mauvais endroit",
+          "Fixer un RELAIS connu ; comparer chaque chiffre du panneau et du relevé, puis changer de passage et répéter.",
+          "La contradiction appareil / panneau confirme même si personne ne parle.",
+          "À exécuter",
+          "WebAudio simulé + écoute matérielle",
+          "Fiche PX-102 · radio_countercode. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA84",
+          "P1",
+          "Le canal de gauche",
+          "Comparer la répartition de sortie et le relevé en stéréo ; répéter sans écoute audio.",
+          "Le routage fictionnel unilatéral décrit par le relevé est la preuve.",
+          "À exécuter",
+          "WebAudio simulé + écoute matérielle",
+          "Fiche PX-103 · radio_left_only. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA85",
+          "P1",
+          "La réverbération impossible",
+          "Mesurer la queue du signal normal puis affecté, sans entrée microphone et sans pair parlant.",
+          "Une réverbération synthétique anormalement longue confirme.",
+          "À exécuter",
+          "WebAudio simulé + écoute matérielle",
+          "Fiche PX-104 · radio_wrong_room. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA86",
+          "P1",
+          "Le deuxième vient après",
+          "Distinguer l’identifiant DTMF et les trois étapes principales ; vérifier ordre et nombre de celles-ci.",
+          "L’ordre contradictoire stable constitue la preuve.",
+          "À exécuter",
+          "WebAudio simulé + écoute matérielle",
+          "Fiche PX-105 · radio_order_swap. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA87",
+          "P1",
+          "La quatrième respiration",
+          "Écouter / lire toute la fin du test après le clic de clôture ; compter la séquence principale.",
+          "Une quatrième impulsion tardive, également décrite dans le relevé, confirme.",
+          "À exécuter",
+          "WebAudio simulé + écoute matérielle",
+          "Fiche PX-106 · radio_pulse_inside. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA88",
+          "P1",
+          "Le badge absent",
+          "Identifier le pair ciblé puis inspecter sa plaque ; comparer une vue témoin et le roster.",
+          "Une plaque de modèle vide alors que le badge normal est connu confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-107 · avatar_badge_missing. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA89",
+          "P1",
+          "Le collègue trop grand",
+          "Arrêter le pair près d’une porte ; comparer hauteur apparente, pose autoritaire et collision.",
+          "Un changement d’échelle local confirmé par repère fixe est anormal.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-108 · avatar_height_offset. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA90",
+          "P1",
+          "La mauvaise main",
+          "Sans micro ni PTT, regarder le talkie abaissé de face, de dos et dans le miroir.",
+          "Une inversion persistante entre le corps attendu et sa perception confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-109 · avatar_hands_swap. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA91",
+          "P1",
+          "Le regard sous la visière",
+          "Tourner la tête du pair et déplacer l’observateur ; comparer direction des yeux et de la visière.",
+          "Un regard autonome dans une seule perception confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-110 · avatar_visor_watch. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA92",
+          "P1",
+          "Les pas au-dessus du sol",
+          "Faire marcher puis arrêter le pair sur sol plan ; comparer semelles, joints et coordonnées réseau.",
+          "La hauteur locale anormale avec pose réseau stable confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-111 · avatar_no_contact. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA93",
+          "P1",
+          "La posture restée assise",
+          "Se tenir debout au miroir, changer d’orientation puis restaurer la référence.",
+          "Une posture autonome clairement différente confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-112 · reflection_seated. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA94",
+          "P1",
+          "L’identité derrière le verre",
+          "Lire le badge physique, le roster et le badge réfléchi du même inspecteur.",
+          "Une identité inversée seulement dans le reflet constitue la preuve.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-113 · reflection_badge_code. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA95",
+          "P1",
+          "La minute annoncée deux fois",
+          "Lire les deux lignes statiques d’archives ; noter rame, direction et minute sans attendre une rotation de page.",
+          "Deux lignes incompatibles pour un même identifiant de train confirment.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-114 · metro_timetable_loop. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA96",
+          "P1",
+          "La station ajoutée",
+          "Lire les stations du plan dans l’ordre depuis un même embranchement.",
+          "Une station ajoutée au même emplacement confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-115 · metro_route_poster. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA97",
+          "P1",
+          "Le quai qui compte seul",
+          "Lire le portique SCELLÉ sur deux instants séparés de plus de 2,4 s ; aucun franchissement requis ; roster inchangé.",
+          "Une augmentation sans passage réel confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-116 · metro_platform_count. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA98",
+          "P1",
+          "Le matin sous terre",
+          "Comparer le fond du tunnel depuis le quai ; vérifier que le passage physique reste inaccessible.",
+          "L’extérieur diurne incompatible avec la référence confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-117 · metro_tunnel_daylight. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA99",
+          "P1",
+          "Le nom sur deux lits",
+          "Lire plaque09 au couloir et plaque10 dans la salle vitrée ; appliquer puis retirer la duplication.",
+          "La duplication du code 09 sur deux lits de référence distincts confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-118 · clinic_tag_echo. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA100",
+          "P1",
+          "L’occupant de l’ombre",
+          "Observer lit vide et ombre, puis déplacer un vrai collègue pour écarter la confusion de silhouette.",
+          "Un occupant absent du lit mais visible dans son ombre confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-119 · clinic_shadow_bed. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA101",
+          "P1",
+          "La goutte qui remonte",
+          "Suivre au moins trois gouttes de démonstration en référence puis en perception affectée.",
+          "Le mouvement inverse local est la preuve.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-120 · clinic_iv_reverse. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA102",
+          "P1",
+          "Deux chambres raisonnables",
+          "Comparer BUREAU D2 à deux vues sur plusieurs passages ; contrôler que 204 et205 sont permis en normal.",
+          "Deux assignations plausibles mais différentes sur le même appareil confirment l’anomalie.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-026 · paired_room. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA103",
+          "P1",
+          "La valise jumelle",
+          "Lire formes, côtés et étiquettes09/18 de C9 ; vérifier aussi le chariot distinct à une seule valise.",
+          "Le même identifiant unique est associé à deux positions différentes selon les témoins.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-029 · paired_luggage. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA104",
+          "P1",
+          "L’autorisation refusée",
+          "Comparer DOSSIER09 à deux vues ; vérifier que VALIDÉ et REFUSÉ peuvent être des valeurs normales.",
+          "Deux décisions opposées et stables sur le même dossier constituent la preuve.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-036 · paired_stamp. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA105",
+          "P1",
+          "Deux lendemains",
+          "Comparer date complète de l’édition au même passage ; ne pas utiliser la date de l’ordinateur.",
+          "Deux dates d’édition différentes au même emplacement confirment l’anomalie.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-034 · paired_newspaper. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA106",
+          "P1",
+          "Le sablier inversé",
+          "Observer la direction sur plusieurs instants puis restaurer la référence.",
+          "Mouvement contraire à la gravité.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-049 · sand_upward. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA107",
+          "P1",
+          "La vapeur lourde",
+          "Observer les volutes à deux niveaux de qualité et comparer leur direction dans les deux vues.",
+          "La vapeur descendante confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-050 · steam_downward. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA108",
+          "P1",
+          "La clé en double",
+          "Compter les clés09, passer en anomalie puis revenir en référence sans ramassage.",
+          "La duplication d’un identifiant unique confirme.",
+          "À exécuter",
+          "CPU / rendu GPU / coopération",
+          "Fiche PX-073 · same_key_twice. Confirmation d’implémentation et preuves d’exécution attendues."
+        ],
+        [
+          "QA109",
+          "P0",
+          "Témoins privés élargis",
+          "Échantillonner les nouvelles contradictions à deux, trois et quatre clients, dans chacun de leurs lieux autorisés.",
+          "Au moins un observateur de référence ; valeurs communes en passage conforme ; aucune vérité globale exposée.",
+          "À exécuter",
+          "Règles / HTTP",
+          "Vérifier aussi que chaque nouvelle valeur plausible varie normalement entre passages."
+        ],
+        [
+          "QA110",
+          "P1",
+          "Changement d’inspecteur",
+          "Faire quitter et revenir le collègue désigné pendant une distorsion de corps ; changer ensuite de lieu.",
+          "Cible déterministe, roster exact, absence de corps fantôme et nettoyage complet.",
+          "À exécuter",
+          "CPU / réseau / GPU",
+          "La sélection d’un corps altéré doit être séparée de l’autorité de présence."
+        ],
+        [
+          "QA111",
+          "P1",
+          "Lecture sans diagnostic",
+          "Lire un repère 3D puis son agrandissement depuis deux perceptions privées.",
+          "Valeurs identiques dans décor et panneau local ; aucune réponse de vote révélée.",
+          "À exécuter",
+          "Interface / GPU",
+          "Lecture facultative ; préserver la nécessité de comparer et la lisibilité de la référence."
+        ],
+        [
+          "QA112",
+          "P1",
+          "Accès à la recette navigateur",
+          "Ouvrir l’URL exacte de prévisualisation retournée par le service.",
+          "Une session rendue permet les captures et vérifications de la version.",
+          "Bloqué",
+          "Navigateur géré",
+          "Échec actuel : net::ERR_CONNECTION_REFUSED. Aucun contrôle GPU, audio natif ni microphone exécuté ; aucun contournement de réseau ou de sécurité."
+        ],
+        [
+          "QA113",
+          "P0",
+          "Inspecteurs homonymes",
+          "Connecter deux inspecteurs portant le même pseudonyme, avec des identifiants et slots distincts.",
+          "La lecture de badge suit l’identité stable de la cible et ne récupère pas le badge du premier homonyme.",
+          "Partiel",
+          "Régression CPU / inspection",
+          "tests/scene.geometry.test.mjs : identité stable, données et lectures contrôlées. Glyphes et lisibilité GPU encore ouverts."
+        ],
+        [
+          "QA114",
+          "P0",
+          "Chemins privés du serveur",
+          "Demander les variantes encodées des chemins de modules, puis les assets publics et un fichier factice hors racine.",
+          "Variantes encodées de chemins privés refusées ; assets publics conservés ; hors-racine interdit.",
+          "Réussi",
+          "HTTP réel / Linux ; version Node indiquée dans le rapport",
+          "0.4.0 : 12 requêtes HTTP de protection passent (GET, HEAD, encodages, séparateurs, casse, hors-racine) ; HTML et assets JS/CSS publics conservés. Linux / Node 24.22.1, sans node_modules. docs/qa-portable-v0.4.0.json."
+        ],
+        [
+          "QA115",
+          "P1",
+          "Table du chalet",
+          "Comparer le plateau normal et affecté depuis le garde-corps, puis rétablir la référence.",
+          "Le plateau normal mesure 2,10 × 1,40 m ; le bord gauche atteint le mur dans la vue affectée, sans changer le trajet, la tasse ou le carnet.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "cabine_table_size ; tests/cabin.geometry.test.mjs ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA116",
+          "P1",
+          "Cheminée du chalet",
+          "Observer depuis le tapis le conduit normal, affecté et restauré.",
+          "Foyer vide et froid en référence ; visage et yeux immobiles dans la vue affectée seulement.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "cabine_chimney_face ; tests/cabin.geometry.test.mjs ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA117",
+          "P1",
+          "Porte du reflet",
+          "Comparer le miroir de Saint-Clair au panneau réel, puis restaurer la référence.",
+          "La porte supplémentaire existe uniquement dans la passe du miroir concerné ; aucune porte réelle ni collision commune ajoutée.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "mirror_extra_door ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA118",
+          "P1",
+          "Groupe absent",
+          "Comparer corps et reflet avec pairs, puis les deux témoins en solo ; essayer les quatre lieux.",
+          "Le corps local reste réfléchi ; seuls les collègues/témoins disparaissent du miroir affecté ; leur corps réel reste présent.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "reflection_no_team ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA119",
+          "P1",
+          "Racines sous 901",
+          "Observer un cycle de croissance sous 901, passer à la vue normale puis à la référence.",
+          "Racines locales au seuil 901, animation mesurable et reset ; axe de marche toujours accessible.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "root_under_door ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA120",
+          "P1",
+          "Eau ascendante",
+          "Suivre une goutte du panneau droit, comparer les perceptions puis restaurer.",
+          "La goutte monte ; le panneau témoin et la référence restent secs.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "water_up_wall ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA121",
+          "P1",
+          "Cinquième chambre",
+          "Compter 901–904 depuis l’entrée puis observer le panneau droit près de la sortie.",
+          "905 apparaît seulement dans la vue affectée ; les quatre portes et collisions communes restent stables.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "extra_door ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA122",
+          "P1",
+          "Issue animée",
+          "Observer un cycle du joint, vérifier la stabilité témoin et l’accès au vote.",
+          "Animation du battant et du joint locale ; terminal accessible ; référence immobile.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "exit_breath ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA123",
+          "P1",
+          "Registre R9",
+          "Comparer ARRIVÉE 03:09 / LIGNE 09 entre vues, avec pseudonymes identiques puis différents.",
+          "Indicatifs stables distinguent les homonymes ; noms des membres présents ou témoin fictif explicitement étiqueté en solo, hors décompte réel ; une identité isolée ne suffit pas.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "paired_guestbook ; tests/inspection.test.mjs ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA124",
+          "P1",
+          "Gant C9",
+          "Depuis ICI, poignet vers soi, comparer les pouces des deux perceptions puis les variantes normales.",
+          "Chaque latéralité est normale seule ; seule la contradiction est anormale ; le pouce géométrique et la lecture E concordent.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "paired_hand ; tests/inspection.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA125",
+          "P1",
+          "Météo G9",
+          "Comparer les trois météos normales puis une paire contradictoire, avec lecture E.",
+          "Pluie/parapluie, neige/flocons ou soleil/rayons sont visibles ; égalité dans les vues normales et différence privée.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "paired_photo_weather ; tests/inspection.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA126",
+          "P1",
+          "Équipe de nuit G9",
+          "Lire la référence puis la variante affectée ; faire partir et revenir un membre.",
+          "Trois signatures fictives en référence ; pseudonymes et silhouettes suivent les présents dans la vue affectée.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "wrong_team_photo ; tests/inspection.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA127",
+          "P1",
+          "Plan G9",
+          "Lire les quatre chambres puis comparer le plan affecté à la porte physique 903.",
+          "Case 903 et branche absentes uniquement du plan affecté ; position et numéro de la porte réelle inchangés.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "map_missing_room ; tests/inspection.test.mjs ; tests/scene.geometry.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA128",
+          "P1",
+          "Règlement R9",
+          "Comparer la phrase du panneau et les règles permanentes de l’interface.",
+          "NE SIGNALEZ AUCUNE ANOMALIE reste une preuve du décor ; le vrai vote n’est pas modifié.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "rules_swap ; tests/inspection.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA129",
+          "P1",
+          "Présence R9",
+          "Comparer afficheur et membres présents, y compris départ/retour et entraînement solo.",
+          "Nombre exact en référence ; +1 dans la seule vue affectée ; faux témoin du registre exclu du décompte.",
+          "Partiel",
+          "CPU / inspection / GPU restant",
+          "guest_tally ; tests/inspection.test.mjs. Géométrie, données et reset contrôlés ; rendu et compréhension sur écran restent à éprouver."
+        ],
+        [
+          "QA130",
+          "P0",
+          "Roster stable en solo",
+          "Basculer Alpha/Bêta plusieurs fois au même passage normal, puis activer un effet et rétablir la référence.",
+          "Registre, photo et nombre restent communs entre les deux vues normales ; seule la valeur de l’effet assigné diverge.",
+          "Partiel",
+          "Scène CPU / interface à éprouver",
+          "tests/scene.geometry.test.mjs : roster explicite Inspecteur, priorité conservée sur setIdentity/setPeers ; annulation de l’override restaure le roster coop."
+        ],
+        [
+          "QA131",
+          "P0",
+          "Chalet et campagne",
+          "Choisir le chalet autonome ; essayer une configuration de campagne contenant cabin ; charger les anciennes sauvegardes.",
+          "Le chalet accepte neuf validations autonomes. La campagne reste exactement hôtel → métro → clinique, avec paliers 3 et 6.",
+          "Réussi",
+          "Règles automatisées",
+          "tests/rules.test.mjs : catalogue, niveaux, campagne et sauvegardes ; 19 tests réussis. Aucun parcours GPU revendiqué."
+        ],
+        [
+          "QA132",
+          "P0",
+          "Chalet à quatre clients HTTP",
+          "Créer quatre identités indépendantes, parcourir neuf diagnostics, envoyer des pings table/foyer et quitter.",
+          "Victoire à neuf ; projections privées ; la lecture privée injectée n’est pas propagée dans le ping.",
+          "Réussi",
+          "Serveur portable HTTP réel",
+          "Réussi : serveur portable compilé sans node_modules, Linux / Node 24.22.1 ; quatre clients dans le chalet, neuf diagnostics et victoire, pings table/foyer sans fuite. Douze contrôles de chemins privés. docs/qa-portable-v0.4.0.json ; aucune fenêtre 3D ni partie humaine validée."
+        ],
+        [
+          "QA133",
+          "P0",
+          "Votes et radio après reprise",
+          "Perdre un témoin avant consensus, revenir, renouveler la radio et interroger les projections privées.",
+          "Votes antérieurs annulés ; aucun résultat anticipé ni ancien message radio livré à la mauvaise identité.",
+          "Réussi",
+          "28 tests de résilience",
+          "tests/session-resilience.test.mjs : 28/28 réussites ; interruptions et files simulées ; Internet et voix matérielle non éprouvés."
+        ],
+        [
+          "QA134",
+          "P0",
+          "Configuration STUN/TURN",
+          "Tester URI, limites, secrets, identifiants temporaires, précontrôle --json et --require-turn.",
+          "59 tests passent ; diagnostics expurgés ; la configuration seule ne prétend pas valider un relais connecté.",
+          "Réussi",
+          "Validation statique / commande",
+          "tests/radio-config.test.mjs : 59/59 réussites ; HMAC comparé à node:crypto, aucun DNS ni réseau TURN sondé."
+        ],
+        [
+          "QA135",
+          "P1",
+          "Arches du métro",
+          "Traverser le centre sous chaque arche et tester les dégagements sur le trajet autorisé.",
+          "Aucun pilier ne coupe la route centrale ; forme des arches et accès restent cohérents après changement de lieu.",
+          "Partiel",
+          "Géométrie CPU / GPU restant",
+          "tests/scene.geometry.test.mjs ; correction de géométrie intégrée. Parcours et silhouette perçue à éprouver sur appareil."
         ]
       ]
     },
@@ -3174,7 +3975,7 @@
           "Catalogue runtime {{build}}",
           "{{runtimeCount}} identifiants intégrés ; titres, baseline, intensité, difficulté et lieux proviennent du code.",
           "src/game/catalog.ts",
-          "2026-10-26",
+          "2026-10-28",
           "Le classeur affiche explicitement la QA partielle ; présence dans le code ne vaut pas validation matérielle."
         ],
         [
@@ -3183,7 +3984,7 @@
           "Machine de jeu {{build}}",
           "Campagne 3 × 3 avec paliers ; lieu unique 9 consécutifs ; 68 % d’anomalies ; 3 erreurs standard.",
           "src/game/rules.ts",
-          "2026-10-26",
+          "2026-10-28",
           "La référence de chaque lieu ne rapporte aucun point ; le mode détendu retire seulement la limite d’erreurs."
         ],
         [
@@ -3192,7 +3993,7 @@
           "Catalogue de 120 fiches",
           "{{plannedCount}} fiches restent conçues sans implémentation. IDs PX d’origine conservés ; nouvelles fiches ajoutées.",
           "docs/anomalies-design.json",
-          "2026-10-26",
+          "2026-10-28",
           "Une promotion de statut n’ajoute pas une fiche doublon pour la même anomalie."
         ],
         [
@@ -3325,9 +4126,9 @@
           "R21",
           "Source niveaux",
           "Baselines et noms officiels",
-          "Saint-Clair / Terminus 09 / Aile blanche ; règles de référence spécifiques.",
+          "Saint-Clair / Terminus 09 / Aile blanche en campagne ; Chalet de service en autonome ; règles de référence propres à chaque lieu.",
           "src/game/levels.ts",
-          "2026-10-26",
+          "2026-10-28",
           "Le panneau métro et le moniteur clinique sont des références fixes de jeu."
         ],
         [
@@ -3336,7 +4137,7 @@
           "Bilan de vérification",
           "{{evidenceSummary}}",
           "docs/QA.md",
-          "2026-10-26",
+          "2026-10-28",
           "Les essais déclarés se limitent à leur périmètre ; aucune validation GPU ou microphone physique sans preuve."
         ],
         [
@@ -3345,7 +4146,7 @@
           "Données du classeur",
           "Tables éditoriales, catalogue de conception, copie du runtime et état du build.",
           "docs/workbook-v02.json ; docs/runtime-catalog.json ; docs/build-status.json",
-          "2026-10-26",
+          "2026-10-28",
           "Le générateur scripts/build-design-workbook.mjs reconstruit le classeur et ses contrôles."
         ],
         [
@@ -3370,10 +4171,10 @@
           "R26",
           "Asset original",
           "Inspecteur GLB et manifeste",
-          "52 444 triangles, 12 articulations rigides, trois animations ; relecture GLTFLoader réussie.",
+          "Asset conservé de 0.3.0 : 53 990 triangles, 58 maillages, 12 articulations et trois animations ; validation de relecture documentée dans le manifeste.",
           "public/models/inspecteur-parallaxe.glb ; public/models/inspecteur-parallaxe.manifest.json",
           "2026-10-26",
-          "Modèle procédural original ; pas de skinning, pas de lettrage badge embarqué et pas de validation GPU."
+          "Modèle procédural original ; pas de skinning, pas de lettrage badge embarqué. Le rapport est historique, sans nouvelle validation GPU."
         ],
         [
           "R27",
@@ -3400,7 +4201,142 @@
           "Typecheck, builds local / hébergé et parcours HTTP portable à deux clients exécutés.",
           "docs/qa-final-v0.2.1.json ; .github/workflows/ci.yml",
           "2026-10-26",
-          "{{deliveryQA}}"
+          "Rapport historique 0.2.1. Le bilan courant est référencé séparément ; cette preuve ne valide pas les ajouts 0.4.0."
+        ],
+        [
+          "R30",
+          "Contrats de conception",
+          "Extension 0.3.0 du 27 octobre 2026",
+          "Les 27 ajouts reprennent des fiches existantes, avec adaptations documentées pour les supports construits.",
+          "Brief de la conversation ; docs/anomalies-design.json",
+          "2026-10-27",
+          "Les 27 fiches sont promues avec leurs IDs historiques conservés. Baselines et descriptions sont alignées avec les objets réellement construits ; QA matérielle toujours distincte."
+        ],
+        [
+          "R31",
+          "Sources de vérité",
+          "Catalogue et preuves historiques · 0.3.0",
+          "Code runtime, projections privées, signal de calibration et modèles déterminent la description réalisée.",
+          "src/game/catalog.ts ; src/game/rules.ts ; src/game/radio.ts ; src/game/scene.ts ; src/game/avatar.ts",
+          "2026-10-27",
+          "Catalogue figé : 81 entrées, 69 visuelles et 12 radio. La présence en code ne vaut pas validation GPU, mix ou transport vocal."
+        ],
+        [
+          "R32",
+          "Tests radio exécutés",
+          "Radio et PCM · 0.3.0",
+          "32/32 tests, dont 13 nouveaux : vrais buffers de production, fréquences, code, canaux, queue, annulation et API simulées.",
+          "docs/qa-radio-v0.3.json ; src/game/radio-evidence.ts",
+          "2026-10-27",
+          "Aucune écoute humaine, aucun microphone physique ni transport ICE/TURN connecté validés."
+        ],
+        [
+          "R33",
+          "Contrôles CPU exécutés",
+          "Scène et corps · 0.3.0",
+          "18 suites : 69 effets, reset, repères, modèles, lectures, changements de lieu et identité des inspecteurs homonymes.",
+          "docs/qa-scene-v0.3.0.json ; tests/scene.geometry.test.mjs",
+          "2026-10-27",
+          "Géométrie, transformations et raycasting réels ; renderer et canvas simulés. Aucun pixel, shader ou FPS certifié."
+        ],
+        [
+          "R34",
+          "Limite de recette",
+          "Prévisualisation navigateur · 0.3.0",
+          "La route de prévisualisation exacte a refusé la connexion avant les contrôles visuels.",
+          "docs/qa-browser-v0.3.0.json",
+          "2026-10-27",
+          "net::ERR_CONNECTION_REFUSED ; aucun contournement. Les anciens résultats GPU désactivé / zéro ICE restent historiques."
+        ],
+        [
+          "R35",
+          "Tests de logique exécutés",
+          "Règles, inspection et contrôle radio",
+          "18 tests de règles, 8 d’inspection et 4 du contrôleur radio réussis.",
+          "docs/qa-inspection-v0.3.0.json ; tests/rules.test.mjs ; tests/radio-actions.test.mjs",
+          "2026-10-27",
+          "Contrôles de logique et données. Les textes dessinés, les interactions DOM et les microphones physiques demandent une recette séparée."
+        ],
+        [
+          "R36",
+          "Livraison versionnée",
+          "Compilations et essais de distribution · 0.3.0",
+          "v0.3.0 : TypeScript strict, builds local / hébergé et serveur portable à deux clients HTTP réussis. Serveur sans node_modules ; chemins privés protégés après normalisation. Test HTTP sous Linux / Node 24.22.1, sans essai natif Windows/macOS. GitHub en attente d’autorisation ; CI 0.3.0 non exécutée.",
+          "docs/qa-final-v0.3.0.json",
+          "2026-10-27",
+          "Rapport historique de la livraison 0.3.0, récupérée avant intégration. Le suivi de publication actuel figure dans le bilan 0.4.0."
+        ],
+        [
+          "R37",
+          "Serveur portable vérifié",
+          "Chemins normalisés · 0.3.0",
+          "Le serveur refuse les chemins privés après résolution ; HTML, JavaScript et CSS publics demeurent servis.",
+          "docs/qa-portable-path-v0.3.0.json",
+          "2026-10-27",
+          "HTTP Linux / Node 24.22.1 ; dix GET privés et un HEAD refusés, fixture hors-racine inaccessible. Aucun stockage de sessions réel lu."
+        ],
+        [
+          "R38",
+          "Source de vérité courante",
+          "Catalogue et extensions · 0.4.0",
+          "96 entrées : 84 effets visuels et 12 profils radio ; 15 fiches promues avec leurs IDs d’origine.",
+          "src/game/catalog.ts ; docs/runtime-catalog.json",
+          "2026-10-28",
+          "Pools chevauchants : Saint-Clair 76, Terminus 09 48, Aile blanche 48, Chalet 35. radio_signal est visuel et ne crée pas de profil radio supplémentaire."
+        ],
+        [
+          "R39",
+          "Objets originaux",
+          "Registre, gant et galerie",
+          "13 tests couvrent valeurs privées, vrais meshes, lectures E, météo, latéralité, reset et roster présent.",
+          "src/game/inspection-data.ts ; src/game/inspection-props.ts ; tests/inspection.test.mjs",
+          "2026-10-28",
+          "Les textes et mouvements sont contrôlés en CPU ; lisibilité finale et ergonomie restent à vérifier sur GPU."
+        ],
+        [
+          "R40",
+          "Contrôles de scène",
+          "Scène et reflets · 0.4.0",
+          "{{geometryQA}}",
+          "docs/qa-scene-v0.4.0.json ; tests/scene.geometry.test.mjs",
+          "2026-10-28",
+          "{{geometrySummary}}"
+        ],
+        [
+          "R41",
+          "Quatrième lieu autonome",
+          "Chalet de service",
+          "9 tests CPU dédiés ; architecture, collisions, preuves table/foyer, lectures et référence.",
+          "src/game/cabin.ts ; docs/qa-cabin-v0.4.0.json ; tests/cabin.geometry.test.mjs",
+          "2026-10-28",
+          "La campagne garde trois lieux ; le chalet se choisit en autonome, neuf diagnostics. Aucun FPS ni pixel validé."
+        ],
+        [
+          "R42",
+          "Vérification courante",
+          "Build et portable · 0.4.0",
+          "{{deliveryQA}}",
+          "docs/qa-final-v0.4.0.json ; docs/qa-portable-v0.4.0.json",
+          "2026-10-28",
+          "Les preuves sont limitées aux outils et environnements indiqués dans les rapports ; matériels physiques non testés."
+        ],
+        [
+          "R43",
+          "Historique GitHub vérifié",
+          "CI main après correctifs coop / radio",
+          "CI réussie sur main ccf629a22b5409f9ea9ad4eb5a221253a7030893 : correctifs 0.2.1 intégrés avant la reprise 0.4.0.",
+          "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40681454450",
+          "2026-10-28",
+          "Cette réussite historique ne vaut pas CI de la branche 0.4.0. Le complément radio daté reste un document historique ; ce maître couvre le contenu courant complet."
+        ],
+        [
+          "R44",
+          "Résilience et configuration",
+          "Correctifs préservés et rejoués",
+          "28 tests de résilience et 59 tests de configuration radio réussis sur le travail 0.4.0.",
+          "tests/session-resilience.test.mjs ; tests/radio-config.test.mjs",
+          "2026-10-28",
+          "Retours, votes, confidentialité, epochs, URI et HMAC contrôlés ; aucune prétention de voix relayée sur appareils."
         ]
       ]
     },
@@ -3662,7 +4598,7 @@
         [
           "R24",
           "Recette casque",
-          "Tester voix normale et six effets à volume raisonnable.",
+          "Tester voix normale et les profils de réception disponibles à volume raisonnable.",
           "Compréhension, absence de saturation dure et repos auditif.",
           "À tester sur appareils",
           "Casque / haut-parleurs",
@@ -3677,7 +4613,7 @@
           "Conçu — non implémenté",
           "Extension de jeu",
           "Aucune équipe bloquée si les partenaires sont sur deux canaux.",
-          "Ne pas annoncer cette extension comme disponible en v0.2."
+          "Canaux de proximité et sous-groupes restent prévus, sans option jouable actuellement."
         ],
         [
           "R26",
@@ -3697,7 +4633,7 @@
           "Implémenté — QA partielle",
           "Voix / texte / repères",
           "Trois contradictions relationnelles ne peuvent être trouvées avec une seule lecture isolée.",
-          "Le test 1 / 2 / 3 est un autre appareil de preuve ; nommer le repère évite de comparer deux écrans différents."
+          "Le contrôle radio identifie aussi RELAIS avant ses trois tons principaux ; comparer chaque appareil nommé dans le même passage."
         ],
         [
           "R28",
@@ -3728,6 +4664,106 @@
           "Éteindre puis réactiver la radio",
           "Un ancien résultat ou finaliseur ne bloque ni ne déverrouille à tort la nouvelle opération.",
           "Contrôleur testé séparément du client vocal ; ces tests ne sont pas un essai de permission sur microphone physique."
+        ],
+        [
+          "R31",
+          "Clic final absent",
+          "Clic initial, identification et séquence présents ; fermeture manquante.",
+          "Comparer le relevé de clôture sur deux essais.",
+          "Implémenté — QA partielle",
+          "Étalonner / relevé écrit",
+          "Résultat reproductible au même passage, même sans micro et sans connexion audio.",
+          "Répéter sans partenaire parlant ; l’indicateur micro réel doit suivre son état technique."
+        ],
+        [
+          "R32",
+          "Contre-code RELAIS",
+          "L’identifiant DTMF du contrôle diffère du panneau du même passage.",
+          "Lire les quatre chiffres panneau / contrôle.",
+          "Implémenté — QA partielle",
+          "Étalonner / relevé écrit",
+          "Résultat reproductible au même passage, même sans micro et sans connexion audio.",
+          "Le code de panneau reste intact ; aucune voix humaine ou synthèse de parole requise."
+        ],
+        [
+          "R33",
+          "Signal latéral",
+          "Le contrôle est routé entièrement à gauche.",
+          "Relevé G 100 / D 0 contre signal centré.",
+          "Implémenté — QA partielle",
+          "Étalonner / relevé écrit",
+          "Résultat reproductible au même passage, même sans micro et sans connexion audio.",
+          "Le relevé décrit le routage prévu ; il ne diagnostique jamais un casque réel."
+        ],
+        [
+          "R34",
+          "Acoustique impossible",
+          "La queue synthétique est prolongée après les tons.",
+          "Durée longue contre queue normale courte.",
+          "Implémenté — QA partielle",
+          "Étalonner / relevé écrit",
+          "Résultat reproductible au même passage, même sans micro et sans connexion audio.",
+          "Aucune dépendance à la pièce physique, au microphone ou à la latence réseau."
+        ],
+        [
+          "R35",
+          "Ordre échangé",
+          "La séquence principale devient 1, 3, 2.",
+          "Lire l’ordre, pas seulement le nombre de tons.",
+          "Implémenté — QA partielle",
+          "Étalonner / relevé écrit",
+          "Résultat reproductible au même passage, même sans micro et sans connexion audio.",
+          "Les chiffres RELAIS précèdent une section distincte ; les deux sections sont étiquetées."
+        ],
+        [
+          "R36",
+          "Quatrième souffle",
+          "Une impulsion synthétique soufflée suit les trois étapes et la clôture.",
+          "Attendre la fin complète puis compter les étapes principales.",
+          "Implémenté — QA partielle",
+          "Étalonner / relevé écrit",
+          "Résultat reproductible au même passage, même sans micro et sans connexion audio.",
+          "Pas de copie de voix ou de souffle de joueur ; arrêt de l’écoute disponible."
+        ],
+        [
+          "R37",
+          "Sections du contrôle",
+          "Clic initial → identifiant RELAIS DTMF → séquence principale 1, 2, 3 → clic final.",
+          "Quatre chiffres d’identification séparés de trois étapes de contrôle.",
+          "Implémenté — QA partielle",
+          "Panneau RELAIS + bouton Étalonner",
+          "Chaque section est nommée dans le relevé ; les comptes de tons ne sont pas ambigus.",
+          "Le relevé décrit ce que le moteur produit, sans annoncer directement « anomalie »."
+        ],
+        [
+          "R38",
+          "Équité sans matériel",
+          "Le contrôle détermine sa preuve à partir de la perception privée et du code du passage.",
+          "Aucun test ne requiert qu’un autre joueur parle.",
+          "Implémenté — QA partielle",
+          "Texte, audio local, voix si disponible",
+          "Micro refusé, pair muet ou ICE indisponible ne changent pas la vérité du passage.",
+          "Le fonctionnement du transport vocal et le rendu du signal sont deux vérifications distinctes."
+        ],
+        [
+          "R39",
+          "Configuration vérifiée",
+          "Valider et dédupliquer URI STUN/TURN ; signer des identifiants temporaires bornés.",
+          "Le précontrôle indique la cohérence de la configuration, pas la connectivité.",
+          "Implémenté — QA partielle",
+          "scripts/check-radio-config.mjs --json / --require-turn",
+          "59 tests automatisés : URI, secrets, expiration HMAC et diagnostics sans fuite.",
+          "Aucun serveur TURN déployé ni transport relay réel validé par ces tests."
+        ],
+        [
+          "R40",
+          "Reconnexion et files",
+          "Annuler les négociations périmées après interruption de présence ou changement d’epoch.",
+          "Seul un émetteur présent et une identité radio actuelle peuvent alimenter la boîte privée.",
+          "Implémenté — QA partielle",
+          "src/game/session.ts ; tests/session-resilience.test.mjs",
+          "28 tests de résilience incluent les files radio, votes et projections privées.",
+          "Une suite automatisée ne prouve pas la réception de voix sur des appareils physiques."
         ]
       ]
     },
@@ -3940,7 +4976,7 @@
           "H19",
           "Source et export",
           "Source procédurale, contrats de pose et export GLB original fournis avec manifeste.",
-          "GLB et trois clips générés puis relus par GLTFLoader.",
+          "GLB v0.3.0 et trois clips de base générés puis relus par GLTFLoader.",
           "Implémenté — QA partielle",
           "Un asset est retrouvé depuis la fiche anomalie.",
           "Nommage, unités, matériaux et licences dans le registre d’assets.",
@@ -3959,18 +4995,98 @@
         [
           "H21",
           "Inspecteur exportable",
-          "inspecteur-parallaxe.glb : 52 444 triangles, 51 meshes, 12 nœuds articulés ; dimensions 0,6853 × 1,7287 × 0,508 m.",
-          "Trois clips : Marche 0,766 s ; Radio 1,5 s ; Salut 2 s.",
+          "GLB v0.3.0 : 53 990 triangles, 58 maillages, 12 nœuds articulés ; dimensions 0,6853 × 1,7522 × 0,508 m.",
+          "Trois clips exportés : Marche 0,766 s ; Radio 1,5 s ; Salut 2 s.",
           "Implémenté — QA partielle",
-          "Export relu par GLTFLoader ; sommets finis et trois clips validés.",
-          "4 826 384 octets. Pièces rigides sans skinning ; PBR de base. Lettrage du badge runtime non embarqué.",
-          "public/models/inspecteur-parallaxe.manifest.json ; rendu GPU et import outil final non validés."
+          "Réexport depuis avatar v0.3.0 puis relecture GLTFLoader ; sommets et trois clips validés.",
+          "4 825 784 octets. Pièces rigides sans skinning, PBR de base. Lettrage Canvas, sprites de nom et effets de jeu exclus.",
+          "Manifeste avec version et empreinte source. Les animations d’anomalies sont dans le code du jeu ; rendu GPU et import dans le logiciel final restent ouverts."
+        ],
+        [
+          "H22",
+          "Inspecteur désigné",
+          "Choisir le premier pair présent par slot, puis le suivant après son départ. Utiliser le corps local uniquement si aucun pair n’est présent.",
+          "Même corps nommé avant de comparer badge, taille, main, regard ou contact au sol.",
+          "Implémenté — QA partielle",
+          "La cible reste reconnaissable ; le roster ne crée aucun faux joueur.",
+          "Identité stable de la cible dans la vue locale ; ne pas sélectionner le modèle par son pseudonyme.",
+          "Tester départ du collègue ciblé, retour et nettoyage à chaque référence."
+        ],
+        [
+          "H23",
+          "Badge physique",
+          "Le badge du corps porte son code de slot.",
+          "La plaque devient vierge pour un témoin.",
+          "Implémenté — QA partielle",
+          "Plaque réellement vide avec contours du badge conservés.",
+          "Badge de torse et texte runtime ; interface d’identité fiable.",
+          "Capture proche et éloignée sur GPU, avec tous les éclairages."
+        ],
+        [
+          "H24",
+          "Main du talkie",
+          "Appareil abaissé dans la main droite normale.",
+          "Fixation dans la main gauche dans la perception affectée.",
+          "Implémenté — QA partielle",
+          "Preuve visible sans PTT et sans permission microphone.",
+          "Attaches du modèle ; aucune préférence de main dominante non réalisée.",
+          "Comparer face, dos et miroir pour écarter une confusion gauche / droite."
+        ],
+        [
+          "H25",
+          "Échelle et contact",
+          "Taille constante et pieds au sol.",
+          "Échelle verticale 1,48 et largeur 1,18, ou décalage visuel du corps de 20 cm.",
+          "Implémenté — QA partielle",
+          "La collision et les coordonnées communes restent intactes.",
+          "Modifier le modèle seulement ; repères de porte et de sol.",
+          "Marche, arrêt, reconnexion et performance GPU."
+        ],
+        [
+          "H26",
+          "Regard indépendant",
+          "Yeux alignés avec la pose de la tête.",
+          "Regard local orienté vers l’observateur malgré une tête détournée.",
+          "Implémenté — QA partielle",
+          "L’indice reste lisible sous la visière et ne dépend pas d’une webcam.",
+          "Yeux procéduraux, tête réseau conservée.",
+          "Captures de plusieurs angles et contraste sur GPU."
+        ],
+        [
+          "H27",
+          "Reflet assis",
+          "Corps réel et reflet normalement debout.",
+          "Le reflet s’assoit sur le vrai tabouret vide, hanches et genoux à 90°, à position fixe près du miroir.",
+          "Implémenté — QA partielle",
+          "Jambes et bassin du reflet changent ; décor et corps réel restent cohérents.",
+          "Animation du corps réfléchi ; aucune interaction de siège requise.",
+          "Rendu comparatif, absence de récursion et reset."
+        ],
+        [
+          "H28",
+          "Code du reflet",
+          "Badge du corps et badge réfléchi correspondent.",
+          "Le reflet porte le code du slot suivant.",
+          "Implémenté — QA partielle",
+          "Le vrai badge et le roster demeurent exacts.",
+          "Texture / code du corps réfléchi uniquement.",
+          "Lisibilité miroir et absence de simple inversion optique prise comme preuve."
+        ],
+        [
+          "H29",
+          "Le groupe absent",
+          "Le miroir montre le corps local et les collègues ; deux mannequins numérotés servent de témoins en solo.",
+          "Les collègues ou témoins disparaissent uniquement du miroir ; le corps local reste.",
+          "Implémenté — QA partielle",
+          "Le compte réel et réfléchi diffère ; corps physiques et socles restent présents.",
+          "Masquage dans la passe de reflet ; compatible avec les quatre lieux.",
+          "Contrôle CPU des couches ; lisibilité, cadrage et performance GPU restent à vérifier."
         ]
       ]
     },
     "Niveaux": {
-      "title": "Campagne : trois lieux, trois preuves chacun",
-      "subtitle": "Les pools partagent des anomalies communes : leurs tailles ne s’additionnent pas en contenu unique.",
+      "title": "Trois lieux de campagne et un chalet autonome",
+      "subtitle": "La campagne reste Saint-Clair → Terminus 09 → Aile blanche. Le Chalet de service se choisit en lieu unique. Les pools se chevauchent.",
       "headers": [
         "Ordre",
         "Lieu officiel",
@@ -4002,8 +5118,8 @@
           "Saint-Clair",
           "L’hôtel sans neuvième étage",
           "Campagne : 0 → 3. Une erreur remet le secteur à 0.",
-          "Portes 901–904 fermées ; horloge 03:09 ; plantes vertes ; meubles au sol ; fenêtre vide ; tableau complet ; reflets synchrones.",
-          "Objets de l’hôtel, altérations spatiales, bagage, miroir et effets communs.",
+          "Portes 901–904 ; horloge 03:09 ; bureau D2, consigne C9, archives R9 et galerie G9 concordants ; quatre chambres sur le plan ; silhouettes fictives de référence ; reflets synchrones.",
+          "Quatorze objets de contrôle, registre/gant/météo privés, photo d’équipe, plan, règlement, occupants, racines, eau, cinquième porte et issue animée.",
           "",
           "Implémenté — QA partielle",
           "Axe d’inspection avec réception, chambres, galerie, service et façade ; conclure après comparaison du relais et du corps.",
@@ -4014,8 +5130,8 @@
           "Terminus 09",
           "Le dernier quai",
           "Campagne : palier 3 conservé ; trois réussites pour atteindre 6.",
-          "Quai vide ; QUAI 09 / SERVICE TERMINÉ ; signal vert ; deux rails droits ; corps et reflet synchrones.",
-          "Rame présente, destination impossible, signal altéré, rails orientés et ombre de train.",
+          "Quai vide ; QUAI 09 / SERVICE TERMINÉ ; signal vert ; rails droits ; archives T09/T12 distinctes ; plan à trois stations ; portique SCELLÉ 0000 ; tunnel sombre.",
+          "Rame, destination, signal, rails, ombre de train, archives, plan, compteur et ciel dans le tunnel.",
           "",
           "Implémenté — QA partielle",
           "Changer réellement d’architecture : espace ouvert de quai, lignes de perspective, écran et surface réfléchissante ; observer depuis la zone sûre.",
@@ -4026,12 +5142,24 @@
           "Aile blanche",
           "La clinique de nuit",
           "Campagne : palier 6 conservé ; trois réussites pour atteindre 9 et sortir.",
-          "Un lit vide au sol ; FC 072 / RYTHME SINUSAL ; paravent sans présence ; fauteuil roulant immobile ; reflet normal.",
-          "Lit levé ou supplémentaire, moniteur incohérent, paravent habité ou respirant, fauteuil mobile.",
+          "Un lit 09 au couloir ; lit 10 dans la salle vitrée ; FC 072 / RYTHME SINUSAL ; paravent vide ; fauteuil immobile ; gouttes descendantes ; reflet normal.",
+          "Mobilier clinique, plaques 09/10, ombre d’occupant sans corps et perfusion de démonstration inversée.",
           "",
           "Implémenté — QA partielle",
           "Aile clinique de nuit : espace calme, objets individuels bien dénombrables, proximité corporelle et luminosité froide.",
           "Vérifier moniteur, tissu, silhouettes et contact au sol sur GPU ; conserver jeu sans audition."
+        ],
+        [
+          4,
+          "Chalet de service",
+          "Le module d’inspection",
+          "Autonome seulement : neuf validations consécutives. Une erreur remet la série à zéro.",
+          "Table à quatre pieds, plateau 2,10 m × 1,40 m, tasse et carnet ; cheminée froide et vide ; fenêtre vers un hangar fermé ; poutres et passages stables.",
+          "Table agrandie et visage de cheminée ; preuves communes compatibles avec le lieu ; deux surfaces réfléchissantes.",
+          "",
+          "Implémenté — QA partielle",
+          "Entrée, axe de marche et passage droit libre ; table derrière garde-corps, foyer observable depuis le tapis. Aucun étage ni transport automatisé de chalets.",
+          "Neuf tests CPU dédiés ; parcours, images, reflets, lumière et performance à éprouver sur GPU."
         ]
       ]
     }

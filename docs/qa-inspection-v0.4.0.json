@@ -1,0 +1,25 @@
+{
+  "version": "0.4.0",
+  "date": "2026-10-28",
+  "passed": 13,
+  "failed": 0,
+  "checks": [
+    "normal display combinations vary between passages and remain common to all four private views",
+    "each relational case changes only its intended private reading for every ordinary combination",
+    "the real private projection produces one differing reading and an ordinary witness",
+    "reference clears every effect and all observations match their displayed objects",
+    "meshes have finite positions and normals, and each target can be reached by a ray from the corridor",
+    "sand and steam really reverse direction, while duplicate key state resets after each passage",
+    "separate observers never share mutable props, and readings are defensive copies limited to this place",
+    "resource cleanup is idempotent and closes observations after disposal",
+    "the archive roster is stable across observers, distinguishes duplicate pseudonyms and excludes disconnected members",
+    "handedness changes the actual glove thumb while retaining a shared fixed viewing marker",
+    "the weather photographs show their stated precipitation or sun and never rely solely on a tint",
+    "archive details and in-world meshes reset after every one of the seven new effects",
+    "roster updates refresh only the public identities and keep the current private anomaly"
+  ],
+  "source": "tests/inspection.test.mjs",
+  "limits": [
+    "CPU geometry, text and logical state only; no GPU pixels or physical input device validation"
+  ]
+}

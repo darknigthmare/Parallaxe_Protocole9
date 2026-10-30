@@ -1,0 +1,445 @@
+{
+  "game": "PARALLAXE — Protocole 9",
+  "version": "0.3.0",
+  "reportedAt": "2026-10-27T19:51:55.678Z",
+  "baselineRevision": "b3a879117a880205e438db6c55638077ea32ac99",
+  "automated": {
+    "radio": {
+      "command": "node --test-reporter=tap tests/radio.test.mjs",
+      "tests": 32,
+      "passed": 32,
+      "failed": 0,
+      "priorRegressionCases": 19,
+      "newCases": 13,
+      "checks": [
+        "signaling is authenticated to its sender, private to one recipient and acknowledges only that inbox",
+        "stale epochs, unknown recipients, oversized SDP and stale signals are rejected or removed",
+        "bounded signaling queue cannot grow without limit, and departure clears negotiations",
+        "talk indicator expires if release packet is lost",
+        "retiring instances cannot disable or reclaim a newly activated radio epoch",
+        "each radio anomaly has independent deterministic local evidence without mic or network",
+        "perfect-negotiation roles are complementary for every pair",
+        "TURN config uses expiring credentials and never exposes the signing secret",
+        "construction, synchronization, PTT without consent and calibration never request microphone access",
+        "explicit microphone activation starts muted; PTT, blur, hidden state and disposal close transmission",
+        "insecure LAN origin reports technical unavailability without asking for microphone or altering probe evidence",
+        "one deterministic initial offer is sent even when negotiationneeded does not fire and no microphone is authorized",
+        "radio cancellation: disabling playback retires a pending microphone permission",
+        "radio cancellation: stopping only the microphone preserves listening and rejects its late stream",
+        "radio cancellation: a granted old permission cannot replace a newly active microphone",
+        "radio cancellation: rejection of an old permission cannot stop or fault a new microphone",
+        "radio cancellation: finalizing an old request keeps the newer pending permission deduplicated",
+        "radio cancellation: an old playback activation failure cannot disable a newer activation",
+        "radio cancellation: leaving the room stops a microphone granted after disposal",
+        "radio v0.3: all twelve anomalies produce distinct deterministic bounded PCM waveforms",
+        "radio v0.3: no-squelch removes the actual closing click and preserves the opening and sequence",
+        "radio v0.3: countercode changes the decoded DTMF digit while retaining the common panel reference",
+        "radio v0.3: the left-only signal has zero right samples and conserves total stereo power",
+        "radio v0.3: long-room PCM contains a real reverberant tail and uses the original finite impulse response",
+        "radio v0.3: order-swap changes the actual second and third frequencies, not their count or clarity",
+        "radio v0.3: the fourth pulse adds a bounded synthetic breath after the closing click",
+        "radio v0.3: RadioClient plays the production stereo buffer and keeps mono accessibility separate from evidence",
+        "radio v0.3: stop, replacement, profile changes, reference changes and disposal cancel every calibration source",
+        "radio v0.3: stopping while AudioContext resumes cannot start a retired calibration",
+        "radio v0.3: all new evidence remains available without WebAudio, microphone permission or a network",
+        "radio v0.3: received voice is routed through a panner and original convolver buffers, both reset by a normal view",
+        "radio v0.3: received no-squelch preserves the real PTT state and the fourth breath is cancelled on shutdown"
+      ]
+    },
+    "typecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit --pretty false --incremental false",
+      "status": "passed",
+      "exitCode": 0
+    }
+  },
+  "newAnomalies": [
+    {
+      "id": "radio_no_squelch",
+      "profile": "no_squelch",
+      "levels": [
+        "hotel",
+        "metro",
+        "clinic"
+      ],
+      "status": "Implémenté — QA partielle",
+      "changesLiveReception": true,
+      "changesLocalCalibration": true,
+      "evidence": {
+        "referenceCode": "3142",
+        "receivedCode": "3142",
+        "sequence": [
+          1,
+          2,
+          3
+        ],
+        "channels": {
+          "left": 0.5,
+          "right": 0.5
+        },
+        "reverbSeconds": 0.12,
+        "closingClick": false,
+        "pulseCount": 3
+      },
+      "caption": "Contrôle reçu : code DTMF 3 · 1 · 4 · 2 ; référence RELAIS 3142. Le clic d’ouverture est présent, le clic de fermeture manque. Fin de séquence confirmée ; ce clic absent ne maintient pas la transmission. Signal centré G 50 % / D 50 %. Clic final absent."
+    },
+    {
+      "id": "radio_countercode",
+      "profile": "countercode",
+      "levels": [
+        "hotel",
+        "metro",
+        "clinic"
+      ],
+      "status": "Implémenté — QA partielle",
+      "changesLiveReception": false,
+      "changesLocalCalibration": true,
+      "evidence": {
+        "referenceCode": "3142",
+        "receivedCode": "3143",
+        "sequence": [
+          1,
+          2,
+          3
+        ],
+        "channels": {
+          "left": 0.5,
+          "right": 0.5
+        },
+        "reverbSeconds": 0.12,
+        "closingClick": true,
+        "pulseCount": 3
+      },
+      "caption": "Contrôle reçu : code DTMF 3 · 1 · 4 · 3 ; référence RELAIS 3142. Le test retourne 3143, différent du code RELAIS de référence 3142. Les chiffres sont encodés en DTMF, sans voix parlée. Signal centré G 50 % / D 50 %. Clic final présent."
+    },
+    {
+      "id": "radio_left_only",
+      "profile": "left_only",
+      "levels": [
+        "hotel",
+        "metro",
+        "clinic"
+      ],
+      "status": "Implémenté — QA partielle",
+      "changesLiveReception": true,
+      "changesLocalCalibration": true,
+      "evidence": {
+        "referenceCode": "3142",
+        "receivedCode": "3142",
+        "sequence": [
+          1,
+          2,
+          3
+        ],
+        "channels": {
+          "left": 1,
+          "right": 0
+        },
+        "reverbSeconds": 0.12,
+        "closingClick": true,
+        "pulseCount": 3
+      },
+      "caption": "Contrôle reçu : code DTMF 3 · 1 · 4 · 2 ; référence RELAIS 3142. Routage du signal généré : gauche 100 % / droite 0 %, au lieu du centre. Ce relevé ne mesure pas votre casque. Clic final présent."
+    },
+    {
+      "id": "radio_wrong_room",
+      "profile": "wrong_room",
+      "levels": [
+        "hotel",
+        "metro",
+        "clinic"
+      ],
+      "status": "Implémenté — QA partielle",
+      "changesLiveReception": true,
+      "changesLocalCalibration": true,
+      "evidence": {
+        "referenceCode": "3142",
+        "receivedCode": "3142",
+        "sequence": [
+          1,
+          2,
+          3
+        ],
+        "channels": {
+          "left": 0.5,
+          "right": 0.5
+        },
+        "reverbSeconds": 2.4,
+        "closingClick": true,
+        "pulseCount": 3
+      },
+      "caption": "Contrôle reçu : code DTMF 3 · 1 · 4 · 2 ; référence RELAIS 3142. La réverbération synthétique dure 2,40 s au lieu de 0,12 s et persiste après la fermeture. Signal centré G 50 % / D 50 %. Clic final présent."
+    },
+    {
+      "id": "radio_order_swap",
+      "profile": "order_swap",
+      "levels": [
+        "hotel",
+        "metro",
+        "clinic"
+      ],
+      "status": "Implémenté — QA partielle",
+      "changesLiveReception": false,
+      "changesLocalCalibration": true,
+      "evidence": {
+        "referenceCode": "3142",
+        "receivedCode": "3142",
+        "sequence": [
+          1,
+          3,
+          2
+        ],
+        "channels": {
+          "left": 0.5,
+          "right": 0.5
+        },
+        "reverbSeconds": 0.12,
+        "closingClick": true,
+        "pulseCount": 3
+      },
+      "caption": "Contrôle reçu : code DTMF 3 · 1 · 4 · 2 ; référence RELAIS 3142. Séquence 1 · 3 · 2 : trois tonalités claires, deuxième et troisième inversées. Signal centré G 50 % / D 50 %. Clic final présent."
+    },
+    {
+      "id": "radio_pulse_inside",
+      "profile": "pulse_inside",
+      "levels": [
+        "hotel",
+        "metro",
+        "clinic"
+      ],
+      "status": "Implémenté — QA partielle",
+      "changesLiveReception": true,
+      "changesLocalCalibration": true,
+      "evidence": {
+        "referenceCode": "3142",
+        "receivedCode": "3142",
+        "sequence": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "channels": {
+          "left": 0.5,
+          "right": 0.5
+        },
+        "reverbSeconds": 0.12,
+        "closingClick": true,
+        "pulseCount": 4
+      },
+      "caption": "Contrôle reçu : code DTMF 3 · 1 · 4 · 2 ; référence RELAIS 3142. Après les trois tonalités et le clic final : quatrième impulsion lente, avec souffle synthétique. Aucun enregistrement de respiration. Signal centré G 50 % / D 50 %. Clic final présent."
+    }
+  ],
+  "reference": {
+    "relayCode": "3142",
+    "caption": "Contrôle normal : clic d’ouverture · code RELAIS 3 · 1 · 4 · 2 en tonalités DTMF · séquence 1 · 2 · 3 · clic de fermeture. Signal centré G 50 % / D 50 % ; réverbération 0,12 s, puis silence.",
+    "identifierEncoding": "Original synthesized DTMF; no spoken digits or voice files",
+    "timelineSeconds": {
+      "openingClick": [
+        0.015,
+        0.05
+      ],
+      "codeStarts": [
+        0.18,
+        0.55,
+        0.92,
+        1.29
+      ],
+      "codeToneDuration": 0.18,
+      "sequenceStarts": [
+        2,
+        2.55,
+        3.1
+      ],
+      "sequenceToneDuration": 0.18,
+      "closingClick": [
+        3.64,
+        3.685
+      ],
+      "fourthBreath": [
+        4.05,
+        4.9
+      ]
+    },
+    "normalReverbSeconds": 0.12,
+    "longReverbSeconds": 2.4
+  },
+  "waveformVerification": {
+    "method": "Numeric analysis of the production PCM renderer used by RadioClient.probe, not an independent test waveform generator",
+    "sampleRatesExercised": [
+      8000,
+      44100,
+      48000
+    ],
+    "profiles": [
+      {
+        "profile": "normal",
+        "durationSeconds": 3.95,
+        "peak": 0.039682693779468536,
+        "leftMeanSquare": 0.00012337464019977496,
+        "rightMeanSquare": 0.00012337464019977496,
+        "sha256": "55ec26dcda55d296a2879b9d3d2425314eca0361779a6e1ffa4c55e025688dd9"
+      },
+      {
+        "profile": "echo",
+        "durationSeconds": 3.95,
+        "peak": 0.039682693779468536,
+        "leftMeanSquare": 0.00014563074694981244,
+        "rightMeanSquare": 0.00014563074694981244,
+        "sha256": "ad127c1e86f1d63d10d2571a1316a5bb7d9ef8ffc30eb03a67a47cb7dbcac3dd"
+      },
+      {
+        "profile": "chop",
+        "durationSeconds": 3.95,
+        "peak": 0.039682693779468536,
+        "leftMeanSquare": 0.00009426190770403594,
+        "rightMeanSquare": 0.00009426190770403594,
+        "sha256": "cee074fb83f64072ab930d08e41e2b9fb536320127e2b79e0612bd6fe27837db"
+      },
+      {
+        "profile": "static",
+        "durationSeconds": 3.95,
+        "peak": 0.05226283520460129,
+        "leftMeanSquare": 0.0001681536595778046,
+        "rightMeanSquare": 0.0001681536595778046,
+        "sha256": "184aca1fdab8415458ef124e17328548dfb71e454fce42a2a828def4b4c66435"
+      },
+      {
+        "profile": "detune",
+        "durationSeconds": 3.95,
+        "peak": 0.04028952866792679,
+        "leftMeanSquare": 0.00012268846999510566,
+        "rightMeanSquare": 0.00012268846999510566,
+        "sha256": "d85ac05a088e8d2ed22fa257fc5892de177bed15ce6a10ad9c83673bfc7f52a6"
+      },
+      {
+        "profile": "wrong_channel",
+        "durationSeconds": 3.95,
+        "peak": 0.03934410959482193,
+        "leftMeanSquare": 0.0001232446817875409,
+        "rightMeanSquare": 0.0001232446817875409,
+        "sha256": "40c4fe215b17f8fa54cc2d7b4d32b87c2e66704ec91b6511492194a708a69413"
+      },
+      {
+        "profile": "aftertone",
+        "durationSeconds": 5.05,
+        "peak": 0.039682693779468536,
+        "leftMeanSquare": 0.00016855337651421574,
+        "rightMeanSquare": 0.00016855337651421574,
+        "sha256": "4d955da5605ad5827f7cb8f14e9ca383535c249875c2ccca992891af66247458"
+      },
+      {
+        "profile": "no_squelch",
+        "durationSeconds": 3.95,
+        "peak": 0.039682693779468536,
+        "leftMeanSquare": 0.000121810319754954,
+        "rightMeanSquare": 0.000121810319754954,
+        "sha256": "98777b42a66637702279f1a4f8040390e4b878d17c15fb1a410e2333f67d8b12"
+      },
+      {
+        "profile": "countercode",
+        "durationSeconds": 3.95,
+        "peak": 0.039682693779468536,
+        "leftMeanSquare": 0.00012356309874026687,
+        "rightMeanSquare": 0.00012356309874026687,
+        "sha256": "d54ce724f281962c6a7cdefb09442d4742f0c53ba425a21f42b8f55f78a17145"
+      },
+      {
+        "profile": "left_only",
+        "durationSeconds": 3.95,
+        "peak": 0.056119803339242935,
+        "leftMeanSquare": 0.0002467492807713773,
+        "rightMeanSquare": 0,
+        "sha256": "9000ff6428ce1d8278a449818129641228c7660187523329eec8ab2984f2b93c"
+      },
+      {
+        "profile": "wrong_room",
+        "durationSeconds": 5.85,
+        "peak": 0.03975001722574234,
+        "leftMeanSquare": 0.00008224349140526555,
+        "rightMeanSquare": 0.00008224349140526555,
+        "sha256": "9c554fce6a364209c0e6032e983e564baae27d1654cdc99f8ef4ddeee9d4ed16"
+      },
+      {
+        "profile": "order_swap",
+        "durationSeconds": 3.95,
+        "peak": 0.039682693779468536,
+        "leftMeanSquare": 0.00012337464019977488,
+        "rightMeanSquare": 0.00012337464019977488,
+        "sha256": "0abb538af7aa2d4aff06010580bde6adffe7075c53387146d421b55a14ea2c9c"
+      },
+      {
+        "profile": "pulse_inside",
+        "durationSeconds": 5.15,
+        "peak": 0.04436022788286209,
+        "leftMeanSquare": 0.00010883011854304978,
+        "rightMeanSquare": 0.00010883011854304978,
+        "sha256": "f35f6f741196a6f2a7aff08d9b08c88b82a31c36ef038343fc40f9671bd1fd55"
+      }
+    ],
+    "closingClickMeanSquare": {
+      "normal": 0.00012358131514084874,
+      "noSquelch": 9.159825227166906e-57
+    },
+    "leftOnlyRightSamplesAllZero": true,
+    "countercodeLastDigit": {
+      "reference": "2",
+      "received": "3",
+      "normal1336Hz": 0.0034773243147859876,
+      "normal1477Hz": 1.4685914327851337e-7,
+      "changed1336Hz": 1.0097881027560887e-7,
+      "changed1477Hz": 0.0035801887276716653
+    },
+    "lateReverbMeanSquare": {
+      "windowSeconds": [
+        4,
+        5.5
+      ],
+      "normal": 0,
+      "longRoom": 2.496101652674662e-9
+    },
+    "fourthBreathMeanSquare": {
+      "windowSeconds": [
+        4.1,
+        4.9
+      ],
+      "normal": 0,
+      "pulseInside": 0.00009142838065520756
+    }
+  },
+  "lifecycle": {
+    "playingSourceCancelled": true,
+    "oldEndedCallbackCannotEndReplacement": true,
+    "profileAndReferenceChangesCancel": true,
+    "disposalStopsSources": true,
+    "pendingAudioContextResumeCannotStartCancelledProbe": true,
+    "calibrationTimers": 0,
+    "singleOwnedCalibrationBuffer": true
+  },
+  "accessibility": {
+    "transcriptionWithoutWebAudio": true,
+    "transcriptionWithoutMicrophone": true,
+    "transcriptionWithoutNetwork": true,
+    "monoOutputPreservesGeneratedChannelEvidence": true,
+    "hardwareFailuresSeparateFromGameEvidence": true
+  },
+  "designAdjustments": [
+    "radio_countercode uses original DTMF tones plus written digits instead of spoken digits.",
+    "The common calibration adds a distinct four-digit identification section before the main three-pulse sequence.",
+    "The 3/4 pulse count refers to the main sequence, not the identification tones.",
+    "Countercode and order-swap alter the synthetic calibration; they do not rewrite human speech.",
+    "Channel and reverberation readings describe the generated signal, not measured headphones or room acoustics."
+  ],
+  "sources": {
+    "src/game/radio.ts": "47d93629f69c370da46557e687bf0d40c24a711704bb2e84d1764b34a9792c35",
+    "src/game/radio-evidence.ts": "22d8fb3a8926409cc35d10ff015628a0566093eba442ccba4c67694cd665561e",
+    "tests/radio.test.mjs": "8eab1308d0858421479aa5b9ab33c065a27424369f0567167b44fd43eb8be599"
+  },
+  "limitations": [
+    "Browser audio and RTC APIs are simulated in lifecycle and graph tests; numeric PCM checks use the real production waveform code.",
+    "No physical microphone, loudspeaker, headset, human listening or real browser audio rendering was validated by this run.",
+    "No new connected WebRTC session, deployed TURN relay or cross-network voice transport was validated.",
+    "No GPU render was involved.",
+    "The previous two-tab test with zero ICE candidates remains historical evidence and is not upgraded by these PCM tests.",
+    "UI integration, distribution builds and publishing are separate checks performed by the parent task."
+  ]
+}

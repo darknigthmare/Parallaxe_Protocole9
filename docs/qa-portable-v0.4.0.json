@@ -1,0 +1,97 @@
+{
+  "version": "0.4.0",
+  "date": "2026-10-28",
+  "environment": {
+    "platform": "linux",
+    "node": "v24.22.1"
+  },
+  "chalet": {
+    "clients": 4,
+    "diagnoses": 9,
+    "won": true,
+    "privateReadingsProtected": true,
+    "campaignUnchanged": true
+  },
+  "portable": "passed",
+  "checks": [
+    "precompiled package starts without node_modules",
+    "HTML served",
+    "compiled JavaScript and CSS bytes served unchanged",
+    "similarly named public directory remains accessible",
+    "server modules blocked after path normalization",
+    "encoded traversal outside public root rejected",
+    "two real clients join",
+    "reference and inspection start",
+    "private perceptions determine actual diagnosis",
+    "unanimity resolves correctly",
+    "both leave cleanly"
+  ],
+  "pathProtection": {
+    "platform": "linux",
+    "node": "v24.22.1",
+    "publicAssetCount": 2,
+    "checks": [
+      {
+        "method": "GET",
+        "path": "/server/session.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/server",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/server/",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/x%2f..%2fserver%2fsession.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/assets%2f..%2fserver%2fcatalog.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/%73erver%2frules.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/x%5c..%5cserver%5csession.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/x%2f..%5cserver%2fsession.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/SERVER/session.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/x%5c..%5cSERVER%5cSESSION.MJS",
+        "status": 404
+      },
+      {
+        "method": "HEAD",
+        "path": "/x%2f..%2fserver%2fsession.mjs",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/%2e%2e%2foutside-public.txt",
+        "status": 403
+      }
+    ]
+  },
+  "webgl": "unverified"
+}

@@ -3,7 +3,11 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export type InspectorIdentity = { id: string; name: string; slot: number; color?: number };
-export type InspectorAnimation = { time: number; speed: number; talking?: boolean; pitch?: number; independent?: boolean; mannequin?: boolean; radioSignal?: boolean };
+export type InspectorAnimation = {
+  time: number; speed: number; talking?: boolean; pitch?: number; independent?: boolean; mannequin?: boolean; radioSignal?: boolean;
+  badgeMissing?: boolean; badgeCode?: string; heightOffset?: boolean; handsSwap?: boolean;
+  visorTarget?: THREE.Vector3; noContact?: boolean; seated?: boolean;
+};
 export const INSPECTOR_COLORS = [0x3e756f, 0xa47b3d, 0x526e9c, 0x805d8c] as const;
 
 /** Original articulated inspector, modelled in metres. Front is local -Z. */
@@ -24,6 +28,8 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
   const rubber = material({ color: 0x101617, roughness: .75 });
   const skin = material({ color: [0xcaa68a, 0xa57452, 0x825d48, 0xb78e75][Math.abs(identity.slot || 0) % 4], roughness: .77 });
   const faceInk = material({ color: 0x18201e, roughness: .8 });
+  const eyeWhite = material({ color: 0xc8d4b8, roughness: .38 });
+  const irisMaterial = material({ color: 0x547d66, roughness: .28 });
   const metal = material({ color: 0x829692, roughness: .27, metalness: .78 });
   const visorMaterial = new THREE.MeshPhysicalMaterial({ color: 0x335a61, roughness: .11, metalness: .15, transparent: true, opacity: .63, clearcoat: 1 }); ownedMaterials.push(visorMaterial);
   const screenMaterial = material({ color: 0x9ccbad, emissive: 0x6eab86, emissiveIntensity: .45, roughness: .4 });
@@ -45,7 +51,7 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
     const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
     const ctx = canvas.getContext('2d')!; ctx.fillStyle = background; ctx.fillRect(0, 0, 256, 128);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#d6e2ce';
-    lines.forEach((line, index) => { ctx.font = `${index ? 20 : 30}px monospace`; ctx.fillText(line, 128, lines.length === 1 ? 64 : 44 + index * 44); });
+    lines.forEach((line, index) => { ctx.font = `${/^\d{2}$/.test(line) ? 80 : index ? 20 : 30}px monospace`; ctx.fillText(line, 128, lines.length === 1 ? 64 : 44 + index * 54); });
     const result = new THREE.CanvasTexture(canvas); result.colorSpace = THREE.SRGBColorSpace; textures.push(result); return result;
   }
   const torso = new THREE.Group(); torso.position.y = 1.16; root.add(torso); torso.name = 'Torso';
@@ -62,8 +68,17 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
   rounded(.14, .23, .10, -.21, -.18, .02, webbing, torso, .025);
   rounded(.12, .20, .08, .21, -.17, .03, webbing, torso, .02);
   // Equipment, ID and sewn shoulder details are actual meshes.
-  const patchMat = material({ map: textMap([String(identity.slot + 1).padStart(2, '0'), 'PARALLAXE']), roughness: .83 });
-  rounded(.12, .075, .008, .08, .13, -.174, patchMat, torso, .005);
+  const ownBadgeCode = String(identity.slot + 1).padStart(2, '0');
+  const badgeMaps = new Map<string, THREE.Texture>();
+  function badgeMap(code: string) {
+    if (!badgeMaps.has(code)) badgeMaps.set(code, textMap(code ? [code, 'PARALLAXE'] : []));
+    return badgeMaps.get(code)!;
+  }
+  const patchMat = material({ map: badgeMap(ownBadgeCode), roughness: .73, emissive: 0x9faf96, emissiveIntensity: .12 });
+  rounded(.19, .125, .012, .07, .13, -.178, metal, torso, .006);
+  const badge = part(new THREE.PlaneGeometry(.178, .108), patchMat, torso);
+  badge.position.set(.07, .13, -.185); badge.rotation.y = Math.PI; badge.name = 'Identity badge';
+  badge.userData.keepSeparate = true;
   rounded(.035, .23, .04, -.105, -.035, -.226, metal, torso, .01);
   rounded(.26, .33, .11, 0, .01, .19, webbing, torso, .045);
   for (const x of [-.13, .13]) rounded(.025, .33, .024, x, .01, .25, trim, torso, .006);
@@ -73,7 +88,13 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
   for (const side of [-1, 1]) { const ear = ball(.028, side * .107, .075, 0, skin, head, 24); ear.scale.set(.45, 1, .7); }
   const face = new THREE.Group(); head.add(face);
   const nose = ball(.026, 0, .07, -.118, skin, face, 24); nose.scale.set(.60, .75, .85);
-  for (const x of [-.043, .043]) { const eye = ball(.012, x, .115, -.111, faceInk, face, 20); eye.scale.set(1.2, .38, .4); }
+  const eyes: THREE.Group[] = [];
+  for (const x of [-.043, .043]) {
+    const eye = new THREE.Group(); eye.position.set(x, .115, -.111); face.add(eye); eyes.push(eye); eye.name = x < 0 ? 'Left eye' : 'Right eye';
+    const white = ball(.022, 0, 0, 0, eyeWhite, eye, 24); white.scale.set(1.1, .72, .62);
+    const iris = ball(.009, 0, 0, -.013, irisMaterial, eye, 20); iris.scale.z = .36;
+    const pupil = ball(.0045, 0, 0, -.016, faceInk, eye, 16); pupil.scale.z = .35;
+  }
   rounded(.053, .006, .009, 0, .02, -.113, faceInk, face, .002);
   const helmet = part(new THREE.SphereGeometry(.145, 48, 24, 0, Math.PI * 2, 0, Math.PI * .56), cloth, head); helmet.position.set(0, .11, 0); helmet.scale.set(1.02, .85, 1.08);
   rounded(.27, .025, .04, 0, .12, -.135, rubber, head, .009);
@@ -132,7 +153,13 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
   for (let i = 0; i < 4; i++) rounded(.042, .004, .003, 0, -.022 - i * .009, -.022, metal, radio, .001);
   tube(.004, .11, -.02, .12, 0, rubber, radio);
   ball(.006, .022, .060, -.021, diodeMaterial, radio, 16);
-  radio.visible = false;
+  // The lowered prop is always present: handedness remains observable without microphone permission.
+  radio.visible = true;
+  const contactMaterial = new THREE.MeshBasicMaterial({ color: 0x071111, transparent: true, opacity: .24, depthWrite: false }); ownedMaterials.push(contactMaterial);
+  const contactShadow = part(new THREE.CircleGeometry(.34, 40), contactMaterial);
+  contactShadow.rotation.x = -Math.PI / 2; contactShadow.scale.y = .65; contactShadow.position.y = .009;
+  contactShadow.castShadow = false; contactShadow.receiveShadow = false; contactShadow.name = 'Foot contact shadow';
+  contactShadow.userData.keepSeparate = true;
   if (options.nameplate !== false && !options.local && !options.reflectionOnly) {
     const nameMaterial = new THREE.SpriteMaterial({ map: textMap([identity.name.slice(0, 18), `INSPECTEUR ${identity.slot + 1}`]), transparent: true, depthWrite: false });
     ownedMaterials.push(nameMaterial);
@@ -145,7 +172,7 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
     const batches = new Map<THREE.Material, THREE.Mesh[]>();
     for (const child of [...bone.children]) {
       const m = child as THREE.Mesh;
-      if (!m.isMesh || Array.isArray(m.material) || m === visor) continue;
+      if (!m.isMesh || Array.isArray(m.material) || m === visor || m.userData.keepSeparate) continue;
       const items = batches.get(m.material) || []; items.push(m); batches.set(m.material, items);
     }
     for (const [mat, pieces] of batches) if (pieces.length > 1) {
@@ -165,34 +192,62 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
       for (const [mat, original] of originalColors) (mat as THREE.MeshStandardMaterial).color.copy(mannequin ? new THREE.Color(0xc3bca6) : original);
       face.visible = !mannequin; visor.visible = !mannequin; priorMannequin = mannequin;
     }
-    const stride = mannequin ? 0 : THREE.MathUtils.clamp(state.speed / 2.3, 0, 1.35);
+    const tall = !!state.heightOffset;
+    root.scale.set(tall ? 1.18 : 1, tall ? 1.48 : 1, tall ? 1.18 : 1);
+    root.position.y = state.seated ? -.39 : state.noContact ? .20 : 0;
+    contactShadow.position.y = (.009 - root.position.y) / root.scale.y;
+    if (options.local) for (const group of [torso, ...shoulders]) group.traverse(object => { if ((object as THREE.Mesh).isMesh) object.layers.set(tall ? 1 : 0); });
+    const code = state.badgeMissing ? '' : /^\d{2}$/.test(state.badgeCode || '') ? state.badgeCode! : ownBadgeCode;
+    patchMat.map = badgeMap(code); badge.userData.code = code;
+    const stride = mannequin || state.seated ? 0 : THREE.MathUtils.clamp(state.speed / 2.3, 0, 1.35);
     const cycle = state.time * (state.speed > 2.8 ? 11 : 8.2);
     for (let index = 0; index < 2; index++) {
       const step = Math.sin(cycle + index * Math.PI) * stride;
       hips[index].rotation.x = step * .53;
       knees[index].rotation.x = Math.max(0, -step) * .66;
       shoulders[index].rotation.x = -step * .36;
+      shoulders[index].rotation.y = 0;
       shoulders[index].rotation.z = index === 0 ? .055 : -.055;
       elbows[index].rotation.x = -.10 - Math.max(0, step) * .15;
+      hands[index].rotation.set(0, 0, 0);
     }
     torso.rotation.z = mannequin ? 0 : Math.sin(cycle) * stride * .015;
     head.rotation.set(mannequin ? 0 : (state.pitch || 0) * .4, state.independent ? Math.sin(state.time * .75) * .33 : 0, 0);
+    root.updateMatrixWorld(true);
+    for (const eye of eyes) {
+      if (state.visorTarget && !mannequin) {
+        const aim = eye.parent!.worldToLocal(state.visorTarget.clone()).sub(eye.position);
+        eye.rotation.set(THREE.MathUtils.clamp(Math.atan2(aim.y, Math.hypot(aim.x, aim.z)), -.45, .45), THREE.MathUtils.clamp(Math.atan2(-aim.x, -aim.z), -1.0, 1.0), 0);
+      } else eye.rotation.set(0, 0, 0);
+    }
+    visorMaterial.opacity = state.visorTarget ? .28 : .63;
     const usingRadio = !mannequin && (!!state.talking || !!state.radioSignal);
-    radio.visible = usingRadio;
+    const radioHand = state.handsSwap ? 0 : 1;
+    if (radio.parent !== hands[radioHand]) hands[radioHand].add(radio);
+    radio.visible = true;
     if (usingRadio) {
-      shoulders[1].rotation.set(1.60, .90, -.15);
-      elbows[1].rotation.x = 1.10;
+      shoulders[radioHand].rotation.set(1.60, radioHand ? .90 : -.90, radioHand ? -.15 : .15);
+      elbows[radioHand].rotation.x = 1.10;
     }
     if (state.independent && !mannequin) {
       shoulders[1].rotation.set(2.25, 0, -.45);
       elbows[1].rotation.x = .35;
       hands[1].rotation.z = Math.sin(state.time * 4) * .30;
       radio.visible = false;
-    } else hands[1].rotation.z = 0;
+    }
+    if (state.seated) {
+      for (let index = 0; index < 2; index++) {
+        hips[index].rotation.x = Math.PI / 2; knees[index].rotation.x = -Math.PI / 2;
+        shoulders[index].rotation.set(.95, 0, index ? -.10 : .10); elbows[index].rotation.x = .35;
+      }
+      torso.rotation.z = 0; radio.visible = false;
+    }
     screenMaterial.emissive.set(state.radioSignal ? 0xf24338 : 0x6eab86);
     diodeMaterial.color.set(state.radioSignal ? 0xff5143 : 0x7bd19c);
     diodeMaterial.emissive.set(state.radioSignal ? 0xff2116 : 0x56c281);
     diodeMaterial.emissiveIntensity = usingRadio ? 1.6 + Math.sin(state.time * (state.radioSignal ? 10 : 5)) * .5 : .4;
+    // Raycasting can run before rendering; it must see the completed articulated pose.
+    root.updateMatrixWorld(true);
   }
   function dispose() {
     if (disposed) return; disposed = true;
@@ -201,7 +256,12 @@ export function createInspector(identity: InspectorIdentity, options: { local?: 
     geometries.forEach(geometry => geometry.dispose()); ownedMaterials.forEach(mat => mat.dispose()); textures.forEach(map => map.dispose());
   }
   animate({ time: 0, speed: 0 });
-  return { root, head, shoulders, elbows, hands, hips, knees, radio, animate, dispose, identity: { ...identity } };
+  function setReflectionPass(enabled: boolean) {
+    badge.scale.x = enabled ? -1 : 1;
+    // A nested planar render updates matrices; restore them before the main pass continues.
+    badge.updateMatrixWorld(true);
+  }
+  return { root, head, shoulders, elbows, hands, hips, knees, radio, badge, eyes, contactShadow, animate, setReflectionPass, dispose, identity: { ...identity } };
 }
 
 export type InspectorModel = ReturnType<typeof createInspector>;

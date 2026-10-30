@@ -138,7 +138,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -154,7 +155,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -218,7 +220,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -362,7 +365,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -378,7 +382,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -394,7 +399,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -410,7 +416,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -426,7 +433,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -442,7 +450,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -458,23 +467,25 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
     "id": "radio_signal",
     "title": "La porteuse rouge",
-    "target": "radio",
+    "target": "player",
     "intensity": 2,
     "difficulty": 1,
-    "baseline": "Le voyant du relais reste dans son état de référence.",
-    "description": "Le relais produit une lumière de signal inhabituelle dans une perception.",
-    "cooperation": "Comparez les voyants du même appareil sans confondre le voyant du micro personnel.",
-    "hint": "Observez le relais du décor, pas l’indicateur technique de votre navigateur.",
+    "baseline": "Le talkie tenu par votre corps d’inspecteur garde un écran et une diode verts, même lorsque le microphone est éteint.",
+    "description": "Le talkie physique de votre inspecteur se lève, son écran et sa diode deviennent rouges, sans activation réelle du microphone.",
+    "cooperation": "Comparez la couleur du talkie dans vos mains ou dans le miroir. Le témoin de microphone de l’interface reste une information technique fiable.",
+    "hint": "Regardez le talkie du modèle 3D ; le panneau RELAIS à quatre chiffres est un autre appareil.",
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -602,7 +613,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -618,7 +630,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -634,7 +647,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -650,7 +664,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -666,7 +681,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -682,7 +698,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -786,7 +803,8 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
   },
   {
@@ -802,7 +820,638 @@
     "levels": [
       "hotel",
       "metro",
-      "clinic"
+      "clinic",
+      "cabin"
     ]
+  },
+  {
+    "id": "radio_no_squelch",
+    "title": "Le clic qui manque",
+    "target": "radio",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Un clic d’ouverture et un clic de fermeture encadrent l’identifiant RELAIS puis la séquence principale 1, 2, 3.",
+    "description": "Le clic final manque après la séquence principale.",
+    "cooperation": "Comparer ouverture, code, séquence principale et fermeture sur deux essais.",
+    "hint": "L’absence reproductible d’un clic de référence constitue une anomalie légère."
+  },
+  {
+    "id": "radio_countercode",
+    "title": "Les chiffres au mauvais endroit",
+    "target": "radio",
+    "intensity": 3,
+    "difficulty": 3,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Les quatre chiffres DTMF synthétiques du test et leur relevé correspondent au code du panneau RELAIS du même passage.",
+    "description": "Le test encode un code à quatre chiffres qui ne correspond pas à son propre panneau RELAIS.",
+    "cooperation": "Lire le panneau RELAIS puis le code du relevé de calibration ; comparer les quatre positions sans confondre avec les tons 1, 2, 3.",
+    "hint": "La contradiction appareil / panneau confirme même si personne ne parle."
+  },
+  {
+    "id": "radio_left_only",
+    "title": "Le canal de gauche",
+    "target": "radio",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Le contrôle est centré ; le signal généré est réparti également à gauche et à droite.",
+    "description": "Le signal de test est routé entièrement à gauche ; le relevé précise G 100 / D 0.",
+    "cooperation": "Comparer la répartition indiquée par les relevés du jeu, puis écouter si les appareils le permettent.",
+    "hint": "Le routage fictionnel unilatéral décrit par le relevé est la preuve."
+  },
+  {
+    "id": "radio_wrong_room",
+    "title": "La réverbération impossible",
+    "target": "radio",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "La queue normale du contrôle reste courte, prévue à 0,12 seconde.",
+    "description": "Le test résonne comme dans une grande pièce, avec une queue prévue à 2,4 secondes.",
+    "cooperation": "Laisser finir le signal et comparer la durée indiquée au relevé.",
+    "hint": "Une réverbération synthétique anormalement longue confirme."
+  },
+  {
+    "id": "radio_order_swap",
+    "title": "Le deuxième vient après",
+    "target": "radio",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Après l’identifiant RELAIS, la séquence principale est toujours 1, 2, 3.",
+    "description": "La séquence principale devient 1, 3, 2.",
+    "cooperation": "Lire l’ordre complet des trois tonalités principales, séparément des quatre chiffres d’identification.",
+    "hint": "L’ordre contradictoire stable constitue la preuve."
+  },
+  {
+    "id": "radio_pulse_inside",
+    "title": "La quatrième respiration",
+    "target": "radio",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "La séquence principale contient trois impulsions et se termine par un clic de fermeture puis le silence.",
+    "description": "Une quatrième impulsion soufflée revient après la clôture.",
+    "cooperation": "Distinguer le code RELAIS initial, compter la séquence principale puis attendre après le clic final.",
+    "hint": "Une quatrième impulsion tardive, également décrite dans le relevé, confirme."
+  },
+  {
+    "id": "avatar_badge_missing",
+    "title": "Le badge absent",
+    "target": "player",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Le premier collègue connecté porte un badge de slot lisible ; en solo le corps local sert de témoin.",
+    "description": "La plaque physique du badge devient vierge.",
+    "cooperation": "Identifier le collègue par le roster fiable, puis comparer son badge physique au même moment.",
+    "hint": "Une plaque de modèle vide alors que le badge normal est connu confirme."
+  },
+  {
+    "id": "avatar_height_offset",
+    "title": "Le collègue trop grand",
+    "target": "player",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Chaque inspecteur garde une taille fixe et des proportions cohérentes avec le cadre de porte.",
+    "description": "Le corps du collègue paraît anormalement grand.",
+    "cooperation": "Le collègue s’immobilise près d’un repère architectural ; comparer la hauteur de son casque.",
+    "hint": "Un changement d’échelle local confirmé par repère fixe est anormal."
+  },
+  {
+    "id": "avatar_hands_swap",
+    "title": "La mauvaise main",
+    "target": "player",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Le talkie est tenu dans la main droite de l’inspecteur, même lorsque le microphone est coupé.",
+    "description": "Le talkie passe dans la main gauche d’un inspecteur dans une seule perception.",
+    "cooperation": "Comparez la main qui porte le talkie en nommant le côté du corps, pas le côté de l’écran.",
+    "hint": "Comparez la main qui porte le talkie en nommant le côté du corps, pas le côté de l’écran."
+  },
+  {
+    "id": "avatar_visor_watch",
+    "title": "Le regard sous la visière",
+    "target": "player",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Les yeux et la tête du modèle restent cohérents avec sa pose.",
+    "description": "Les yeux sous la visière suivent l’observateur indépendamment de la tête.",
+    "cooperation": "Le collègue tourne lentement la tête ; comparer la direction des yeux et celle de la visière.",
+    "hint": "Un regard autonome dans une seule perception confirme."
+  },
+  {
+    "id": "avatar_no_contact",
+    "title": "Les pas au-dessus du sol",
+    "target": "player",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Les pieds du modèle restent en contact avec le sol plan.",
+    "description": "Le corps marche au-dessus du revêtement.",
+    "cooperation": "Comparer la semelle et les joints du sol pendant une marche lente ou un arrêt.",
+    "hint": "La hauteur locale anormale avec pose réseau stable confirme."
+  },
+  {
+    "id": "reflection_seated",
+    "title": "La posture restée assise",
+    "target": "mirror",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Le corps réfléchi est debout et suit la posture du corps réel.",
+    "description": "Le corps réfléchi adopte une posture assise indépendante.",
+    "cooperation": "S’immobiliser debout au repère miroir, puis comparer jambes et bassin réels / réfléchis.",
+    "hint": "Une posture autonome clairement différente confirme."
+  },
+  {
+    "id": "reflection_badge_code",
+    "title": "L’identité derrière le verre",
+    "target": "mirror",
+    "intensity": 3,
+    "difficulty": 3,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Le numéro du badge réfléchi correspond au badge de la personne réelle.",
+    "description": "Le reflet porte un autre numéro de badge, alors que le badge réel reste inchangé.",
+    "cooperation": "Comparez le badge direct et son reflet ; un miroir inverse la direction, pas l’identité.",
+    "hint": "Comparez le badge direct et son reflet ; un miroir inverse la direction, pas l’identité."
+  },
+  {
+    "id": "metro_timetable_loop",
+    "title": "La minute annoncée deux fois",
+    "target": "train",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "metro"
+    ],
+    "baseline": "Le tableau ARCHIVES conserve deux lignes fixes : 01:09 T09 → OBSERVATOIRE et 01:12 T12 ← BELVÉDÈRE. Il n’annonce aucun service actif.",
+    "description": "La seconde ligne d’archives répète 01:09 T09 au lieu de 01:12 T12, vers BELVÉDÈRE.",
+    "cooperation": "Lisez l’heure, l’identifiant et la destination de chaque ligne ; aucune attente ni décompte réel n’est nécessaire.",
+    "hint": "Comparez les deux lignes du tableau ARCHIVES."
+  },
+  {
+    "id": "metro_route_poster",
+    "title": "La station ajoutée",
+    "target": "portrait",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "metro"
+    ],
+    "baseline": "Le plan de ligne indique BELVÉDÈRE → OBSERVATOIRE → TERMINUS 09.",
+    "description": "La station NULLE PART s’ajoute entre BELVÉDÈRE et OBSERVATOIRE.",
+    "cooperation": "Lisez chaque station du plan dans le même sens, en citant les deux voisines.",
+    "hint": "Comparez le tracé et les noms du plan."
+  },
+  {
+    "id": "metro_platform_count",
+    "title": "Le quai qui compte seul",
+    "target": "signal",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "metro"
+    ],
+    "baseline": "Le portique est SCELLÉ et son compteur reste à 0000. Aucun joueur ne peut traverser ce portique.",
+    "description": "Le compteur du portique scellé augmente tout seul, d’une unité toutes les 2,4 secondes.",
+    "cooperation": "Restez devant le même portique et comparez deux lectures successives, sans attribuer la hausse aux déplacements de vos partenaires.",
+    "hint": "Un portique scellé ne doit compter aucun passage."
+  },
+  {
+    "id": "metro_tunnel_daylight",
+    "title": "Le matin sous terre",
+    "target": "tracks",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "metro"
+    ],
+    "baseline": "Le tunnel est sombre et fermé au loin.",
+    "description": "Une lumière de plein jour et un horizon impossible apparaissent.",
+    "cooperation": "Décrire la limite entre cadre du tunnel et ciel apparent.",
+    "hint": "L’extérieur diurne incompatible avec la référence confirme."
+  },
+  {
+    "id": "clinic_tag_echo",
+    "title": "Le nom sur deux lits",
+    "target": "bed",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "clinic"
+    ],
+    "baseline": "Le lit du couloir porte 09 ; le lit visible dans la salle vitrée porte 10.",
+    "description": "La plaque du lit de la salle vitrée affiche 09, comme celle du couloir.",
+    "cooperation": "Lisez les plaques en précisant couloir ou salle vitrée.",
+    "hint": "Lisez les plaques en précisant couloir ou salle vitrée."
+  },
+  {
+    "id": "clinic_shadow_bed",
+    "title": "L’occupant de l’ombre",
+    "target": "bed",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "clinic"
+    ],
+    "baseline": "L’ombre du lit vide ne comporte aucune silhouette humaine.",
+    "description": "Une personne assise apparaît uniquement dans l’ombre du lit.",
+    "cooperation": "Comparer surface du lit, silhouette sur le mur et position de la lampe.",
+    "hint": "Un occupant absent du lit mais visible dans son ombre confirme."
+  },
+  {
+    "id": "clinic_iv_reverse",
+    "title": "La goutte qui remonte",
+    "target": "iv",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "clinic"
+    ],
+    "baseline": "Le tube d’exposition présente un écoulement de démonstration régulier vers le bas.",
+    "description": "Les gouttes remontent vers la poche.",
+    "cooperation": "Observer ensemble trois gouttes puis décrire leur direction.",
+    "hint": "Le mouvement inverse local est la preuve."
+  },
+  {
+    "id": "paired_room",
+    "title": "Deux chambres raisonnables",
+    "target": "assignment",
+    "intensity": 2,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le bureau D2 assigne la chambre 204 ou 205. La valeur peut changer entre passages, mais doit être commune à tous les inspecteurs.",
+    "description": "Le dossier D2 assigne deux chambres différentes selon les observateurs.",
+    "cooperation": "Lisez le même dossier D2 et comparez le numéro de chambre, sans le confondre avec les portes 901–904.",
+    "hint": "Lisez le même dossier D2 et comparez le numéro de chambre, sans le confondre avec les portes 901–904."
+  },
+  {
+    "id": "paired_luggage",
+    "title": "La valise jumelle",
+    "target": "luggage",
+    "intensity": 2,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "La consigne C9 contient deux valises A et B, étiquetées 09 et 18. Leur attribution peut varier entre passages mais concorde entre joueurs.",
+    "description": "L’étiquette 09 est portée par deux côtés différents de la consigne selon les observateurs.",
+    "cooperation": "Comparez le côté A rectangulaire et le côté B arrondi depuis la face de la consigne.",
+    "hint": "Comparez le côté A rectangulaire et le côté B arrondi depuis la face de la consigne."
+  },
+  {
+    "id": "paired_stamp",
+    "title": "L’autorisation refusée",
+    "target": "document",
+    "intensity": 3,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le dossier 09 peut porter VALIDÉ ou REFUSÉ ; les deux sont ordinaires entre passages, mais une même décision doit être visible par tous.",
+    "description": "Le même dossier est VALIDÉ pour certains inspecteurs et REFUSÉ pour les autres.",
+    "cooperation": "Épelez la décision et le numéro du dossier. Ce document ne modifie jamais le protocole de vote.",
+    "hint": "Épelez la décision et le numéro du dossier. Ce document ne modifie jamais le protocole de vote."
+  },
+  {
+    "id": "paired_newspaper",
+    "title": "Deux lendemains",
+    "target": "newspaper",
+    "intensity": 2,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "L’édition du journal peut être datée du 26 ou du 27 octobre 2026. Dans le même passage, tous doivent lire la même édition.",
+    "description": "Le Courrier de Saint-Clair porte deux dates différentes selon les perceptions.",
+    "cooperation": "Lisez la date complète sous le titre du journal ; les deux éditions sont plausibles prises isolément.",
+    "hint": "Lisez la date complète sous le titre du journal ; les deux éditions sont plausibles prises isolément."
+  },
+  {
+    "id": "sand_upward",
+    "title": "Le sablier inversé",
+    "target": "hourglass",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Les grains du sablier du poste 09 descendent dans la chambre inférieure.",
+    "description": "Les grains remontent vers la chambre supérieure.",
+    "cooperation": "Regardez le même grain sur une courte portion de sa trajectoire et comparez son sens.",
+    "hint": "Regardez le même grain sur une courte portion de sa trajectoire et comparez son sens."
+  },
+  {
+    "id": "steam_downward",
+    "title": "La vapeur lourde",
+    "target": "cup",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "La vapeur de la tasse du poste 09 s’élève au-dessus du bord.",
+    "description": "La vapeur descend devant le meuble, jusqu’au-dessous de la tasse.",
+    "cooperation": "Suivez la vapeur depuis le bord de la tasse et décrivez sa direction.",
+    "hint": "Suivez la vapeur depuis le bord de la tasse et décrivez sa direction."
+  },
+  {
+    "id": "same_key_twice",
+    "title": "La clé en double",
+    "target": "keys",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Une seule clé portant 09 est suspendue au râtelier du poste 09.",
+    "description": "Une seconde clé 09 apparaît sur un autre crochet.",
+    "cooperation": "Comptez les clés et lisez leur numéro plutôt que les crochets vides.",
+    "hint": "Comptez les clés et lisez leur numéro plutôt que les crochets vides."
+  },
+  {
+    "id": "cabine_table_size",
+    "title": "La table du chalet",
+    "target": "table",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "cabin"
+    ],
+    "baseline": "La table a quatre pieds et un plateau de 2,10 m sur 1,40 m. Des espaces la séparent des murs ; la tasse et le carnet reposent dessus.",
+    "description": "Le plateau rejoint le mur gauche tandis que son bord droit reste près du garde-corps.",
+    "cooperation": "Comparez le bord gauche du plateau et le mur depuis le même garde-corps ; le passage de droite reste commun.",
+    "hint": "La taille du plateau change, sans déplacer la tasse, le carnet ni le trajet autorisé."
+  },
+  {
+    "id": "cabine_chimney_face",
+    "title": "La cheminée habitée",
+    "target": "fireplace",
+    "intensity": 5,
+    "difficulty": 2,
+    "levels": [
+      "cabin"
+    ],
+    "baseline": "La cheminée du mur droit est éteinte ; son conduit est vide, sans visage ni yeux.",
+    "description": "Un visage immobile et deux yeux apparaissent au fond du conduit froid.",
+    "cooperation": "Depuis le bord du tapis, comparez le fond du foyer. Il est inutile d’entrer dans la cheminée.",
+    "hint": "La présence confirme sans entrer ni toucher."
+  },
+  {
+    "id": "mirror_extra_door",
+    "title": "La chambre du reflet",
+    "target": "mirror",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le panneau situé en face du miroir ne porte aucune porte, dans la pièce ni dans son reflet.",
+    "description": "Une porte supplémentaire apparaît uniquement dans le miroir de Saint-Clair.",
+    "cooperation": "Comparez le miroir puis le panneau réel en vous retournant. La porte du reflet n’existe pas dans la pièce.",
+    "hint": "Porte absente de la pièce réelle mais présente dans le miroir."
+  },
+  {
+    "id": "reflection_no_team",
+    "title": "Le groupe absent",
+    "target": "mirror",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "baseline": "Le miroir montre votre corps et ceux des collègues présents. En solo, deux mannequins témoins numérotés permettent le même comptage.",
+    "description": "Votre corps reste réfléchi, mais les collègues ou les mannequins témoins disparaissent uniquement du miroir.",
+    "cooperation": "Comparez le nombre de silhouettes devant et dans le miroir ; les personnes et les socles restent dans la pièce.",
+    "hint": "Le compte incohérent révèle l’anomalie."
+  },
+  {
+    "id": "root_under_door",
+    "title": "Les racines invitées",
+    "target": "door",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le seuil de la chambre reste libre.",
+    "description": "Des racines avancent sous la porte.",
+    "cooperation": "Comparer le joint de seuil et le tapis voisin.",
+    "hint": "Les racines ajoutées constituent l’anomalie."
+  },
+  {
+    "id": "water_up_wall",
+    "title": "L’humidité ascendante",
+    "target": "portrait",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Aucune eau ne coule sur le mur.",
+    "description": "Des gouttes montent le long du panneau.",
+    "cooperation": "Observer un trajet complet de goutte.",
+    "hint": "Toute humidité ajoutée et ascendante confirme."
+  },
+  {
+    "id": "extra_door",
+    "title": "La cinquième chambre",
+    "target": "door",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le passage comporte quatre portes numérotées.",
+    "description": "Une cinquième porte apparaît entre deux panneaux.",
+    "cooperation": "Compter depuis l’entrée en alternant gauche puis droite.",
+    "hint": "Une ouverture supplémentaire confirme."
+  },
+  {
+    "id": "exit_breath",
+    "title": "La sortie qui expire",
+    "target": "exit",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le joint de la porte de sortie est fixe.",
+    "description": "Le joint s’écarte comme une respiration.",
+    "cooperation": "Observer le haut et le bas du battant pendant un cycle.",
+    "hint": "Le mouvement organique confirme."
+  },
+  {
+    "id": "paired_guestbook",
+    "title": "Le registre contradictoire",
+    "target": "guestbook",
+    "intensity": 3,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le registre R9 porte ARRIVÉE 03:09, LIGNE 09 et l’un des deux premiers indicatifs/pseudonymes présents, ou un témoin fictif explicitement étiqueté en solo et exclu du compteur réel. Cette identité peut varier entre passages, mais doit être commune aux perceptions.",
+    "description": "La même ligne du registre R9 porte deux identités différentes selon les observateurs.",
+    "cooperation": "Comparez l’arrivée 03:09, la ligne 09 et l’indicatif complet. En solo, l’entrée témoin fictive ne compte pas comme joueur connecté.",
+    "hint": "Une identité plausible isolée ne suffit pas ; comparez la même ligne dans les deux perceptions."
+  },
+  {
+    "id": "paired_hand",
+    "title": "Le gant contraire",
+    "target": "glove",
+    "intensity": 2,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le gant du plateau C9 peut être gauche ou droit selon le passage. Depuis le repère ICI, poignet vers vous, sa latéralité doit être commune à tous.",
+    "description": "Le pouce du même gant C9 se trouve de deux côtés différents selon les perceptions.",
+    "cooperation": "Placez-vous sur le même repère ICI, poignet du gant vers vous, puis comparez la position du pouce.",
+    "hint": "Le gauche ou le droit est ordinaire seul ; la contradiction entre témoins est la preuve."
+  },
+  {
+    "id": "paired_photo_weather",
+    "title": "Le jour de la photographie",
+    "target": "weather-photo",
+    "intensity": 2,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "La photographie du quai G9 peut montrer pluie et parapluie, neige et flocons, ou soleil et rayons. Dans un passage, la même météo doit être visible par tous.",
+    "description": "La même photographie G9 montre deux météos différentes selon les perceptions.",
+    "cooperation": "Nommez les éléments visibles : parapluie, flocons ou disque solaire, puis comparez le même cadre.",
+    "hint": "La météo seule peut varier normalement entre passages ; comparez les deux lectures actuelles."
+  },
+  {
+    "id": "wrong_team_photo",
+    "title": "L’équipe précédente",
+    "target": "team-photo",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le cadre ÉQUIPE DU SERVICE DE NUIT de G9 montre trois silhouettes signées A. MOREL / E. VIAL / N. ROCHER.",
+    "description": "Les signatures deviennent les indicatifs et pseudonymes actuels, et le nombre de silhouettes suit les membres présents.",
+    "cooperation": "Comparez le cadre ÉQUIPE de G9 et ses signatures avec la référence, sans confondre la photographie avec le vrai roster.",
+    "hint": "Une référence modifiée avec les noms actuels confirme."
+  },
+  {
+    "id": "map_missing_room",
+    "title": "Le plan incomplet",
+    "target": "floor-map",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le plan G9 indique 901 à gauche et 902 à droite près de l’entrée, puis 903 à gauche et 904 à droite vers l’issue.",
+    "description": "La chambre 903 et sa branche disparaissent du plan G9, tandis que la porte reste dans le couloir.",
+    "cooperation": "Lisez les quatre chambres sur le plan puis comparez la porte physique 903.",
+    "hint": "La case gauche vers l’issue est vide sur le plan altéré."
+  },
+  {
+    "id": "rules_swap",
+    "title": "Le règlement contaminé",
+    "target": "regulations",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le règlement R9 de Saint-Clair indique SIGNALEZ TOUTE ANOMALIE.",
+    "description": "Le panneau R9 indique NE SIGNALEZ AUCUNE ANOMALIE. Les règles fiables de l’interface ne changent pas.",
+    "cooperation": "Lisez la phrase du panneau et comparez-la avec la règle permanente : une anomalie observée suffit.",
+    "hint": "Une consigne contradictoire dans le décor est une anomalie."
+  },
+  {
+    "id": "guest_tally",
+    "title": "Le compte des occupants",
+    "target": "occupancy",
+    "intensity": 3,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "L’afficheur R9 PRÉSENTS correspond au nombre de membres présents, soit un inspecteur en entraînement solo.",
+    "description": "L’afficheur R9 ajoute un occupant au nombre réellement présent, sans changer le compteur de connexion.",
+    "cooperation": "Comparez le chiffre du panneau avec les membres présents au même moment.",
+    "hint": "Le témoin fictif du registre solo ne compte pas comme inspecteur présent."
   }
 ]

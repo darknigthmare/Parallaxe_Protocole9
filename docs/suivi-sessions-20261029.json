@@ -1,0 +1,208 @@
+{
+  "project": "PARALLAXE — Protocole 9",
+  "date": "2026-10-29",
+  "base": "f1cadcca96dd94a84eaf68bdf821f235fb50b2cf",
+  "scope": "Intégrité des sessions ; pas de nouvelle édition de contenu ni de déploiement",
+  "headers": [
+    "ID",
+    "Chantier",
+    "Priorité",
+    "Statut",
+    "Modification / besoin",
+    "Critère d’acceptation",
+    "Preuve / limite",
+    "Source"
+  ],
+  "rows": [
+    [
+      "SES-01",
+      "Cycle de session",
+      "P0",
+      "Implémenté — testé",
+      "Ignorer les réponses d’une ancienne visite après menu, solo, reprise ou changement de salon.",
+      "Aucun ancien succès/échec ne modifie la session courante.",
+      "34 tests du client : callbacks réels, requêtes simulées.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/tests/session-scope.test.mjs"
+    ],
+    [
+      "SES-02",
+      "État reçu",
+      "P0",
+      "Implémenté — testé",
+      "Vérifier salon, identité, révision et horodatage avant d’accepter un état.",
+      "Une réponse étrangère ou un compteur invalide ne bloque pas la suite.",
+      "Tests du module SessionScope.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/src/game/session-scope.ts"
+    ],
+    [
+      "SES-03",
+      "Actions concurrentes",
+      "P0",
+      "Implémenté — testé",
+      "Empêcher un ancien finally de libérer une nouvelle action.",
+      "Le verrou reste actif jusqu’à la fin de la bonne requête.",
+      "Test sur le vrai callback request.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/app/game.tsx"
+    ],
+    [
+      "SES-04",
+      "Sondage réseau",
+      "P0",
+      "Implémenté — testé",
+      "Isoler le verrou par visite et annuler les GET au nettoyage.",
+      "Le nouveau salon se connecte sans attendre l’ancien GET.",
+      "Tests de polling, annulation et expiration.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/tests/session-scope.test.mjs"
+    ],
+    [
+      "SES-05",
+      "Quitter le salon",
+      "P1",
+      "Implémenté — testé",
+      "Libérer immédiatement l’interface et isoler la réponse de départ.",
+      "Un départ lent ne peut pas effacer le salon suivant.",
+      "Réception serveur non garantie en cas de panne.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/app/game.tsx"
+    ],
+    [
+      "SES-06",
+      "Créer / rejoindre",
+      "P1",
+      "Implémenté — testé",
+      "Ne pas transférer l’ancien jeton et ignorer la double activation.",
+      "Une seule ouverture ; projection et identité concordantes.",
+      "Tests d’ouverture tardive et de réponse incohérente.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/tests/session-scope.test.mjs"
+    ],
+    [
+      "SES-07",
+      "Erreurs et interface",
+      "P1",
+      "Implémenté — testé",
+      "Retirer l’alerte réseau périmée au solo ; préserver la modale si next échoue.",
+      "Une ancienne erreur ne réapparaît pas dans la session suivante.",
+      "Callbacks testés ; contrôle visuel navigateur à faire.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/app/game.tsx"
+    ],
+    [
+      "SES-08",
+      "Chef d’équipe",
+      "P0",
+      "Implémenté — testé",
+      "Élire le chef parmi les présents avant le battement de retour.",
+      "Un chef expiré ne reprend pas la priorité sur un témoin présent.",
+      "5 nouveaux tests ; 33 tests de résilience réussis.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/src/game/session.ts"
+    ],
+    [
+      "SES-09",
+      "Projection HTTP",
+      "P1",
+      "Implémenté — à valider",
+      "Relever l’heure après l’écriture de présence.",
+      "La projection ne précède pas le battement qui vient d’être écrit.",
+      "Relecture et syntaxe ; intégration D1 non rejouée localement.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/app/api/session/route.ts"
+    ],
+    [
+      "QA-AUTO",
+      "Régressions",
+      "P0",
+      "Implémenté — testé",
+      "Exécuter 34 tests client et 33 tests serveur.",
+      "67 réussites ciblées ; 39 tests ajoutés à la base.",
+      "Node 22.16.0 ; pas de navigateur ni de GPU dans ces tests.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/tests/session-scope.test.mjs"
+    ],
+    [
+      "REL-01",
+      "Archives CI",
+      "P1",
+      "Existant",
+      "Conserver sources suivies, commit et somme SHA-256.",
+      "Archive attachée à chaque exécution de la CI.",
+      "Mécanisme de la première révision de la PR conservé.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2"
+    ],
+    [
+      "REL-02",
+      "Sources v0.4.0",
+      "P0",
+      "À récupérer",
+      "Rapprocher les sources du site privé v0.4.0 de la branche GitHub v0.2.1.",
+      "Aucun contenu du site perdu avant la prochaine livraison.",
+      "Cette passe ne déploie pas et ne prétend pas récupérer la v0.4.0.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2"
+    ],
+    [
+      "SES-10",
+      "Diagnostic retardé",
+      "P1",
+      "À faire",
+      "Associer chaque vote à son passage côté protocole serveur.",
+      "Rejeter un ancien vote retardé après changement de boucle dans le même salon.",
+      "Non couvert par la barrière locale de changement de visite.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/src/game/session.ts"
+    ],
+    [
+      "QA-MIC",
+      "Voix réelle",
+      "P0",
+      "À valider",
+      "Jouer à deux puis quatre appareils avec microphones physiques.",
+      "Transmission, reprise et relâchement fiables.",
+      "Non testé sur matériel physique.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/docs/RADIO.md"
+    ],
+    [
+      "QA-TURN",
+      "Réseaux distincts",
+      "P0",
+      "À valider",
+      "Vérifier une connexion réellement relayée par TURN.",
+      "Reprise après rupture ; diagnostic distinct des anomalies.",
+      "Aucun serveur payant ajouté.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/docs/RADIO.md"
+    ],
+    [
+      "QA-GPU",
+      "Corps et reflets",
+      "P0",
+      "À valider",
+      "Vérifier visibilité, occlusion, anomalies et performances sur GPU.",
+      "Preuves visibles sans artefact gênant.",
+      "Tests CPU ≠ validation graphique.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/docs/QA.md"
+    ],
+    [
+      "QA-WEB",
+      "Navigateurs",
+      "P1",
+      "À valider",
+      "Contrôler Chromium, Firefox et Safari sur les appareils cibles.",
+      "Menu, solo, reprise et changement de salon avec latence.",
+      "Tests de callbacks sans rendu React dans un navigateur.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2"
+    ],
+    [
+      "CONT-01",
+      "Anomalies restantes",
+      "P1",
+      "À faire",
+      "Poursuivre le catalogue après rapprochement avec la v0.4.0.",
+      "Chaque cas possède effet, référence, preuve et test.",
+      "Les 120 fiches du classeur maître restent intactes.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/continuation/session-integrity-20261029/docs/PARALLAXE_Design_Complet.xlsx"
+    ],
+    [
+      "CONT-02",
+      "Lieux supplémentaires",
+      "P1",
+      "À faire",
+      "Étendre les lieux sans recréer le chalet déjà annoncé sur le site.",
+      "Collisions, ambiance et progression cohérentes.",
+      "Dépend de la récupération des sources v0.4.0.",
+      "https://github.com/darknigthmare/Parallaxe_Protocole9/pull/2"
+    ]
+  ]
+}

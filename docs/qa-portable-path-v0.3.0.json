@@ -1,0 +1,97 @@
+{
+  "game": "PARALLAXE — Protocole 9",
+  "version": "0.3.0",
+  "reportedAt": "2026-10-27T20:03:52.240Z",
+  "scope": "Static file routing in the portable Node server; compiled build already present, no rebuild or ZIP extraction performed by this check.",
+  "finding": {
+    "request": "/x%2f..%2fserver%2fsession.mjs",
+    "cause": "The raw decoded /server/ prefix was checked before filesystem path resolution.",
+    "exposedBefore": "Compiled source module standalone-dist/server/session.mjs.",
+    "sessions": "No user sessions were requested, read or exposed by this reproduction. Session storage is outside standalone-dist; a separate dummy outside-root fixture remains inaccessible."
+  },
+  "before": {
+    "observedAt": "2026-10-27T20:01:53.566Z",
+    "method": "Real HTTP against an isolated temporary copy of the original launcher and existing compiled build, listening on 127.0.0.1 only.",
+    "platform": "linux",
+    "node": "v24.22.1",
+    "launcherSha256": "b82c58570576bf1a1ea50224238420df1ba66d5ff23e5c46db62642838c3dfc9",
+    "moduleSha256": "c0e65cf07dd17226aae8a6055ed0dd9da2c9af8440741bd9f32b9ec69a1ab04c",
+    "directModuleStatus": 404,
+    "encodedModuleStatus": 200,
+    "responseMatchesCompiledModule": true,
+    "responseBytes": 16645,
+    "htmlStatus": 200,
+    "publicAssetStatus": 200
+  },
+  "fix": {
+    "file": "scripts/start-local.mjs",
+    "behavior": "Resolve the filesystem path, enforce containment in the public root, then reject containment in the server directory. Native path.relative, path.isAbsolute and path.sep handle Windows separators, drive letters and case; similarly prefixed public directories remain allowed."
+  },
+  "after": {
+    "command": "node tests/portable.test.mjs",
+    "exitCode": 0,
+    "status": "passed",
+    "platform": "linux",
+    "node": "v24.22.1",
+    "isolatedTemporaryServer": true,
+    "externalRequests": false,
+    "privateGetRequests404": [
+      "/server/session.mjs",
+      "/server",
+      "/server/",
+      "/x%2f..%2fserver%2fsession.mjs",
+      "/assets%2f..%2fserver%2fcatalog.mjs",
+      "/%73erver%2frules.mjs",
+      "/x%5c..%5cserver%5csession.mjs",
+      "/x%2f..%5cserver%2fsession.mjs",
+      "/SERVER/session.mjs",
+      "/x%5c..%5cSERVER%5cSESSION.MJS"
+    ],
+    "privateHead": {
+      "path": "/x%2f..%2fserver%2fsession.mjs",
+      "status": 404,
+      "responseBytes": 0
+    },
+    "outsidePublicRoot": {
+      "path": "/%2e%2e%2foutside-public.txt",
+      "status": 403,
+      "fixture": "Dummy test file outside the public root; no session file used."
+    },
+    "public": {
+      "htmlStatus": 200,
+      "compiledAssetCount": 2,
+      "compiledJavaScriptAndCss": "200; bytes equal the files in the isolated compiled build.",
+      "siblingDirectory": "/server-public/accessible.txt",
+      "siblingStatus": 200,
+      "encodedSibling": "/x%2f..%2fserver-public%2faccessible.txt",
+      "encodedSiblingStatus": 200
+    },
+    "cooperativeRegression": [
+      "Precompiled deliverable starts without node_modules",
+      "Two real clients join",
+      "Reference and inspection start",
+      "Complete private views determine the test diagnosis",
+      "Unanimous vote resolves correctly with streak 1",
+      "Both clients leave cleanly"
+    ]
+  },
+  "additionalChecks": {
+    "syntax": [
+      "node --check scripts/start-local.mjs",
+      "node --check tests/portable.test.mjs"
+    ],
+    "syntaxPassed": true,
+    "diffCheckPassed": true,
+    "windowsPathSemantics": "Checked separately with Node path.win32: encoded backslash traversal resolves inside server, uppercase SERVER/SESSION.MJS stays inside server, server-public remains outside server, and parent traversal stays outside the public root."
+  },
+  "sources": {
+    "scripts/start-local.mjs": "0d5a8aaaa628527732f04b4d6a12c37c1818e8b78adaf9ec4bddada7ac638520",
+    "tests/portable.test.mjs": "e3bebda80a74a8f64644021e41d467b1c013c9a3096ebcad5c3eeb38c5caf2c7"
+  },
+  "limitations": [
+    "Actual HTTP execution used Linux and Node v24.22.1. No Windows/macOS OS run or Node 22 run was performed here.",
+    "Backslash and uppercase URL regressions run on Linux too; native Windows filesystem execution is not claimed.",
+    "The build was copied from the existing standalone-dist. Root will repeat the suite on the final build and verify packaged ZIPs.",
+    "No public deployment, external target, microphone, GPU render or voice transport was tested."
+  ]
+}

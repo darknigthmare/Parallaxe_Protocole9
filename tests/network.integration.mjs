@@ -12,21 +12,32 @@ async function call(body,client,expected=200){
   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...(client?{Authorization:`Bearer ${client.token}`}:{})},body:JSON.stringify(body)});
   const value=await response.json();
   assert.equal(response.status,expected,JSON.stringify(value));
+  if(value.state&&client)client.state=value.state;
   return value;
+}
+// Capture the context of the last observed state; raw call() is used for replay checks.
+function decision(action,client,extra={},expected=200){
+  return call({action,code:client.code,...extra,decisionEpoch:client.state.decisionEpoch},client,expected);
 }
 async function state(client){
   const response=await fetch(`${endpoint}?code=${client.code}`,{headers:{Authorization:`Bearer ${client.token}`}});
-  const value=await response.json();assert.equal(response.status,200,JSON.stringify(value));return value.state;
+  const value=await response.json();assert.equal(response.status,200,JSON.stringify(value));client.state=value.state;return value.state;
 }
 const answerFor=states=>states.some(s=>s.view.effects.length>0)||['relayCode','arrowDirection','syncTime'].some(key=>new Set(states.map(s=>s.view[key])).size>1);
 try{
   const host=await call({action:'create',name:'QA Alpha',difficulty:'standard',mode:'campaign'},null,201);clients.push(host);
-  const joins=await Promise.all(['Bravo','Charlie','Delta'].map(name=>call({action:'join',code:host.code,name:`QA ${name}`})));
-  clients.push(...joins);
+  const arrivals=await Promise.allSettled(['Bravo','Charlie','Delta'].map(async name=>{
+    const client=await call({action:'join',code:host.code,name:`QA ${name}`});
+    clients.push(client); // Retain every successful arrival even if another join fails.
+    return client;
+  }));
+  const failedArrival=arrivals.find(result=>result.status==='rejected');
+  if(failedArrival)throw failedArrival.reason;
+  const joins=arrivals.map(result=>result.value);
   assert.equal((await state(host)).players.length,4);
   results.push({check:'Three concurrent joins retain four unique participants',status:'passed'});
   await call({action:'join',code:host.code,name:'QA Overflow'},null,409);
-  await call({action:'start',code:host.code},joins[0],403);
+  await decision('start',joins[0],{},403);
   const forged=await fetch(`${endpoint}?code=${host.code}`,{headers:{Authorization:'Bearer forged-token-with-at-least-thirty-two-characters'}});
   assert.equal(forged.status,401);
   results.push({check:'Room capacity and server-side authorization',status:'passed'});
@@ -40,29 +51,37 @@ try{
   const configResponse=await fetch(`${endpoint}?code=${host.code}&radioConfig=1`,{headers:{Authorization:`Bearer ${host.token}`}});assert.equal(configResponse.status,200);const config=await configResponse.json();assert.ok(Array.isArray(config.iceServers));assert.ok(config.expiresAt>Date.now());
   for(const client of clients)await call({action:'radio-status',code:host.code,enabled:false,talking:false,epoch:client.epoch},client);
   results.push({check:'Targeted radio signaling authenticates sender, hides other inboxes, rejects stale epochs and protects acknowledgements; authenticated ICE config works',status:'passed'});
-  await call({action:'start',code:host.code},host);
+  await decision('start',host);
   assert.equal((await state(host)).phase,'reference');
   const referencedLevels=['hotel'];
   for(let round=1;round<=9;round++){
-    await call({action:'next',code:host.code},host);
-    if(round===4||round===7){const reference=await Promise.all(clients.map(state));assert.ok(reference.every(s=>s.phase==='reference'&&s.view.effects.length===0));assert.ok(reference.every(s=>s.levelId===(round===4?'metro':'clinic')));referencedLevels.push(reference[0].levelId);await call({action:'next',code:host.code},host);}
+    const nextRequest={action:'next',code:host.code,decisionEpoch:host.state.decisionEpoch};
+    await call(nextRequest,host);
+    if(round===4||round===7){
+      const reference=await Promise.all(clients.map(state));assert.ok(reference.every(s=>s.phase==='reference'&&s.view.effects.length===0));assert.ok(reference.every(s=>s.levelId===(round===4?'metro':'clinic')));referencedLevels.push(reference[0].levelId);
+      const replay=await call(nextRequest,host,409);assert.equal(replay.code,'STALE_DECISION_CONTEXT');assert.equal(replay.state.phase,'reference');
+      await decision('next',host);
+    }
     const states=await Promise.all(clients.map(state));
     assert.ok(states.every(s=>s.phase==='inspect'&&s.reveal===null));
     for(const s of states){assert.ok(!('seed'in s));assert.ok(!JSON.stringify(s).includes('tokenHash'));}
     assert.ok(states.every(s=>s.stage===Math.floor((round-1)/3)));
     const answer=answerFor(states);
-    await Promise.all(clients.map(client=>call({action:'vote',code:host.code,vote:answer},client)));
+    const voteRequest={action:'vote',code:host.code,vote:answer,decisionEpoch:states[0].decisionEpoch};
+    await Promise.all(clients.map(client=>decision('vote',client,{vote:answer})));
     const result=await state(host);
     assert.equal(result.streak,round);
     assert.equal(result.phase,round===9?'won':'reveal');
     assert.equal(result.reveal.correct,true);
+    const replay=await call(voteRequest,host,409);assert.equal(replay.code,'STALE_DECISION_CONTEXT');assert.equal(replay.state.streak,round);
   }
   results.push({check:'Private per-client projections before each verdict',status:'passed'});
   results.push({check:'Nine concurrent consensus rounds score exactly once and reach victory',status:'passed'});
   assert.deepEqual(referencedLevels,['hotel','metro','clinic']);
   results.push({check:'Campaign crosses hotel, metro and clinic with a clean synchronized reference before each new location',status:'passed'});
+  results.push({check:'Stale votes and duplicate next return 409 with current private state; location references cannot be skipped',status:'passed'});
   if(process.env.PARALLAXE_TEST_DISCONNECT==='1'){
-    await call({action:'start',code:host.code},host);await call({action:'next',code:host.code},host);
+    await decision('start',host);await decision('next',host);
     const before=await Promise.all(clients.map(state));
     const answer=answerFor(before);
     console.log('Vérification de reconnexion : expiration réelle des 45 secondes de présence…');
@@ -70,19 +89,20 @@ try{
     try{await new Promise(resolve=>setTimeout(resolve,46_000));}finally{clearInterval(interval);}
     const paused=await state(host);assert.equal(paused.paused,true);
     assert.equal(paused.players.filter(p=>p.connected).length,1);
-    await call({action:'vote',code:host.code,vote:answer},host);
+    await decision('vote',host,{vote:answer});
     assert.equal((await state(host)).phase,'inspect');
     for(let i=1;i<clients.length;i++){
       const resumed=await state(clients[i]);assert.equal(resumed.selfId,before[i].selfId);
       assert.deepEqual(resumed.view,before[i].view);
     }
     assert.equal((await state(host)).paused,false);
-    await Promise.all(clients.map(client=>call({action:'vote',code:host.code,vote:answer},client)));
+    await Promise.all(clients.map(client=>decision('vote',client,{vote:answer})));
     assert.equal((await state(host)).streak,1);
     results.push({check:'Real 45 second presence expiry pauses play; same tokens resume same perception and consensus',status:'passed'});
   }
   // Verify leave revokes the same credential; other team members remain usable.
-  const departing=clients.pop();const left=await call({action:'leave',code:host.code},departing);assert.equal(left.left,true);
+  const departing=clients.at(-1);const left=await call({action:'leave',code:host.code},departing);assert.equal(left.left,true);
+  clients.pop(); // A failed departure remains tracked for the finally cleanup.
   const departed=await fetch(`${endpoint}?code=${host.code}`,{headers:{Authorization:`Bearer ${departing.token}`}});assert.equal(departed.status,401);
   assert.equal((await state(host)).players.length,3);
   results.push({check:'Explicit leave succeeds, revokes token, and preserves remaining participants',status:'passed'});

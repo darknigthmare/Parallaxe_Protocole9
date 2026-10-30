@@ -3,14 +3,15 @@ import {isLevelId,type LevelId,type GameMode} from './levels';
 
 export const PRESENCE_TIMEOUT=45_000;
 export const SESSION_TTL=12*60*60*1000;
-export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair'];
+export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace'];
 export const SIGNAL_TTL=60_000;
 export type RadioSignal={id:string;from:string;to:string;fromEpoch:string;toEpoch:string;at:number;description?:{type:'offer'|'answer';sdp:string};candidate?:{candidate:string;sdpMid:string|null;sdpMLineIndex:number|null;usernameFragment?:string|null}|null;reset?:boolean};
 export type Pose={x:number;y:number;z:number;yaw:number;pitch:number};
 export type Player={id:string;name:string;slot:number;tokenHash:string;lastSeen:number;left:boolean;vote:boolean|null;pose:Pose;radioEnabled:boolean;radioEpoch:string;talking:boolean;radioTalkAt:number};
 export type RoomMessage={id:string;senderId:string;name:string;text:string;at:number};
 export type RoomPing={id:string;name:string;target:string;at:number};
-export type Room={code:string;hostId:string;started:boolean;run:Run;players:Player[];messages:RoomMessage[];pings:RoomPing[];createdAt:number;revision:number;signals:RadioSignal[]};
+export type Room={code:string;hostId:string;started:boolean;run:Run;players:Player[];messages:RoomMessage[];pings:RoomPing[];createdAt:number;revision:number;decisionEpoch:number;decisionPaused:boolean;signals:RadioSignal[]};
+export type DecisionRejection={code:'INVALID_DECISION_CONTEXT'|'STALE_DECISION_CONTEXT';message:string};
 
 export class SessionError extends Error {
   status:number;
@@ -32,11 +33,13 @@ function currentRadioSignals(room:Room,now:number):RadioSignal[] {
   });
 }
 
-/** Invalidate a ballot before refreshing presence, including the returning actor. */
+/** Invalidate before refreshing presence, even when every vote is still in flight. */
 function invalidateInterruptedBallot(room:Room,now:number):void {
-  if(!room.started||room.run.phase!=='inspect')return;
+  if(!room.started||room.run.phase!=='inspect'){room.decisionPaused=false;return;}
   const present=room.players.filter(p=>!p.left);
-  if(!present.some(p=>now-p.lastSeen>=PRESENCE_TIMEOUT)||!present.some(p=>p.vote!==null))return;
+  if(room.decisionPaused||!present.some(p=>now-p.lastSeen>=PRESENCE_TIMEOUT))return;
+  room.decisionPaused=true;
+  room.decisionEpoch++;
   room.players.forEach(p=>p.vote=null);
   room.messages.push({id:crypto.randomUUID(),senderId:'control',name:'CONTRÔLE',
     text:'La liaison d’un inspecteur a été interrompue. Les diagnostics ont été annulés : comparez de nouveau vos observations au retour de toute l’équipe.',at:now});
@@ -65,10 +68,10 @@ export function makePlayer(id:string,name:string,tokenHash:string,slot:number,no
   return {id,name,tokenHash,slot,lastSeen:now,left:false,vote:null,pose:{x:(slot-1.5)*0.65,y:1.65,z:9,yaw:0,pitch:0},radioEnabled:false,radioEpoch:'',talking:false,radioTalkAt:0};
 }
 export function createRoom(code:string,host:Player,difficulty:Difficulty,seed:string,now:number,options:{mode?:GameMode;levelId?:LevelId}={}):Room {
-  return {code,hostId:host.id,started:false,run:createRun({seed,difficulty,players:2,...options}),players:[host],messages:[],pings:[],createdAt:now,revision:0,signals:[]};
+  return {code,hostId:host.id,started:false,run:createRun({seed,difficulty,players:2,...options}),players:[host],messages:[],pings:[],createdAt:now,revision:0,decisionEpoch:0,decisionPaused:false,signals:[]};
 }
 export function upgradeRoom(room:Room):Room {
-  return {...room,run:migrateRun(room.run)??createRun({seed:`recovered:${room.createdAt}`,mode:'single'}),signals:Array.isArray(room.signals)?room.signals:[],players:room.players.map(p=>({...p,radioEnabled:p.radioEnabled===true,radioEpoch:typeof p.radioEpoch==='string'?p.radioEpoch:'',talking:p.talking===true,radioTalkAt:p.radioTalkAt??0}))};
+  return {...room,decisionEpoch:Number.isSafeInteger(room.decisionEpoch)&&room.decisionEpoch>=0?room.decisionEpoch:0,decisionPaused:room.decisionPaused===true,run:migrateRun(room.run)??createRun({seed:`recovered:${room.createdAt}`,mode:'single'}),signals:Array.isArray(room.signals)?room.signals:[],players:room.players.map(p=>({...p,radioEnabled:p.radioEnabled===true,radioEpoch:typeof p.radioEpoch==='string'?p.radioEpoch:'',talking:p.talking===true,radioTalkAt:p.radioTalkAt??0}))};
 }
 
 export function validateSignal(room:Room,actor:Player,payload:Record<string,unknown>,now:number):RadioSignal {
@@ -100,7 +103,7 @@ export function joinRoom(room:Room,player:Player):Room {
   const occupied=room.players.filter(p=>!p.left&&player.lastSeen-p.lastSeen<PRESENCE_TIMEOUT);
   if(occupied.length>=4)throw new SessionError('Cette équipe compte déjà quatre inspecteurs.',409);
   const available=[0,1,2,3].find(slot=>!occupied.some(p=>p.slot===slot))!;
-  const next=structuredClone(room);
+  const next=structuredClone(upgradeRoom(room));
   next.players=next.players.filter(p=>occupied.some(o=>o.id===p.id));
   next.players.push({...player,slot:available});
   if(!next.players.some(p=>p.id===next.hostId))next.hostId=next.players[0].id;
@@ -119,9 +122,16 @@ function evaluateConsensus(room:Room,now:number):void {
   if(active.length<2)return;
   // A missing witness may hold the only evidence. Do not score behind their back.
   if(active.length!==room.players.filter(p=>!p.left).length)return;
-  if(active.every(p=>p.vote!==null)&&active.every(p=>p.vote===active[0].vote))room.run=evaluateRun(room.run,active[0].vote!);
+  if(active.every(p=>p.vote!==null)&&active.every(p=>p.vote===active[0].vote)){
+    room.run=evaluateRun(room.run,active[0].vote!);
+    room.decisionEpoch++;
+    room.decisionPaused=false;
+  }
 }
-export function actRoom(room:Room,playerId:string,action:string,payload:Record<string,unknown>,now:number):Room {
+/** Persist the returned room before reporting a decision rejection to the client.
+ * Throwing for an obsolete decision would discard timeout cleanup on both backends.
+ */
+export function actRoom(room:Room,playerId:string,action:string,payload:Record<string,unknown>,now:number,onDecisionRejected?:(rejection:DecisionRejection)=>void):Room {
   const next=structuredClone(upgradeRoom(room));
   // Prune before the heartbeat: reconnection must not revive an obsolete offer.
   next.signals=currentRadioSignals(next,now);
@@ -130,10 +140,22 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
   const actor=next.players.find(p=>p.id===playerId&&!p.left);
   if(!actor)throw new SessionError('Inspecteur introuvable.',401);
   invalidateInterruptedBallot(next,now);
-  actor.lastSeen=now;
   const host=next.players.find(p=>p.id===next.hostId&&!p.left);
-  // After 45 seconds without heartbeat, command passes to a present inspector.
+  // Elect from witnesses already present, before a returning host refreshes itself.
   if(!host||now-host.lastSeen>=PRESENCE_TIMEOUT)next.hostId=activePlayers(next,now).sort((a,b)=>a.slot-b.slot)[0]?.id??actor.id;
+  actor.lastSeen=now;
+  if(next.decisionPaused&&!next.players.some(p=>!p.left&&now-p.lastSeen>=PRESENCE_TIMEOUT))next.decisionPaused=false;
+  if(action==='start'||action==='next'||action==='vote'){
+    const expected=payload.decisionEpoch;
+    if(typeof expected!=='number'||!Number.isSafeInteger(expected)||expected<0){
+      onDecisionRejected?.({code:'INVALID_DECISION_CONTEXT',message:'Votre inspection doit être actualisée. Vérifiez le passage affiché avant de confirmer de nouveau.'});
+      return next;
+    }
+    if(expected!==next.decisionEpoch){
+      onDecisionRejected?.({code:'STALE_DECISION_CONTEXT',message:'L’inspection ou l’équipe a changé. Comparez de nouveau vos observations avant de confirmer.'});
+      return next;
+    }
+  }
   if(action==='start'){
     if(actor.id!==next.hostId)throw new SessionError('Seul le chef d’équipe lance le protocole.',403);
     if(next.started&&!['won','lost'].includes(next.run.phase))return next;
@@ -142,6 +164,8 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
     next.players=active.map((p,slot)=>({...p,slot,vote:null}));
     next.run=createRun({seed:`${next.run.seed}:start:${now}`,difficulty:next.run.difficulty,players:active.length,mode:next.run.mode,levelId:next.run.levelId});
     next.started=true;
+    next.decisionEpoch++;
+    next.decisionPaused=false;
     next.pings=[];
   }else if(action==='next'){
     if(actor.id!==next.hostId)throw new SessionError('Le chef d’équipe ouvre le passage suivant.',403);
@@ -153,6 +177,8 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
       next.run=advanceRun({...next.run,players:remaining.length});
       next.run.observerSlots=next.run.observerSlots.map(index=>remaining[index].slot);
       next.players.forEach(p=>p.vote=null);
+      next.decisionEpoch++;
+      next.decisionPaused=false;
       next.pings=[];
     }
   }else if(action==='vote'){
@@ -196,7 +222,9 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
     const ids=new Set(payload.ids);
     next.signals=next.signals.filter(s=>s.to!==actor.id||!ids.has(s.id));
   }else if(action==='leave'){
+    next.decisionEpoch++;
     actor.left=true;actor.vote=null;actor.radioEnabled=false;actor.talking=false;actor.radioEpoch='';
+    if(!next.players.some(p=>!p.left&&now-p.lastSeen>=PRESENCE_TIMEOUT))next.decisionPaused=false;
     next.signals=next.signals.filter(s=>s.to!==actor.id&&s.from!==actor.id);
     if(actor.id===next.hostId)next.hostId=activePlayers(next,now).sort((a,b)=>a.slot-b.slot)[0]?.id??'';
     if(next.started&&next.run.phase==='inspect'){
@@ -226,7 +254,7 @@ export function projectRoom(room:Room,playerId:string,now:number){
   const active=activePlayers(room,now);
   const paused=room.started&&(active.length<2||active.length!==room.players.filter(p=>!p.left).length);
   return {
-    code:room.code,selfId:playerId,hostId:room.hostId,phase,revision:room.revision,
+    code:room.code,selfId:playerId,hostId:room.hostId,phase,revision:room.revision,decisionEpoch:room.decisionEpoch,
     streak:room.run.streak,strikes:room.run.strikes,loop:room.run.loop,
     difficulty:room.run.difficulty,correctTotal:room.run.correctTotal,
     mode:room.run.mode,levelId:room.run.levelId,stage:room.run.stage,stageProgress:room.run.stageProgress,schemaVersion:2,

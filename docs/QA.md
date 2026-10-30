@@ -1,3 +1,13 @@
+# Vérification actuelle — 0.4.1
+
+Les sources 0.4 du Site sont récupérées et réunies avec la PR #2. Les preuves de cette consolidation sont dans [qa-final-v0.4.1.json](qa-final-v0.4.1.json), avec les commandes, le contexte et les limites. Sous Node 24.22.1 : 165 tests de règles/sessions/commandes, 31 contrôles de scène, 9 du Chalet, 13 de lecture, 42 radio, 15 interface radio et 59 configuration radio réussissent. TypeScript réussit. Les deux compilations finales et la vérification du ZIP réussissent sur le commit propre `fa9cf6306705c750106467d0d6caddf96767b0e7`. Le serveur est lancé depuis son extraction : 17 contrôles nommés, 12 requêtes de protection des chemins et une partie Chalet à 4 clients / 9 diagnostics jusqu’à la victoire. Les archives sont disponibles avec leur [manifeste](../public/downloads/PARALLAXE_v0.4.1_manifest.json). La CI 40907389674 reste en file d’attente au relevé ; ses deux jobs sont encore `queued`.
+
+**Publication effectuée le 29 octobre 2026 à 16:07 UTC (17:07 à Paris).** Le [Site privé 0.4.1](https://parallaxe-protocole-neuf.darknigthmare.chatgpt.site) a été enregistré et déployé avec le statut natif `succeeded`. Source Site : `064a2157b64787228966ea108b683f735f2e3dc6` ; déploiement : `appgdep_6ae36f3e3f848191b1ec1afb032c56e4`. Les sources exécutables correspondent au code GitHub testé `fa9cf63`. Le navigateur de contrôle atteint la page de connexion attendue du Site privé ; cette observation ne constitue pas un essai de jeu. L’accès reste privé. Les identifiants complets de version et de déploiement sont conservés dans le rapport JSON.
+
+Les rapports [0.3](QA_0.3.0.md) et [0.4](QA_0.4.0.md) restent historiques. La prévisualisation navigateur de cette passe n'a pas démarré : son montage ne voit pas l'installation partagée des dépendances. Aucun résultat GPU, microphone, tactile physique, Windows, TURN ou D1 de production n'est revendiqué.
+
+## Historique des passes précédentes
+
 # Bilan de vérification — PARALLAXE v0.2.1
 
 Date : **26 octobre 2026**. La mise à jour v0.2.1 a fait l’objet de **19 tests radio réussis, de 4 tests du contrôleur d’interface réussis et d’un contrôle TypeScript réussi**. Les autres preuves v0.2 sont conservées et identifiées comme telles ; elles n’ont pas été relancées pour ce correctif ciblé. Ce bilan distingue les contrôles exécutés, leurs limites et les contrôles de livraison. Une fonctionnalité présente dans le code n’est pas automatiquement validée sur le matériel des joueurs.
@@ -119,3 +129,92 @@ Le typage, les 19 tests radio, les 4 tests du contrôleur d’interface, les bui
 - [Validation des données du classeur](workbook-validation.json), [structure du classeur](workbook-structure-validation.json) et [revue visuelle du classeur et de sa mise à jour](workbook-visual-review.json).
 
 Les fichiers `qa-network.json` et `qa-results.json` sont des traces historiques v0.1. Ils ne doivent pas être utilisés pour annoncer les comptes, le contenu ou les résultats de la v0.2.
+
+## Correctifs coopératifs et radio — 29 octobre 2026
+
+Ce lot applique les consignes gamedev à des défauts reproduits dans le code. Il part de `1a7196f0151b3e755edc5670d8d571a9ec9e065c`, puis intègre les changements concurrents jusqu'à `f738ab9a54df2b6b651c179c5e9b035ca626719c`. Le contenu reste celui de la base GitHub 0.2.1. Le [relevé des sources](SOURCE_RECONCILIATION_2026-10-29.md) distingue cette base du Site plus récent dont les sources ne sont pas récupérées.
+
+### Défauts protégés
+
+| Situation | Comportement corrigé et preuve attendue |
+| --- | --- |
+| Vote retardé après changement de passage | Le vote porte le `decisionEpoch` affiché lors de l'action. Un ancien contexte reçoit 409 et ne vote pas dans le nouveau passage. |
+| Double passage suivant au changement de lieu | La seconde requête garde son intention d'origine et ne saute pas la référence normale du métro ou de la clinique. |
+| Absence détectée avant réception des votes | L'interruption invalide le contexte même si aucun vote n'était encore enregistré. Le nettoyage précède le battement de retour. |
+| Réessai après conflit d'écriture D1 | Le handler réapplique le payload d'origine ; il ne remplace pas son contexte par celui du nouvel état. Le nettoyage est persisté avant le 409. |
+| Ancien salon ou tentative abandonnée | `SessionScope` conserve les barrières de session et d'ordre ajoutées par le lot concurrent ; les décisions sont en plus rattachées à la visite et à l'identité observées. |
+| Négociation radio suspendue lors de l'extinction | Les continuations, réessais, erreurs et callbacks périmés ne recréent pas de pair. Une nouvelle négociation avance sans attendre l'ancienne. |
+| Bouton de talkie maintenu après interruption | La manette doit être relâchée puis pressée à nouveau après perte de focus, masquage, pause, perte réseau ou changement de session. Un maintien continu ne contourne pas la limite de 30 secondes. |
+
+### Contrats et compatibilité
+
+`start`, `next` et `vote` exigent désormais un entier sûr `decisionEpoch`. Une valeur absente ou invalide renvoie `INVALID_DECISION_CONTEXT` ; une valeur périmée renvoie `STALE_DECISION_CONTEXT`. Les deux réponses ont le statut HTTP 409 et contiennent la projection privée actuelle. Les clients doivent transmettre la valeur de leur vue affichée, accepter cette nouvelle vue et attendre une confirmation volontaire. Ils ne doivent pas réessayer automatiquement une décision avec un contexte actualisé.
+
+Le compteur de décision reste stable pendant les mouvements, messages, battements et votes non conclusifs. Les salons sauvegardés sans ce champ sont migrés de façon déterministe. Les anciennes interfaces déjà chargées doivent être rechargées avec le client corrigé après une mise à jour du serveur. Aucun changement de schéma SQL, de dépendance ou de règle de score n'est introduit.
+
+### Portée des vérifications
+
+Les commandes et les résultats à jour figurent dans [suivi-correctifs-20261029.json](suivi-correctifs-20261029.json), avec le commit de code et le lien de CI lorsqu'ils sont connus.
+
+**CI du code vérifiée :** commit `f258c5b6bd99e24d6ef9650941fa6a86b162a1f0`, [exécution 40884677504](https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40884677504), **réussie**. Les deux jobs, sources/traçabilité et jeu, ont terminé avec succès. Les journaux du job jeu confirment Node **22.23.4**.
+
+| Contrôle sur cette révision | Résultat |
+| --- | --- |
+| Règles, résilience et intentions de décision | 66 tests réussis : 17 + 33 + 16 |
+| Adaptateurs de sessions | 5 tests réussis, dont le parcours HTTP Node à quatre clients |
+| Callbacks client et durée de vie de session | 60 tests réussis |
+| Client radio | 29 tests réussis |
+| Actions de l'interface radio et maintien PTT | 15 tests réussis : 4 + 11 |
+| Configuration radio | 59 tests réussis |
+| Géométries et transitions de scène | 11 contrôles CPU réussis ; aucun rendu GPU validé |
+| TypeScript et compilation portable | Réussis |
+| Serveur portable réellement compilé | Réussi : deux clients et 11 vérifications, dont les rejets 409 et le départ propre |
+
+Les suites Node totalisent **234 tests réussis et zéro échec**. Les contrôles CPU et les vérifications du scénario portable sont comptés séparément. Le complément documentaire et le classeur référencent ce commit de code effectivement testé ; leurs mises à jour ne doivent pas être présentées comme une nouvelle version jouable.
+
+- `npm test` couvre les règles, la résilience, les intentions de décision, les adaptateurs et les callbacks du client. Les callbacks de `app/game.tsx` sont exécutés depuis leur code réel avec requêtes différées ; React n'est pas monté dans un navigateur.
+- `npm run test:session-adapters` exécute quatre scénarios des vrais handlers Cloudflare avec un **stockage CAS simulé**, puis un scénario contre le **vrai serveur HTTP Node**. Ce dernier utilise les modules du domaine effacés de leurs annotations TypeScript et une page de test explicitement factice : quatre clients, neuf consensus, trois références normales et rejeux 409. Il ne valide pas le frontend compilé ni le service D1 hébergé.
+- `npm run test:radio` exerce le vrai client radio avec API Web Audio/WebRTC simulées. Six régressions reproduisent les opérations périmées après extinction ou reconnexion locale. Quatre autres reproduisent les rejets RTC tardifs après départ ou remplacement du pair distant, sans changement de génération locale. Chaque défaut a été observé avant sa correction ; la suite complète atteint 29 tests réussis. La négociation du pair remplaçant est également vérifiée.
+- `npm run test:radio-ui` inclut la logique de maintien PTT. Les transitions entre deux images sont testées sans prétendre qu'une manette physique a été utilisée.
+- La CI vérifie en plus TypeScript, les géométries CPU, la configuration radio, le build portable et les échanges de deux clients avec le **portable réellement compilé**. Ce dernier test reste distinct de la fixture HTTP de la suite adaptateurs.
+
+Les exécutions locales de ce lot utilisent Node 24.22.1 ; la CI utilise Node 22. Les tests HTTP locaux ont nécessité l'autorisation d'écoute sur `127.0.0.1` de l'environnement. Les processus et données temporaires sont nettoyés, y compris lors des échecs d'arrivée ou de réservation de port.
+
+Aucun nouvel essai GPU, navigateur avec scène 3D, microphone physique ou TURN entre réseaux n'est revendiqué. Les preuves historiques ci-dessus conservent leur date et leur édition ; elles ne remplacent pas ces essais. Le classeur de reprise conserve ses deux feuilles historiques et ajoute une feuille datée pour ce lot. Le classeur concurrent de suivi des sessions et le classeur maître d'anomalies sont conservés.
+
+
+## Gestes tactiles, poses et livraison extraite — suite du 29 octobre 2026
+
+**Code appliqué :** [`b70350c59e97487d0c7224d6c57c17eabb0f8e1b`](https://github.com/darknigthmare/Parallaxe_Protocole9/commit/b70350c59e97487d0c7224d6c57c17eabb0f8e1b), depuis `5c4488ae9d36f44875352cf62997c8800f32db76`. Le [suivi structuré de ce lot](suivi-jouabilite-20261029.json) recense sept points et conserve les limites de chaque preuve.
+
+### État de validation de ce lot
+
+La [CI de cette révision](https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/40901665020) est **en file d'attente** au moment du relevé : les jobs `game` et `source-snapshot` n'ont pas démarré. L'exécuteur local est également indisponible. **Aucun nouveau succès TypeScript, Node, géométrie Three.js complète, compilation ou ZIP extrait n'est revendiqué sur ce commit.** Les succès du lot précédent, présentés plus haut, gardent leurs révisions et ne deviennent pas des résultats de cette passe.
+
+Les vérifications exécutables disponibles sont des reproductions V8 des vrais corps de fonctions, avec annotations TypeScript retirées et frontières navigateur ou transformations simulées :
+
+| Vérification isolée | Résultat observé |
+| --- | --- |
+| Gestes tactiles du code intégré | **27 scénarios réussis**, zéro échec : pause, carnet, vote, radio, retour, verdicts, remplacement de session, focus, masquage, capture et gestes simultanés |
+| Pose de l'inspecteur après talkie/radio | Quatre défauts reproduits avant correction ; les quatre retours corrigés et le contrôle du geste indépendant réussissent |
+| Historique du reflet sur une marche de deux secondes | Six cadences vérifiées : 20, 60, 120, 240, 360 Hz et cadence variable ; les deux échecs à haute fréquence sont corrigés |
+| Ensemble pose + historique isolés | **11 scénarios**, six échecs avant correction et zéro après ; ce compte est distinct des 27 scénarios d'entrées |
+| Classeur de reprise | Nouvelle feuille « Jouabilité 29-10 » ; intégrité ZIP/CRC vérifiée et contenu décompressé des trois feuilles historiques, styles et tables conservé à l'identique |
+
+Le défaut tactile initial laisse une commande avant de `0,9210526` après ouverture d'une pause ; après perte de focus, un ancien déplacement peut la réactiver. Le correctif efface les origines, les actions, les touches et l'indicateur visuel. Chaque geste garde son propre identifiant de pointeur ; la fin du joystick conserve le doigt utilisé pour regarder. Les handlers traitent aussi `lostpointercapture`.
+
+L'épaule droite gardait sa rotation Y de `0,90 radian` après une pose talkie. La pose normale restaure maintenant ses trois axes avant les animations particulières.
+
+À 240 Hz, la reproduction isolée du reflet passe d'environ **0,746 s à 1,004 s** de retard ; à 360 Hz, d'environ **0,497 s à 1,006 s**. L'historique reste borné à 180 poses. Ces valeurs sont des calculs simulés, pas des FPS mesurés sur une carte graphique.
+
+### Régressions et livraison préparées
+
+- `tests/movement-input.test.mjs` exécute les callbacks réels avec `stripTypeScriptTypes` sous Node et est intégré à `npm test`. Le harnais de sessions utilise également les vraies fonctions de remise à zéro.
+- `tests/scene.geometry.test.mjs` ajoute cinq transitions de pose et un contrôle à six cadences avec les objets Three.js de sa suite CPU. Ses onze contrôles antérieurs sont conservés ; l'exécution de l'ensemble reste à confirmer par la CI.
+- Les deux jobs de CI extraient maintenant explicitement le même SHA de branche. Cela évite de rattacher une archive du commit de branche à un test du commit de fusion GitHub.
+- Le packaging ajoute `COMMIT.txt`, des empreintes SHA-256 et le commit au manifeste. `tests/package-archive.test.py` contrôle les ZIP et leur contenu, puis lance le serveur réellement extrait avec les deux clients du scénario portable.
+- Le test refuse un dossier fourni contenant déjà `.parallaxe-data`. Le paquet de CI est publié uniquement après succès et son nom inclut la révision, l'exécution et la tentative.
+
+**Aucun paquet PC de ce nouveau commit n'est encore déclaré validé ou disponible dans ce relevé.** Les archives historiques suivies dans `public/downloads` restent inchangées. Le lancement du serveur extrait sous Linux, quand il sera exécuté, ne validera pas à lui seul le double-clic du lanceur Windows, le rendu WebGL ou les périphériques physiques.
+
+Le [relevé des sources](SOURCE_RECONCILIATION_2026-10-29.md) confirme que la comparaison avec la source Site 0.4.0 reste bloquée. Aucun nouveau lieu, déploiement ou récupération du Chalet de service n'est revendiqué par ce lot.

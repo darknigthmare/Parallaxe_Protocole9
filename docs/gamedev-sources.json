@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-29",
+  "integration_mode": "project_guidance_with_pinned_references",
+  "local_guidance": [
+    "AGENTS.md",
+    "docs/GAMEDEV_GUIDANCE.md",
+    ".github/pull_request_template.md"
+  ],
+  "upstream": {
+    "repository": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills",
+    "commit": "19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9",
+    "license": "Apache-2.0",
+    "license_url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/LICENSE",
+    "notice_url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/NOTICE",
+    "files_vendored": false
+  },
+  "project_baseline": {
+    "repository": "https://github.com/darknigthmare/Parallaxe_Protocole9",
+    "branch": "continuation/session-integrity-20261029",
+    "commit": "f1cadcca96dd94a84eaf68bdf821f235fb50b2cf",
+    "package_version": "0.2.1",
+    "locked_versions": {
+      "three": "0.186.1",
+      "typesThree": "0.186.0",
+      "react": "19.2.6",
+      "typescript": "5.9.3"
+    },
+    "reported_site_version": "0.4.0",
+    "site_version_evidence": "Sources récupérées au commit6c8784e0cf5d64f6386f3448434b0bc659d3fc15, package0.4.0,4lieux et96anomalies ; fusion0.4.1 avec PR2.",
+    "source_reconciliation": "reconciled_in_0.4.1",
+    "source_reconciliation_report": "docs/SOURCE_RECONCILIATION_2026-10-29.md",
+    "implementation_base_commit": "1a7196f0151b3e755edc5670d8d571a9ec9e065c",
+    "site_saved_version": 7,
+    "site_source_commit": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
+    "integration_base_commit": "f738ab9a54df2b6b651c179c5e9b035ca626719c"
+  },
+  "references": [
+    {
+      "name": "router",
+      "path": "router/SKILL.md",
+      "git_blob_sha": "f19eacd9d68dbe8d4c1289032b5957db30ecc41e",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/router/SKILL.md",
+      "applies_to": [
+        "package.json",
+        "package-lock.json",
+        "README.md"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "threejs-scene-setup",
+      "path": "skills/web-engines/threejs-scene-setup/SKILL.md",
+      "git_blob_sha": "fad847ff0804def000b3f17fe5b062302eb7312e",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/web-engines/threejs-scene-setup/SKILL.md",
+      "applies_to": [
+        "src/game/scene.ts"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "threejs-materials-lighting",
+      "path": "skills/web-engines/threejs-materials-lighting/SKILL.md",
+      "git_blob_sha": "5087660b2ee598655d66d8a1da3f4b805738301e",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/web-engines/threejs-materials-lighting/SKILL.md",
+      "applies_to": [
+        "src/game/scene.ts",
+        "src/game/locations.ts"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "threejs-gltf-loading",
+      "path": "skills/web-engines/threejs-gltf-loading/SKILL.md",
+      "git_blob_sha": "4fa63eeca3ca4e73f4834d4bd07a37f31ca4f94a",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/web-engines/threejs-gltf-loading/SKILL.md",
+      "applies_to": [
+        "src/game/avatar.ts",
+        "scripts/export-inspector.mjs",
+        "public/models/inspecteur-parallaxe.glb"
+      ],
+      "usage": "Lire lors d'un import ou changement de chaîne GLB ; ne pas remplacer automatiquement l'avatar procédural."
+    },
+    {
+      "name": "audio-design",
+      "path": "skills/disciplines/audio-design/SKILL.md",
+      "git_blob_sha": "37996996f5d9fe438a43d39bfe58004dc0b1e6d8",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/audio-design/SKILL.md",
+      "applies_to": [
+        "src/game/audio.ts",
+        "src/game/radio.ts",
+        "app/radio-panel.tsx"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "level-design",
+      "path": "skills/disciplines/level-design/SKILL.md",
+      "git_blob_sha": "14337635666aaa38bce83ce797aa89f89e964cc4",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/level-design/SKILL.md",
+      "applies_to": [
+        "src/game/locations.ts",
+        "src/game/levels.ts",
+        "src/game/catalog.ts"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "performance-optimization",
+      "path": "skills/disciplines/performance-optimization/SKILL.md",
+      "git_blob_sha": "e6878a4552be445b54988bd2fb93619d561f38f3",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/performance-optimization/SKILL.md",
+      "applies_to": [
+        "src/game/scene.ts",
+        "src/game/avatar.ts"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "physics-tuning",
+      "path": "skills/disciplines/physics-tuning/SKILL.md",
+      "git_blob_sha": "4f22e28ebd21d74a40b52951a41f57c73a46d964",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/physics-tuning/SKILL.md",
+      "applies_to": [
+        "src/game/scene.ts",
+        "src/game/locations.ts"
+      ],
+      "usage": "Adapter les concepts au contrôleur existant ; aucune migration physique automatique."
+    },
+    {
+      "name": "procedural-gen",
+      "path": "skills/disciplines/procedural-gen/SKILL.md",
+      "git_blob_sha": "10b58ce76370179deb8fc064deeb977e5b577ffd",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/procedural-gen/SKILL.md",
+      "applies_to": [
+        "src/game/rules.ts",
+        "src/game/catalog.ts",
+        "src/game/session.ts"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "create-game-assets",
+      "path": "skills/disciplines/create-game-assets/SKILL.md",
+      "git_blob_sha": "e2e6ecad398e46b0a8b4f910ec75b82885505f8b",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/create-game-assets/SKILL.md",
+      "applies_to": [
+        "src/game/avatar.ts",
+        "src/game/locations.ts",
+        "public/models/inspecteur-parallaxe.manifest.json"
+      ],
+      "usage": "Lire uniquement quand le domaine de la tâche le justifie."
+    },
+    {
+      "name": "input-systems",
+      "path": "skills/disciplines/input-systems/SKILL.md",
+      "git_blob_sha": "d20f5a0bdfb5f6c41822dcd138cba305e2ab0d64",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/19d93f97c9c1ea0f8b306e77aa81e0d3e352d3e9/skills/disciplines/input-systems/SKILL.md",
+      "applies_to": [
+        "app/game.tsx",
+        "tests/movement-input.test.mjs"
+      ],
+      "usage": "Réinitialiser les gestes interrompus et vérifier la possession du pointeur ; conserver les commandes existantes et les gardes de radio."
+    }
+  ],
+  "limits": [
+    "Les guides référencés sont des méthodes et exemples ; leur présence ne certifie aucune fonctionnalité du jeu.",
+    "Le catalogue consulté ne fournit pas les systèmes propres à PARALLAXE de consensus, perceptions privées, transport WebRTC et anomalies de miroir.",
+    "Les sources amont ne sont pas installées comme dépendances et ne sont pas exécutées.",
+    "Toute mise à jour de révision doit faire l'objet d'une comparaison et d'une vérification des versions."
+  ],
+  "continuation": {
+    "version": "0.4.1",
+    "github_base": "2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65",
+    "site_source": "6c8784e0cf5d64f6386f3448434b0bc659d3fc15",
+    "dependencies_changed": false,
+    "current_validation": "docs/qa-final-v0.4.1.json"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": "0.4.0",
+  "date": "2026-10-28",
+  "attempted": true,
+  "previewServiceStatus": "running",
+  "managedPreviewUrl": "http://terminal.local:4173/",
+  "browserOutcome": "net::ERR_CONNECTION_REFUSED",
+  "previewStopped": true,
+  "webgl": "unverified",
+  "microphones": "unverified",
+  "connectedVoice": "unverified",
+  "note": "The refused preview route prevented new visual or physical microphone verification. Earlier GPU/ICE results remain historical and were not remeasured."
+}

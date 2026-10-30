@@ -1,0 +1,138 @@
+{
+  "version": "0.4.0",
+  "date": "2026-10-28",
+  "scope": {
+    "designAnomalies": 120,
+    "runtimeAnomalies": 96,
+    "visualAnomalies": 84,
+    "radioProfiles": 12,
+    "plannedAnomalies": 24,
+    "locations": [
+      "hotel",
+      "metro",
+      "clinic",
+      "cabin"
+    ],
+    "campaign": [
+      "hotel",
+      "metro",
+      "clinic"
+    ],
+    "poolSizes": {
+      "hotel": 76,
+      "metro": 48,
+      "clinic": 48,
+      "cabin": 35
+    }
+  },
+  "automatedChecks": {
+    "passed": 189,
+    "suites": [
+      {
+        "name": "rules",
+        "passed": 19,
+        "source": "tests/rules.test.mjs"
+      },
+      {
+        "name": "resilience",
+        "passed": 28,
+        "source": "tests/session-resilience.test.mjs"
+      },
+      {
+        "name": "scene",
+        "passed": 25,
+        "source": "tests/scene.geometry.test.mjs"
+      },
+      {
+        "name": "cabin",
+        "passed": 9,
+        "source": "tests/cabin.geometry.test.mjs"
+      },
+      {
+        "name": "inspection",
+        "passed": 13,
+        "source": "tests/inspection.test.mjs"
+      },
+      {
+        "name": "radio",
+        "passed": 32,
+        "source": "tests/radio.test.mjs"
+      },
+      {
+        "name": "radioUI",
+        "passed": 4,
+        "source": "tests/radio-actions.test.mjs"
+      },
+      {
+        "name": "radioConfig",
+        "passed": 59,
+        "source": "tests/radio-config.test.mjs"
+      }
+    ]
+  },
+  "typecheck": "passed",
+  "buildLocal": "passed",
+  "buildHosted": "passed",
+  "portable": {
+    "result": "passed",
+    "reference": "qa-portable-v0.4.0.json",
+    "clients": [
+      2,
+      4
+    ],
+    "chaletCorrectDiagnoses": 9,
+    "chaletVictory": true,
+    "pathProtectionCases": 12,
+    "dependenciesRequiredAtRuntime": false
+  },
+  "scene": {
+    "reference": "qa-scene-v0.4.0.json",
+    "trianglesIncludingInactive": 582153,
+    "meshesIncludingInactive": 1244,
+    "reflectors": 8,
+    "gpuValidated": false
+  },
+  "avatar": {
+    "unchangedFrom": "0.3.0",
+    "sourceSha256": "91382accb8c43ae2d90c4f90f078115d6105615c81b49e9419576d9cfccf112f",
+    "glbSha256": "dfbf18ed3ddfcf7e60112ad416c1abb5784214235d7532c868b4eee93159c506",
+    "bytes": 4825784,
+    "meshCount": 58,
+    "clips": [
+      "Marche",
+      "Radio",
+      "Salut"
+    ],
+    "headerAndSourceHashValidated": true
+  },
+  "regressionsFixed": [
+    "portable server accepts cabin as a valid level",
+    "stable solo inspection identity across Alpha/Beta views",
+    "extra mirrored door restores state after interrupted capture",
+    "metro arches stay below the ceiling",
+    "metadata matches physical talkie, table and comparison props",
+    "reference journal documents all new ordinary states"
+  ],
+  "browser": {
+    "reference": "qa-browser-v0.4.0.json",
+    "result": "blocked",
+    "reason": "preview route refused connection"
+  },
+  "limits": [
+    "No new GPU pixels, shader, lighting appearance, comfort or FPS validation",
+    "No physical microphone, human listening or connected cross-network TURN validation",
+    "HTTP integration uses isolated local Node server, not a new hosted D1 campaign",
+    "Windows and macOS launchers were not run natively",
+    "24 designed anomalies and the wider production backlog remain unimplemented"
+  ],
+  "provenance": {
+    "githubBase": "ccf629a22b5409f9ea9ad4eb5a221253a7030893",
+    "recoveredSiteSource": "6f88d4832a84fa6393bb0cfa1af91c4958c23445",
+    "resilienceAndRadioConfigPreserved": true
+  },
+  "publication": {
+    "statusAtReport": "prepared locally; final publication and CI reported separately",
+    "branch": "continuation/parallaxe-completude-20261028"
+  },
+  "archiveVerification": "performed after final packaging; archive hashes must not be embedded in themselves"
+}

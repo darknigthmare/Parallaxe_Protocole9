@@ -2,7 +2,7 @@
 import {createServer} from 'node:http';
 import {createServer as createSecureServer} from 'node:https';
 import {readFile,writeFile,mkdir,rename,stat} from 'node:fs/promises';
-import {resolve,join,dirname,extname,sep} from 'node:path';
+import {resolve,join,dirname,extname,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {networkInterfaces} from 'node:os';
 import {createHash,randomBytes,randomUUID} from 'node:crypto';
@@ -30,6 +30,7 @@ if(needsBuild){
 }
 const {createRoom,joinRoom,actRoom,authenticate,projectRoom,makePlayer,validateName,validateCode,SessionError,SESSION_TTL,upgradeRoom}=await import(pathToFileURL(join(domainDir,'session.mjs')));
 const {makeRadioConfig}=await import(pathToFileURL(join(domainDir,'radio-config.mjs')));
+const {isLevelId}=await import(pathToFileURL(join(domainDir,'levels.mjs')));
 
 const rooms=new Map();
 try{
@@ -73,7 +74,7 @@ async function api(request,response,url){
     for(const [existing,entry] of rooms)if(entry.expiresAt<Date.now())rooms.delete(existing);
     do{key=code();}while(rooms.has(key));
     const now=Date.now();const actor=makePlayer(randomUUID(),name,hash(access),0,now);
-    const room=put(createRoom(key,actor,payload.difficulty==='relaxed'?'relaxed':'standard',token(),now,{mode:payload.mode==='single'?'single':'campaign',levelId:['hotel','metro','clinic'].includes(payload.levelId)?payload.levelId:'hotel'}));
+    const room=put(createRoom(key,actor,payload.difficulty==='relaxed'?'relaxed':'standard',token(),now,{mode:payload.mode==='single'?'single':'campaign',levelId:isLevelId(payload.levelId)?payload.levelId:'hotel'}));
     return json(response,201,{code:key,token:access,selfId:actor.id,state:projectRoom(room,actor.id,now)});
   }
   const key=validateCode(payload.code);
@@ -84,20 +85,29 @@ async function api(request,response,url){
     return json(response,200,{code:key,token:access,selfId:actor.id,state:projectRoom(room,actor.id,now)});
   }
   const room=readRoom(key);const actor=authenticate(room,bearer(request));
-  const next=put(actRoom(room,actor.id,payload.action,payload,Date.now()));
+  let rejection=null;
+  // Persist presence cleanup even when the old decision itself must be rejected.
+  const next=put(actRoom(room,actor.id,payload.action,payload,Date.now(),value=>{rejection=value;}));
+  if(rejection)return json(response,409,{error:rejection.message,code:rejection.code,state:projectRoom(next,actor.id,Date.now())});
   if(payload.action==='leave')return json(response,200,{left:true});
   return json(response,200,{state:projectRoom(next,actor.id,Date.now())});
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.zip':'application/zip','.pdf':'application/pdf'};
+function within(directory,file){
+  // Native relative paths also handle Windows separators, drive letters and case.
+  const path=relative(directory,file);
+  return !isAbsolute(path)&&path!=='..'&&!path.startsWith('..'+sep);
+}
 const handler=async(request,response)=>{
   try{
     const url=new URL(request.url,'http://localhost');
     if(url.pathname==='/api/session')return await api(request,response,url);
     if(!['GET','HEAD'].includes(request.method))return json(response,405,{error:'Méthode non prise en charge.'});
     const path=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname);
-    if(path.startsWith('/server/'))return json(response,404,{error:'Fichier introuvable.'});
     const file=resolve(clientDir,`.${path}`);
-    if(file!==clientDir&&!file.startsWith(clientDir+sep))return json(response,403,{error:'Accès refusé.'});
+    if(!within(clientDir,file))return json(response,403,{error:'Accès refusé.'});
+    // Check the resolved path: encoded separators and dot segments must not bypass this boundary.
+    if(within(domainDir,file))return json(response,404,{error:'Fichier introuvable.'});
     let contents;try{contents=await readFile(file);}catch{return json(response,404,{error:'Fichier introuvable.'});}
     response.writeHead(200,{'Content-Type':mime[extname(file)]??'application/octet-stream','X-Content-Type-Options':'nosniff','Cache-Control':extname(file)==='.html'?'no-cache':'public, max-age=3600'});
     response.end(request.method==='HEAD'?undefined:contents);

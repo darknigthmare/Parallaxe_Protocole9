@@ -10,12 +10,37 @@ permissions:
   contents: read
 
 jobs:
+  source-snapshot:
+    name: Sources exactes et traçabilité de la révision
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Archiver uniquement les fichiers suivis par Git
+        run: |
+          mkdir -p "$RUNNER_TEMP/parallaxe-source"
+          git archive --format=tar.gz --output="$RUNNER_TEMP/parallaxe-source/PARALLAXE_sources.tar.gz" HEAD
+          git rev-parse HEAD > "$RUNNER_TEMP/parallaxe-source/COMMIT.txt"
+          cd "$RUNNER_TEMP/parallaxe-source"
+          sha256sum PARALLAXE_sources.tar.gz > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: parallaxe-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/parallaxe-source/
+          if-no-files-found: error
+          retention-days: 14
   game:
     name: Règles, scène, radio et édition portable
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -28,14 +53,28 @@ jobs:
         run: npm test
       - name: Vérifier les géométries et les changements de lieu
         run: npm run test:scene
+      - name: Vérifier le chalet et la voûte du métro
+        run: npm run test:cabin
+      - name: Vérifier les documents et les objets physiques d’inspection
+        run: npm run test:inspection
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
         run: npm run test:radio-ui
       - name: Vérifier les adresses radio et les identifiants TURN
         run: npm run test:radio-config
+      - name: Compiler le site et le Worker hébergés
+        run: npm run build
       - name: Compiler l’édition indépendante
         run: npm run build:local
-      - name: Exécuter deux clients contre le serveur portable
-        run: node tests/portable.test.mjs
-
+      - name: Construire les ZIP PC et sources de cette révision
+        run: npm run package:release
+      - name: Vérifier et lancer le paquet PC depuis son ZIP extrait
+        run: python3 tests/package-archive.test.py
+      - name: Publier les paquets testés et leurs empreintes
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallaxe-pc-lan-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: outputs/release-v*/
+          if-no-files-found: error
+          retention-days: 14
