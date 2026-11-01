@@ -65,6 +65,6 @@ for(const [name,headers,rows,widths] of spec){
  ws.tables.add(`A1:${last}${rows.length+1}`,true, "P9_"+name.replace(/[^A-Za-z]/g,""));
  ws.getRange(`A2:${last}2`).format.fill=colors.light;
 }
-const output=process.env.PARALLAXE_OPEN_XLSX||path.join(root,"docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx");
+const output=process.env.PARALLAXE_OPEN_XLSX||path.join(root,"docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx");
 await (await SpreadsheetFile.exportXlsx(wb)).save(output);
 console.log(JSON.stringify({output,rows:source.items.length,anomalies:source.compteurs.anomalies_concues,qa:source.items.filter(x=>x.domaine==="QA").length}));
