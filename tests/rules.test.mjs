@@ -37,6 +37,31 @@ test('100 unique catalog entries have valid location scopes and include relation
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));
 });
+test('runtime catalogue, 120 original concepts and 600-entry Excel tracker agree',async()=>{
+  const [runtime,design,tracker]=await Promise.all([
+    readFile(new URL('../docs/runtime-catalog.json',import.meta.url),'utf8').then(JSON.parse),
+    readFile(new URL('../docs/anomalies-design.json',import.meta.url),'utf8').then(JSON.parse),
+    readFile(new URL('../docs/parallaxe-open-work-20261101.json',import.meta.url),'utf8').then(JSON.parse),
+  ]);
+  const ids=ANOMALIES.map(a=>a.id),live=runtime.map(a=>a.id),concepts=design.anomalies.map(a=>a[0]);
+  assert.equal(new Set(ids).size,ids.length);
+  assert.equal(new Set(live).size,live.length);
+  assert.deepEqual([...live].sort(),[...ids].sort(),'The JSON runtime export must match the selectable code IDs');
+  assert.equal(new Set(concepts).size,120);
+  assert.ok(ids.every(id=>concepts.includes(id)),'Every live anomaly needs its original A/B design record');
+  assert.equal(tracker.compteurs.anomalies_runtime,ids.length);
+  assert.equal(tracker.compteurs.anomalies_non_implantees,concepts.length-ids.length);
+  assert.equal(tracker.items.length,tracker.compteurs.items_total);
+  const status=new Map(tracker.items.filter(item=>item.domaine==='Anomalies').map(item=>[item.id,item.statut_source]));
+  assert.equal(status.size,concepts.length);
+  for(const id of concepts) {
+    assert.ok(status.has(id),`Missing tracker item for ${id}`);
+    assert.equal(status.get(id),ids.includes(id)?'Implémenté — QA partielle':'Conçu — non implémenté',
+      `Excel implementation status disagrees with code for ${id}`);
+  }
+  assert.equal(tracker.lots.find(l=>l.id==='W08')?.domaine,`${concepts.length-ids.length} anomalies restant à intégrer`);
+});
+
 test('reference is clean, identical and not scored',()=>{
   const run=createRun({seed:'baseline',players:4});
   assert.equal(run.phase,'reference');
