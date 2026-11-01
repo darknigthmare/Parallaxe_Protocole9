@@ -33,7 +33,7 @@ function roomWithTwo(){
 
 test('98 unique catalog entries have valid location scopes and include relational clues',()=>{
   assert.equal(ANOMALIES.length,98);
-  assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,96);
+  assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,ANOMALIES.length);
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));
 });
@@ -72,7 +72,7 @@ test('every anomaly has a witness and a baseline observer for 2–4 players',()=
       assert.ok(Array.from({length:players},(_,s)=>getPersonalView(run,s).effects).some(e=>e.length===0));
     }
   }
-  assert.equal(seen.size,96);
+  assert.equal(seen.size,ANOMALIES.length);
 });
 test('nine correct consecutive decisions win; repeated calls cannot double-score',()=>{
   let run=createRun({seed:'winning',mode:'single'});
