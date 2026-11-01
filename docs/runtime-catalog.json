@@ -1481,5 +1481,33 @@
     "description": "Un panneau du tapis présente une branche tissée en diagonale qui coupe plusieurs losanges à un angle impossible.",
     "cooperation": "Comparez le motif devant la porte 903 et les losanges voisins, sans confondre ombre et trame.",
     "hint": "La rupture est inscrite dans le tissu ; elle ne dépend ni de la lampe ni du déplacement."
+  },
+  {
+    "id": "coat_without_body",
+    "title": "Le manteau de service",
+    "target": "coat",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le manteau bleu-gris de Saint-Clair est suspendu à son crochet ; les autres crochets restent visibles.",
+    "description": "Le même manteau se tient debout, vide, à distance du mur ; son crochet reste accroché au vestiaire.",
+    "cooperation": "Comparez la hauteur de l’ourlet, la distance au crochet et l’ouverture vide du col depuis le hall.",
+    "hint": "Un vêtement sans occupant quitte son crochet mais conserve ses manches et son col."
+  },
+  {
+    "id": "fire_extinguisher_full",
+    "title": "L’extincteur transparent",
+    "target": "extinguisher",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "L’extincteur mural possède une coque rouge opaque, une poignée noire et un tuyau fixe.",
+    "description": "La coque rouge devient translucide et révèle une brume claire en mouvement à l’intérieur.",
+    "cooperation": "Comparez la visibilité de la coque et le contenu du cylindre, sans toucher la poignée.",
+    "hint": "La brume confinée dans un appareil devenu transparent est une preuve visuelle."
   }
 ]

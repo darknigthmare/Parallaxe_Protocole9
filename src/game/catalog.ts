@@ -113,7 +113,7 @@ ANOMALIES.push(
 
 
 // 0.4.1 continuation: two original Saint-Clair cases with direct, reversible
-// client-only scene effects. The 22 other planned concepts remain unavailable.
+// client-only scene effects. The 20 other planned concepts remain unavailable.
 ANOMALIES.push(
   { id:'clock_stop_gaze', title:'L’heure observée', target:'clock', intensity:3, difficulty:2, levels:['hotel'],
     baseline:'La trotteuse de Saint-Clair avance en continu, même lorsque vous la regardez.',
@@ -125,6 +125,16 @@ ANOMALIES.push(
     description:'Un panneau du tapis présente une branche tissée en diagonale qui coupe plusieurs losanges à un angle impossible.',
     cooperation:'Comparez le motif devant la porte 903 et les losanges voisins, sans confondre ombre et trame.',
     hint:'La rupture est inscrite dans le tissu ; elle ne dépend ni de la lampe ni du déplacement.' },
+  { id:'coat_without_body', title:'Le manteau de service', target:'coat', intensity:3, difficulty:2, levels:['hotel'],
+    baseline:'Le manteau bleu-gris de Saint-Clair est suspendu à son crochet ; les autres crochets restent visibles.',
+    description:'Le même manteau se tient debout, vide, à distance du mur ; son crochet reste accroché au vestiaire.',
+    cooperation:'Comparez la hauteur de l’ourlet, la distance au crochet et l’ouverture vide du col depuis le hall.',
+    hint:'Un vêtement sans occupant quitte son crochet mais conserve ses manches et son col.' },
+  { id:'fire_extinguisher_full', title:'L’extincteur transparent', target:'extinguisher', intensity:3, difficulty:2, levels:['hotel'],
+    baseline:'L’extincteur mural possède une coque rouge opaque, une poignée noire et un tuyau fixe.',
+    description:'La coque rouge devient translucide et révèle une brume claire en mouvement à l’intérieur.',
+    cooperation:'Comparez la visibilité de la coque et le contenu du cylindre, sans toucher la poignée.',
+    hint:'La brume confinée dans un appareil devenu transparent est une preuve visuelle.' },
 );
 
 const SHARED_ORIGINAL=new Set(['red_light','blackout','shadow_figure','ceiling_eyes','floor_trail','exit_false','corridor_fog','relay_mismatch']);

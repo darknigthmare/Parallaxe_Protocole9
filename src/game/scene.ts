@@ -16,7 +16,7 @@ type InspectorTarget = { kind: 'self' | 'peer' | 'double'; id: string };
 type SceneTarget = { id: string; label: string; inspector?: InspectorTarget };
 export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string };
 export const SCENE_EFFECTS = [
-  'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'portrait_empty', 'door_number', 'door_open',
+  'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'coat_without_body', 'fire_extinguisher_full', 'portrait_empty', 'door_number', 'door_open',
   'plant_dead', 'plant_tall', 'trolley_missing', 'red_light', 'blackout', 'shadow_figure',
   'ceiling_eyes', 'floor_trail', 'exit_false', 'chair_float', 'mirror_stranger', 'phone_float',
   'window_watcher', 'wall_message', 'corridor_fog', 'carpet_wrong_weave', 'duplicate_chair', 'blood_handprint', 'missing_reflection', 'relay_mismatch',
@@ -330,6 +330,53 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   Object.assign(moon.shadow.camera, { left: -10, right: 10, top: 18, bottom: -18, near: .5, far: 45 });
   moon.shadow.bias = -.0005; moon.shadow.normalBias = .03; scene.add(moon, moon.target);
   moon.shadow.camera.layers.enable(1);
+
+
+  // Two new real, inspectable baseline props for the night-service hotel.
+  // Their dimensions, wall anchors and lighting remain identical for both
+  // observers. Only the private material/pose changes during an anomaly.
+  const coatRack = wallGroup(-1, 9.45);
+  box(.69, .12, .13, 0, 2.12, .10, mats.woodDark, coatRack);
+  for (const x of [-.24, 0, .24]) sphere(.039, x, 2.08, .22, mats.brass, coatRack, 16);
+  const coatShell = new THREE.Group(); coatRack.add(coatShell);
+  coatShell.name = 'Saint-Clair — manteau de service';
+  const coatFabric = new THREE.MeshStandardMaterial({ color: 0x4b6060, roughness: .94, side: THREE.DoubleSide });
+  cylinder(.27, .88, 0, -.02, 0, coatFabric, coatShell, .20, 28);
+  for (const side of [-1, 1]) {
+    const sleeve = box(.19, .65, .26, side * .27, -.02, .03, coatFabric, coatShell, .035);
+    sleeve.rotation.z = side * .16;
+    box(.22, .035, .23, side * .27, -.34, .03, mats.woodDark, coatShell);
+  }
+  const coatCollar = torus(.15, .025, 0, .46, 0, mats.darkMetal, coatShell);
+  coatCollar.rotation.x = Math.PI / 2;
+  box(.075, .11, .17, 0, .49, -.09, mats.cream, coatShell);
+  tag(coatRack, 'coat', 'Manteau suspendu au vestiaire');
+  coatShell.position.set(0, 1.49, .27);
+
+  const safetyRack = wallGroup(1, 7.30);
+  safetyRack.name = 'Saint-Clair — extincteur de sécurité';
+  box(.43, 1.03, .06, 0, 1.35, .075, mats.darkMetal, safetyRack);
+  box(.40, .08, .15, 0, .84, .11, mats.brass, safetyRack);
+  const fireRed = new THREE.MeshStandardMaterial({ color: 0xb33222, roughness: .31, metalness: .49 });
+  const fireClear = new THREE.MeshPhysicalMaterial({ color: 0xe0c9b1, roughness: .12, metalness: .12,
+    transparent: true, opacity: .23, depthWrite: false, side: THREE.DoubleSide });
+  const fireBody = cylinder(.12, .62, 0, 1.30, .28, fireRed, safetyRack, .105, 36);
+  fireBody.name = 'Saint-Clair — corps de l’extincteur';
+  cylinder(.044, .11, 0, 1.67, .28, mats.darkMetal, safetyRack, .044, 24);
+  box(.24, .055, .095, .055, 1.72, .28, mats.darkMetal, safetyRack, .018);
+  const fireHose = torus(.14, .019, -.16, 1.57, .29, mats.darkMetal, safetyRack);
+  fireHose.rotation.y = Math.PI / 2;
+  const fireMist = new THREE.Group();
+  safetyRack.add(fireMist); anomaly('fire_extinguisher_full', fireMist);
+  fireMist.name = 'Saint-Clair — brume captive';
+  const mistMat = new THREE.MeshStandardMaterial({ color: 0xcadad2, emissive: 0x57746b, emissiveIntensity: .20,
+    transparent: true, opacity: .27, depthWrite: false });
+  for (let i = 0; i < 7; i++) {
+    const t = i * 2.399, radius = .025 + .018 * (i % 2);
+    const vapour = sphere(radius, Math.cos(t) * .048, 1.05 + i * .069, .28 + Math.sin(t) * .04, mistMat, fireMist, 16);
+    vapour.scale.set(1.2, 1.6, .9);
+  }
+  tag(safetyRack, 'extinguisher', 'Extincteur de sécurité du service');
 
   // Four fully modelled inspection doors.
   const doorLeaves: THREE.Group[] = [];
@@ -892,6 +939,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     updateEnvironment(elapsed - environmentStarted);
     updateWitnessVisibility();
     clockBody.visible = !effects.has('clock_missing');
+    // Rest pose must be restored even when the previous turn ended mid-effect.
+    coatShell.position.set(0, effects.has('coat_without_body') ? .68 : 1.49,
+      effects.has('coat_without_body') ? .81 : .27);
+    coatShell.rotation.y = 0; coatShell.rotation.z = 0;
+    fireBody.material = effects.has('fire_extinguisher_full') ? fireClear : fireRed;
     (paintingCanvas.material as THREE.MeshStandardMaterial).map = effects.has('portrait_empty') ? portraitEmpty : portraitNormal;
     doorNumberMaterials.forEach((material, i) => { material.map = i === 0 && effects.has('door_number') ? wrongNumberMap : doorNumberMaps[i]; material.emissiveMap = material.map; });
     doorLeaves.forEach((leaf, i) => { leaf.rotation.y = i === 0 && effects.has('door_open') ? -1.12 : 0; });
@@ -1042,6 +1094,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       && clockLookDirection.dot(clockDistance.normalize()) > .985;
     if (!effects.has('clock_stop_gaze') || !gazeOnClock) clockMotionTime += dt;
     secondHand.rotation.z = (effects.has('clock_reverse') ? 1 : -1) * (clockMotionTime % 60) / 60 * Math.PI * 2;
+    if (effects.has('coat_without_body')) coatShell.rotation.y = Math.sin(elapsed * .55) * .035;
+    if (effects.has('fire_extinguisher_full')) fireMist.rotation.y = elapsed * .32;
     if (effects.has('chair_float')) { floatingChair.position.y = .70 + Math.sin(elapsed * 1.65) * .07; floatingChair.rotation.z = Math.sin(elapsed * .73) * .025; }
     if (effects.has('phone_float')) { phoneReceiver.position.y = .60 + Math.sin(elapsed * 2) * .035; phoneReceiver.rotation.z = Math.sin(elapsed) * .12; }
     if (effects.has('luggage_breath')) { const breath = Math.sin(elapsed * 1.3); luggage.scale.set(1 + breath * .075, 1 + breath * .11, 1 + breath * .075); }
@@ -1142,6 +1196,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     for (const location of Object.values(extraWorlds)) { scene.remove(location.root); location.dispose(); }
     const geometries = new Set<THREE.BufferGeometry>(); const materials = new Set<THREE.Material>();
     scene.traverse(obj => { const m = obj as THREE.Mesh; if (m.geometry) geometries.add(m.geometry); if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach(mat => materials.add(mat)); });
+    // Both interchangeable shell materials belong to the scene lifecycle,
+    // including the one not currently attached to the cylinder.
+    materials.add(fireRed); materials.add(fireClear);
     geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); textures.forEach(t => t.dispose());
     mirror.getRenderTarget().dispose(); hotelWindowGlass.getRenderTarget().dispose(); environmentTarget.dispose(); renderer.dispose();
   }

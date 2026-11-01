@@ -246,6 +246,36 @@ try {
     game.setActive(false);
   });
 
+  check('coat shifts from a real hook to an unoccupied standing garment only in affected view', () => {
+    const coat = scene.getObjectByName('Saint-Clair — manteau de service');
+    assert.ok(coat);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'reference' });
+    const suspendedHeight = coat.position.y;
+    assert.ok(suspendedHeight > 1.4);
+    game.setView({ effects: ['coat_without_body'], levelId: 'hotel', phase: 'inspect' });
+    assert.ok(coat.position.y < suspendedHeight - .6);
+    assert.ok(coat.position.z > .7);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'inspect' });
+    assert.equal(coat.position.y, suspendedHeight);
+    assert.equal(coat.position.z, .27);
+  });
+
+  check('fire-extinguisher shell remains in place and restores its opaque material after a round', () => {
+    const body = scene.getObjectByName('Saint-Clair — corps de l’extincteur');
+    const mist = scene.getObjectByName('Saint-Clair — brume captive');
+    assert.ok(body && mist);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'reference' });
+    const opaque = body.material;
+    assert.equal(body.material.transparent, false);
+    assert.equal(mist.visible, false);
+    game.setView({ effects: ['fire_extinguisher_full'], levelId: 'hotel', phase: 'inspect' });
+    assert.equal(body.material.transparent, true);
+    assert.equal(mist.visible, true);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'inspect' });
+    assert.equal(body.material, opaque);
+    assert.equal(mist.visible, false);
+  });
+
   check('relay values are legible text inputs, stable on repeat, and previous textures disposed', () => {
     const display = allObjects.find(object => object.material?.map?.image?.__text?.includes('RELAIS'));
     assert.ok(display);
@@ -286,6 +316,9 @@ try {
     const cases = {
       clock_reverse: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       clock_missing: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
+      clock_stop_gaze: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
+      coat_without_body: [[-2.1, 9.45], [-3.35, 1.6, 9.45], 'coat'],
+      fire_extinguisher_full: [[2.1, 7.30], [3.35, 1.32, 7.30], 'extinguisher'],
       portrait_eyes: [[-1.8, 5.15], [-3.45, 2.06, 5.15], 'portrait'],
       portrait_empty: [[-1.8, 5.15], [-3.45, 2.06, 5.15], 'portrait'],
       door_number: [[-1.8, 0], [-3.45, 2.31, 0], 'door'],
