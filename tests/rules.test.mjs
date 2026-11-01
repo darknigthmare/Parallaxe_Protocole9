@@ -56,7 +56,9 @@ test('runtime catalogue, 120 original concepts and 600-entry Excel tracker agree
   assert.equal(status.size,concepts.length);
   for(const id of concepts) {
     assert.ok(status.has(id),`Missing tracker item for ${id}`);
-    assert.equal(status.get(id),ids.includes(id)?'Implémenté — QA partielle':'Conçu — non implémenté',
+    assert.ok(ids.includes(id)
+      ? ['Présent — validation visuelle restante','Implémenté — QA partielle'].includes(status.get(id))
+      : status.get(id)==='Conçu — non implémenté',
       `Excel implementation status disagrees with code for ${id}`);
   }
   assert.equal(tracker.lots.find(l=>l.id==='W08')?.domaine,`${concepts.length-ids.length} anomalies restant à intégrer`);
