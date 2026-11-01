@@ -318,7 +318,7 @@ try {
       clock_missing: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       clock_stop_gaze: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       coat_without_body: [[-2.1, 9.45], [-2.82, .75, 9.45], 'coat'],
-      fire_extinguisher_full: [[2.1, 7.30], [3.35, 1.32, 7.30], 'extinguisher'],
+      fire_extinguisher_full: [[1.0, 7.30], [3.35, 1.32, 7.30], 'extinguisher'],
       portrait_eyes: [[-1.8, 5.15], [-3.45, 2.06, 5.15], 'portrait'],
       portrait_empty: [[-1.8, 5.15], [-3.45, 2.06, 5.15], 'portrait'],
       door_number: [[-1.8, 0], [-3.45, 2.31, 0], 'door'],
