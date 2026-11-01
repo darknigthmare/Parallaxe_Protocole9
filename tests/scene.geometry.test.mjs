@@ -233,9 +233,13 @@ try {
     game.setPose({ x: 1.8, z: -5.65, yaw: -Math.PI / 2, pitch: Math.atan2(2.43 - 1.67, 3.62 - 1.8) });
     game.setInput({ forward: 0, strafe: 0 });
     game.update(.05);
+    const beforeGaze = hand.rotation.z;
+    for (let i = 0; i < 10; i++) game.update(.05);
+    assert.notEqual(hand.rotation.z, beforeGaze, 'A short glance should not freeze the clock');
+    for (let i = 0; i < 35; i++) game.update(.05);
     const frozen = hand.rotation.z;
     game.update(.05);
-    assert.equal(hand.rotation.z, frozen, 'Clock hand must stop while watched');
+    assert.equal(hand.rotation.z, frozen, 'Clock freezes only after two seconds of direct observation');
     game.setPose({ yaw: 0, pitch: 0 });
     game.update(.05);
     assert.notEqual(hand.rotation.z, frozen, 'Turning away releases the clock');
