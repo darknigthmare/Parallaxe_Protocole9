@@ -12,7 +12,8 @@ from xml.etree import ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 SOURCE = DOCS / "parallaxe-open-work-20261101.json"
-EXCEL = DOCS / "PARALLAXE_Registre_Ouverts_2026-11-01.xlsx"
+EXCEL = DOCS / "PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx"
+INITIAL_XLSX = DOCS / "PARALLAXE_Registre_Ouverts_2026-11-01.xlsx"
 NS = {"x": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
 EXPECTED_SHEETS = ["Synthèse", "Lots prioritaires", "Registre ouvert", "Anomalies", "Recette QA", "Sources"]
 ORIGINALS = [
@@ -52,6 +53,16 @@ def inspect_xlsx(path: Path, min_rows: dict[str, int]) -> dict[str, int]:
             assert_true(rows and len(rows[0].findall("x:c", NS)) > 1, f"En-tête manquant: {name}")
             if i > 1:
                 assert_true(xml.find("x:autoFilter", NS) is not None, f"Filtre absent: {name}")
+        summary = ET.fromstring(archive.read("xl/worksheets/sheet1.xml"))
+        values = {}
+        for cell in summary.findall("./x:sheetData/x:row/x:c", NS):
+            address = cell.attrib.get("r")
+            value = cell.find("x:v", NS)
+            if value is not None:
+                values[address] = value.text
+        assert_true(values.get("B8") == "100", "Synthèse XLSX: 100 anomalies runtime attendues")
+        assert_true(values.get("B9") == "20", "Synthèse XLSX: 20 anomalies non intégrées attendues")
+        assert_true(values.get("B7") == "120", "Synthèse XLSX: 120 concepts attendus")
         return counts
 
 
@@ -71,11 +82,24 @@ def main() -> None:
     domains = Counter(x["domaine"] for x in items)
     assert_true(domains["Anomalies"] == 120, "Les anomalies ne sont pas toutes présentes")
     assert_true(domains["QA"] == 124, "Le nombre de recettes QA ouvertes a changé")
-    assert_true(source["compteurs"]["anomalies_runtime"] == 96, "Écart avec le runtime d'origine")
-    assert_true(source["compteurs"]["anomalies_non_implantees"] == 24, "24 anomalies à traiter attendues")
+    runtime = json.loads((DOCS / "runtime-catalog.json").read_text(encoding="utf8"))
+    design = json.loads((DOCS / "anomalies-design.json").read_text(encoding="utf8"))
+    runtime_ids = [item["id"] for item in runtime]
+    design_ids = [item[0] for item in design["anomalies"]]
+    assert_true(len(set(runtime_ids)) == len(runtime_ids), "ID runtime dupliqué")
+    assert_true(len(set(design_ids)) == len(design_ids), "ID conception dupliqué")
+    assert_true(set(runtime_ids).issubset(set(design_ids)), "Anomalie runtime sans fiche de conception")
+    assert_true(len(runtime_ids) == source["compteurs"]["anomalies_runtime"] == 100, "100 anomalies runtime attendues")
+    assert_true(len(design_ids) == 120 and len(design_ids)-len(runtime_ids) == source["compteurs"]["anomalies_non_implantees"] == 20, "20 concepts non implémentés attendus")
+    tracked = {item["id"]: item for item in items if item["domaine"] == "Anomalies"}
+    assert_true(set(tracked) == set(design_ids), "Registre d'anomalies non synchronisé")
+    for ident in ("clock_stop_gaze", "carpet_wrong_weave", "coat_without_body", "fire_extinguisher_full"):
+        assert_true(tracked[ident]["statut_source"] == "Implémenté — QA partielle", f"Statut non actualisé : {ident}")
     for original in ORIGINALS:
         assert_true((DOCS / original).is_file(), f"Classeur historique absent: {original}")
-    expected = {"Synthèse":17, "Lots prioritaires":29, "Registre ouvert":601, "Anomalies":121, "Recette QA":125, "Sources":13}
+    assert_true(INITIAL_XLSX.is_file(), "Première photographie Excel 96/24 manquante")
+    assert_true(source["classeur_courant"] == "docs/" + EXCEL.name, "Chemin du classeur actuel incohérent")
+    expected = {"Synthèse":18, "Lots prioritaires":29, "Registre ouvert":601, "Anomalies":121, "Recette QA":125, "Sources":14}
     rows = inspect_xlsx(EXCEL, expected)
     print(json.dumps({"result": "PASS - contrôle structurel seulement", "source":str(SOURCE.relative_to(ROOT)), "xlsx":str(EXCEL.relative_to(ROOT)), "rows":rows, "lots":len(lots), "items":len(items), "qa":domains["QA"], "anomalies":domains["Anomalies"], "limits":"Aucune recette GPU, micro, TURN ou formule recalculée en application Excel n'est revendiquée"},ensure_ascii=False))
 
