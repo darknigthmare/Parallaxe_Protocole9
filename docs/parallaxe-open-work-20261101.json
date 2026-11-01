@@ -49,8 +49,8 @@
   "compteurs": {
     "conception_ouverts": 446,
     "anomalies_concues": 120,
-    "anomalies_runtime": 96,
-    "anomalies_non_implantees": 24,
+    "anomalies_runtime": 100,
+    "anomalies_non_implantees": 20,
     "session_ouverts": 9,
     "radio_ouverts": 8,
     "items_total": 600,
@@ -60,7 +60,9 @@
     "Ne pas assimiler Présent et Implémenté — QA partielle à Validé.",
     "Conserver les classeurs historiques tant que leur édition correcte n'est pas régénérée.",
     "Tests CPU / CI ne remplacent ni preuve GPU ni essai audio/voix physique.",
-    "Ne pas modifier le catalogue runtime en mettant à jour le seul registre."
+    "Ne pas modifier le catalogue runtime en mettant à jour le seul registre.",
+    "Le classeur initial (96/24) est un instantané historique ; le classeur _v2 (100/20) est la version actualisée du registre. Les deux restent conservés.",
+    "Pour les nouvelles anomalies, « Implémenté — QA partielle » exige toujours une réception GPU et multijoueur réel avant clôture."
   ],
   "lots": [
     {
@@ -136,11 +138,11 @@
     {
       "id": "W08",
       "priorite": "P1",
-      "domaine": "24 anomalies planifiées",
-      "action": "Prioriser puis intégrer les 24 cas encore hors catalogue runtime",
+      "domaine": "20 anomalies restant à intégrer",
+      "action": "Intégrer les 20 concepts de la conception encore absents du catalogue runtime en respectant leur référence normale, A/B et implantation géographique",
       "criteres": "Chaque case nouvellement jouable seulement après ajout moteur + lieux + tests de comparaison, sans marketing fictif",
       "preuve": "PR code par lot, baseline/QA, table d'identifiants",
-      "liens": "P51,24 fiches conçues",
+      "liens": "P51 ; 20 fiches design restantes ; 4 cas intégrés dans cette PR",
       "etat": "À traiter / vérifier"
     },
     {
@@ -8190,13 +8192,13 @@
       "domaine": "Anomalies",
       "id": "clock_stop_gaze",
       "nom": "L’heure observée",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet clock_stop_gaze dans le moteur et son lieu compatible (Horloge) ; prévoir Détection d’angle et de visibilité.",
-      "critere": "Référence : L’horloge avance même quand on la regarde. | A : L’aiguille s’immobilise sous son regard. | B : L’aiguille poursuit sa course. | comparaison : Alterner regard direct et description du témoin. | réussite : Un arrêt déclenché par le regard est anormal.",
-      "details": "Famille Temps ; intensité 2 ; déclenchement Fixer le cadran pendant deux secondes. ; équité Le mouvement reprend lentement et reste observable sans réflexe.",
-      "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter sur GPU et avec 2 à 4 témoins le cas clock_stop_gaze à Saint-Clair, vérifier référence, perception privée, disparition de l'effet au tour suivant et absence de masque d'autres objets. L'effet est désormais implémenté dans src/game/catalog.ts et src/game/scene.ts.",
+      "critere": "Référence runtime : La trotteuse de Saint-Clair avance en continu, même lorsque vous la regardez. | Cas : La trotteuse se fige uniquement tant que le témoin fixe le cadran. | Coop : Observez trois battements en fixant le cadran, puis détournez les yeux ; faites comparer le mouvement normal par un collègue. | Critère original : Un arrêt déclenché par le regard est anormal.",
+      "details": "Dernier code testé : 611093ba (CI verte avant ajustement de la temporisation du regard). Référence originale : L’horloge avance même quand on la regarde. ; équité : Le mouvement reprend lentement et reste observable sans réflexe.. Validation écran GPU, audio et multijoueur réel non réalisée.",
+      "verification": "npm run test:scene ; npm test ; captures référence/affecté de Saint-Clair sur GPU ; 2 clients pour comparaison",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -8542,13 +8544,13 @@
       "domaine": "Anomalies",
       "id": "coat_without_body",
       "nom": "Le manteau de service",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet coat_without_body dans le moteur et son lieu compatible (Vestiaire) ; prévoir Maillage de manteau et animation lente.",
-      "critere": "Référence : Un manteau est suspendu à son crochet. | A : Le manteau se tient debout, vide. | B : Il reste suspendu. | comparaison : Comparer les épaules, le crochet et le contact au sol. | réussite : Le vêtement autonome est anormal.",
-      "details": "Famille Entité ; intensité 3 ; déclenchement À l’entrée du tour. ; équité Aucun déplacement de collision qui enferme les joueurs.",
-      "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter sur GPU et avec 2 à 4 témoins le cas coat_without_body à Saint-Clair, vérifier référence, perception privée, disparition de l'effet au tour suivant et absence de masque d'autres objets. L'effet est désormais implémenté dans src/game/catalog.ts et src/game/scene.ts.",
+      "critere": "Référence runtime : Le manteau bleu-gris de Saint-Clair est suspendu à son crochet ; les autres crochets restent visibles. | Cas : Le même manteau se tient debout, vide, à distance du mur ; son crochet reste accroché au vestiaire. | Coop : Comparez la hauteur de l’ourlet, la distance au crochet et l’ouverture vide du col depuis le hall. | Critère original : Le vêtement autonome est anormal.",
+      "details": "Dernier code testé : 611093ba (CI verte avant ajustement de la temporisation du regard). Référence originale : Un manteau est suspendu à son crochet. ; équité : Aucun déplacement de collision qui enferme les joueurs.. Validation écran GPU, audio et multijoueur réel non réalisée.",
+      "verification": "npm run test:scene ; npm test ; captures référence/affecté de Saint-Clair sur GPU ; 2 clients pour comparaison",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -8654,13 +8656,13 @@
       "domaine": "Anomalies",
       "id": "carpet_wrong_weave",
       "nom": "Le motif qui déraille",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet carpet_wrong_weave dans le moteur et son lieu compatible (Sol) ; prévoir Tapis original, variante de texture.",
-      "critere": "Référence : Les lignes du tapis convergent régulièrement vers l’issue. | A : Un segment du motif traverse les autres à angle impossible. | B : Le motif reste continu. | comparaison : Suivre une ligne entre deux joints. | réussite : Une discontinuité qui n’existe pas en référence confirme.",
-      "details": "Famille Trace ; intensité 1 ; déclenchement À l’entrée du tour. ; équité Pas de dépendance à une fréquence trop fine ou au moiré.",
-      "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter sur GPU et avec 2 à 4 témoins le cas carpet_wrong_weave à Saint-Clair, vérifier référence, perception privée, disparition de l'effet au tour suivant et absence de masque d'autres objets. L'effet est désormais implémenté dans src/game/catalog.ts et src/game/scene.ts.",
+      "critere": "Référence runtime : Le tapis central répète une trame de losanges réguliers sur toute sa longueur. | Cas : Un panneau du tapis présente une branche tissée en diagonale qui coupe plusieurs losanges à un angle impossible. | Coop : Comparez le motif devant la porte 903 et les losanges voisins, sans confondre ombre et trame. | Critère original : Une discontinuité qui n’existe pas en référence confirme.",
+      "details": "Dernier code testé : 611093ba (CI verte avant ajustement de la temporisation du regard). Référence originale : Les lignes du tapis convergent régulièrement vers l’issue. ; équité : Pas de dépendance à une fréquence trop fine ou au moiré.. Validation écran GPU, audio et multijoueur réel non réalisée.",
+      "verification": "npm run test:scene ; npm test ; captures référence/affecté de Saint-Clair sur GPU ; 2 clients pour comparaison",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -8670,13 +8672,13 @@
       "domaine": "Anomalies",
       "id": "fire_extinguisher_full",
       "nom": "L’extincteur transparent",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet fire_extinguisher_full dans le moteur et son lieu compatible (Sécurité) ; prévoir Extincteur détaillé, volume intérieur.",
-      "critere": "Référence : L’extincteur possède une coque opaque. | A : La coque devient transparente et contient une brume mouvante. | B : La coque demeure opaque. | comparaison : Décrire la silhouette et ce qui est visible à l’intérieur. | réussite : Une matière transformée confirme.",
-      "details": "Famille Physique ; intensité 3 ; déclenchement Approche de l’équipement. ; équité Version simplifiée avec fenêtre opaque lisible en basse qualité.",
-      "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter sur GPU et avec 2 à 4 témoins le cas fire_extinguisher_full à Saint-Clair, vérifier référence, perception privée, disparition de l'effet au tour suivant et absence de masque d'autres objets. L'effet est désormais implémenté dans src/game/catalog.ts et src/game/scene.ts.",
+      "critere": "Référence runtime : L’extincteur mural possède une coque rouge opaque, une poignée noire et un tuyau fixe. | Cas : La coque rouge devient translucide et révèle une brume claire en mouvement à l’intérieur. | Coop : Comparez la visibilité de la coque et le contenu du cylindre, sans toucher la poignée. | Critère original : Une matière transformée confirme.",
+      "details": "Dernier code testé : 611093ba (CI verte avant ajustement de la temporisation du regard). Référence originale : L’extincteur possède une coque opaque. ; équité : Version simplifiée avec fenêtre opaque lisible en basse qualité.. Validation écran GPU, audio et multijoueur réel non réalisée.",
+      "verification": "npm run test:scene ; npm test ; captures référence/affecté de Saint-Clair sur GPU ; 2 clients pour comparaison",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -9945,5 +9947,15 @@
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
-  ]
+  ],
+  "version_suivi": "v2 / 100-anomalies",
+  "snapshot_initial": {
+    "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
+    "runtime_at_creation": 96,
+    "planned_at_creation": 24,
+    "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
+  },
+  "classeur_courant": "docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx",
+  "source_revision": "continuation/excel-ouverts-20261101",
+  "date_revision": "2026-11-01"
 }
