@@ -208,6 +208,44 @@ try {
     }
   });
 
+  check('new carpet proof stays local, has no collision and restores normal appearance', () => {
+    const patch = scene.getObjectByName('Saint-Clair — trame impossible');
+    assert.ok(patch, 'One unique carpet patch must be present in the scene');
+    game.setView({ effects: [], phase: 'inspect', levelId: 'hotel' });
+    assert.equal(patch.visible, false);
+    game.setView({ effects: ['carpet_wrong_weave'], phase: 'inspect', levelId: 'hotel' });
+    assert.equal(patch.visible, true);
+    game.setActive(true);
+    game.setPose({ x: 0, z: -5.25, yaw: 0, pitch: 0 });
+    game.setInput({ forward: 1, strafe: 0 });
+    const z = game.getPose().z; game.update(.05);
+    assert.notEqual(game.getPose().z, z, 'The woven visual change must not add a collision');
+    game.setInput({ forward: 0, strafe: 0 });
+    game.setView({ effects: [], phase: 'inspect', levelId: 'hotel' });
+    assert.equal(patch.visible, false, 'The next player and round get the correct rug');
+  });
+
+  check('clock stops only during the private witness gaze and resumes after turning away', () => {
+    const hand = scene.getObjectByName('Saint-Clair — trotteuse');
+    assert.ok(hand, 'Second hand of normal clock is modelled');
+    game.setView({ effects: ['clock_stop_gaze'], phase: 'inspect', levelId: 'hotel', loop: 29 });
+    game.setActive(true);
+    game.setPose({ x: 1.8, z: -5.65, yaw: -Math.PI / 2, pitch: Math.atan2(2.43 - 1.67, 3.62 - 1.8) });
+    game.setInput({ forward: 0, strafe: 0 });
+    game.update(.05);
+    const frozen = hand.rotation.z;
+    game.update(.05);
+    assert.equal(hand.rotation.z, frozen, 'Clock hand must stop while watched');
+    game.setPose({ yaw: 0, pitch: 0 });
+    game.update(.05);
+    assert.notEqual(hand.rotation.z, frozen, 'Turning away releases the clock');
+    game.setView({ effects: [], phase: 'reference', levelId: 'hotel', loop: 29 });
+    const before = hand.rotation.z;
+    game.update(.05);
+    assert.notEqual(hand.rotation.z, before, 'Clock must not stay frozen after the reference reset');
+    game.setActive(false);
+  });
+
   check('relay values are legible text inputs, stable on repeat, and previous textures disposed', () => {
     const display = allObjects.find(object => object.material?.map?.image?.__text?.includes('RELAIS'));
     assert.ok(display);

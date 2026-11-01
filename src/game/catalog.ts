@@ -111,6 +111,22 @@ ANOMALIES.push(
   {"id":"guest_tally","title":"Le compte des occupants","target":"occupancy","intensity":3,"difficulty":3,"levels":["hotel"],"baseline":"L’afficheur R9 PRÉSENTS correspond au nombre de membres présents, soit un inspecteur en entraînement solo.","description":"L’afficheur R9 ajoute un occupant au nombre réellement présent, sans changer le compteur de connexion.","cooperation":"Comparez le chiffre du panneau avec les membres présents au même moment.","hint":"Le témoin fictif du registre solo ne compte pas comme inspecteur présent."}
 );
 
+
+// 0.4.1 continuation: two original Saint-Clair cases with direct, reversible
+// client-only scene effects. The 22 other planned concepts remain unavailable.
+ANOMALIES.push(
+  { id:'clock_stop_gaze', title:'L’heure observée', target:'clock', intensity:3, difficulty:2, levels:['hotel'],
+    baseline:'La trotteuse de Saint-Clair avance en continu, même lorsque vous la regardez.',
+    description:'La trotteuse se fige uniquement tant que le témoin fixe le cadran.',
+    cooperation:'Observez trois battements en fixant le cadran, puis détournez les yeux ; faites comparer le mouvement normal par un collègue.',
+    hint:'La trotteuse cesse d’avancer sous le regard, puis reprend en détournant la tête.' },
+  { id:'carpet_wrong_weave', title:'Le motif qui déraille', target:'floor', intensity:2, difficulty:2, levels:['hotel'],
+    baseline:'Le tapis central répète une trame de losanges réguliers sur toute sa longueur.',
+    description:'Un panneau du tapis présente une branche tissée en diagonale qui coupe plusieurs losanges à un angle impossible.',
+    cooperation:'Comparez le motif devant la porte 903 et les losanges voisins, sans confondre ombre et trame.',
+    hint:'La rupture est inscrite dans le tissu ; elle ne dépend ni de la lampe ni du déplacement.' },
+);
+
 const SHARED_ORIGINAL=new Set(['red_light','blackout','shadow_figure','ceiling_eyes','floor_trail','exit_false','corridor_fog','relay_mismatch']);
 ANOMALIES.forEach((entry,index)=>{if(!entry.levels)entry.levels=index<25&&!SHARED_ORIGINAL.has(entry.id)?['hotel']:['hotel','metro','clinic'];});
 // Only effects with a compatible physical or radio proof are selectable in the chalet.

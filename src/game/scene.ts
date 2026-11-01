@@ -16,10 +16,10 @@ type InspectorTarget = { kind: 'self' | 'peer' | 'double'; id: string };
 type SceneTarget = { id: string; label: string; inspector?: InspectorTarget };
 export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string };
 export const SCENE_EFFECTS = [
-  'clock_reverse', 'clock_missing', 'portrait_eyes', 'portrait_empty', 'door_number', 'door_open',
+  'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'portrait_empty', 'door_number', 'door_open',
   'plant_dead', 'plant_tall', 'trolley_missing', 'red_light', 'blackout', 'shadow_figure',
   'ceiling_eyes', 'floor_trail', 'exit_false', 'chair_float', 'mirror_stranger', 'phone_float',
-  'window_watcher', 'wall_message', 'corridor_fog', 'duplicate_chair', 'blood_handprint', 'missing_reflection', 'relay_mismatch',
+  'window_watcher', 'wall_message', 'corridor_fog', 'carpet_wrong_weave', 'duplicate_chair', 'blood_handprint', 'missing_reflection', 'relay_mismatch',
   'reflection_delay', 'reflection_absent', 'reflection_independent', 'avatar_mannequin', 'avatar_double', 'avatar_shadow', 'radio_signal',
   'metro_train', 'metro_destination', 'metro_signal', 'metro_tracks', 'clinic_bed', 'clinic_monitor', 'clinic_curtain', 'clinic_wheelchair',
   'ceiling_lower', 'wall_pulse', 'luggage_breath', 'curtain_breath', 'clinic_bed_count', 'metro_shadow_train', 'paired_arrow', 'paired_clock',
@@ -264,6 +264,36 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const runner = mesh(new THREE.PlaneGeometry(2.6, 25.7), new THREE.MeshStandardMaterial({ map: rugMap, roughness: .99 }));
   runner.rotation.x = -Math.PI / 2; runner.position.set(0, .006, -1.2);
   tag(runner, 'floor', 'Le tapis et le sol');
+  // A local woven insert: one section crosses the otherwise regular runner's
+  // diamond repeat at an impossible angle. The anomaly never changes collision.
+  const falseWeaveMap = texture((ctx, s) => {
+    const rand = seeded(731);
+    ctx.fillStyle = '#343f37'; ctx.fillRect(0, 0, s, s);
+    ctx.strokeStyle = 'rgba(163,149,100,.24)'; ctx.lineWidth = 2.2;
+    for (let y = -40; y < s + 40; y += 64) for (let x = 32; x < s + 40; x += 64) {
+      ctx.beginPath(); ctx.moveTo(x, y - 24); ctx.lineTo(x + 16, y);
+      ctx.lineTo(x, y + 24); ctx.lineTo(x - 16, y); ctx.closePath(); ctx.stroke();
+    }
+    // A visibly torn diagonal branch joins diamond centres in the wrong axis.
+    ctx.strokeStyle = '#b3a175'; ctx.lineWidth = 8; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-20, s * .78); ctx.lineTo(s * .27, s * .50);
+    ctx.lineTo(s * .73, s * .30); ctx.lineTo(s + 20, s * .07); ctx.stroke();
+    ctx.strokeStyle = '#272d26'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(-20, s * .81); ctx.lineTo(s * .27, s * .53);
+    ctx.lineTo(s * .73, s * .33); ctx.lineTo(s + 20, s * .10); ctx.stroke();
+    for (let i = 0; i < 8000; i++) {
+      ctx.fillStyle = rand() > .5 ? 'rgba(210,210,190,.075)' : 'rgba(0,0,0,.075)';
+      ctx.fillRect(rand() * s, rand() * s, 1, 3);
+    }
+  });
+  const falseWeave = new THREE.Group();
+  falseWeave.name = 'Saint-Clair — trame impossible';
+  world.add(falseWeave); anomaly('carpet_wrong_weave', falseWeave);
+  const falseWeavePatch = mesh(new THREE.PlaneGeometry(1.24, 1.24),
+    new THREE.MeshStandardMaterial({ map: falseWeaveMap, roughness: .99 }), falseWeave);
+  falseWeavePatch.rotation.x = -Math.PI / 2;
+  falseWeavePatch.position.set(0, .011, -5.25);
+  falseWeavePatch.castShadow = false;
   box(.22, 3.6, 28.4, -3.85, 1.8, -2, mats.wall);
   box(.22, 3.6, 28.4, 3.85, 1.8, -2, mats.wall);
   box(7.8, .16, 28.4, 0, 3.6, -2, mats.stone);
@@ -523,6 +553,12 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const minuteHand = new THREE.Group(); clockBody.add(minuteHand); minuteHand.position.z = .13;
   box(.015, .29, .009, 0, .11, 0, mats.darkMetal, minuteHand, .003); minuteHand.rotation.z = -9 / 60 * Math.PI * 2;
   const secondHand = new THREE.Group(); clockBody.add(secondHand); secondHand.position.z = .14;
+  secondHand.name = 'Saint-Clair — trotteuse';
+  // Per-observer view state only: pause the hand while the camera faces the
+  // clock; do not feed camera gaze or effect information into shared room state.
+  let clockMotionTime = 0;
+  const clockWorldPoint = new THREE.Vector3();
+  const clockLookDirection = new THREE.Vector3();
   box(.006, .34, .008, 0, .10, 0, new THREE.MeshStandardMaterial({ color: 0x6f3026 }), secondHand);
   sphere(.027, 0, 0, .155, mats.brass, clockBody, 24);
   tag(clock, 'clock', 'Horloge — 03 h 09');
@@ -843,7 +879,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     const nextLevel = isLevelId(view.levelId) ? view.levelId : levelId;
     if (nextLevel !== levelId) { levelId = nextLevel; pose.x = 0; pose.z = 9; pose.yaw = 0; pose.pitch = 0; poseHistory.length = 0; }
     const nextEnvironmentKey = `${levelId}:${phase}:${loop}:${[...effects].sort().join(',')}`;
-    if (nextEnvironmentKey !== environmentKey) { environmentKey = nextEnvironmentKey; environmentStarted = elapsed; }
+    if (nextEnvironmentKey !== environmentKey) {
+      environmentKey = nextEnvironmentKey; environmentStarted = elapsed;
+      // Every reference / inspect passage begins with a fresh clock baseline.
+      clockMotionTime = elapsed;
+    }
     world.visible = levelId === 'hotel'; hotelLights.visible = levelId === 'hotel';
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
@@ -994,7 +1034,14 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       camera.position.set(-1.64 + Math.sin(elapsed * .055) * .12, 1.67, 9.55);
       camera.lookAt(.30 + Math.sin(elapsed * .05) * .16, 1.70, -7.2);
     }
-    secondHand.rotation.z = (effects.has('clock_reverse') ? 1 : -1) * (elapsed % 60) / 60 * Math.PI * 2;
+    clockBody.getWorldPosition(clockWorldPoint);
+    const clockDistance = clockWorldPoint.sub(camera.position);
+    camera.getWorldDirection(clockLookDirection);
+    const gazeOnClock = active && levelId === 'hotel'
+      && clockDistance.lengthSq() < 100
+      && clockLookDirection.dot(clockDistance.normalize()) > .985;
+    if (!effects.has('clock_stop_gaze') || !gazeOnClock) clockMotionTime += dt;
+    secondHand.rotation.z = (effects.has('clock_reverse') ? 1 : -1) * (clockMotionTime % 60) / 60 * Math.PI * 2;
     if (effects.has('chair_float')) { floatingChair.position.y = .70 + Math.sin(elapsed * 1.65) * .07; floatingChair.rotation.z = Math.sin(elapsed * .73) * .025; }
     if (effects.has('phone_float')) { phoneReceiver.position.y = .60 + Math.sin(elapsed * 2) * .035; phoneReceiver.rotation.z = Math.sin(elapsed) * .12; }
     if (effects.has('luggage_breath')) { const breath = Math.sin(elapsed * 1.3); luggage.scale.set(1 + breath * .075, 1 + breath * .11, 1 + breath * .075); }
