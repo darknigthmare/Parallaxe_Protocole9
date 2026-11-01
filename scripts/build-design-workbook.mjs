@@ -13,9 +13,34 @@ const json=async name=>JSON.parse(await fs.readFile(path.join(project,'docs',nam
 const [design,runtime,status,content]=await Promise.all([
  json('anomalies-design.json'),json('runtime-catalog.json'),json('build-status.json'),json('workbook-v02.json')
 ]);
-const version=status.build;
+// Release records and historical design sources are intentionally versioned
+// separately: 0.4.0 authored the 120 concepts, while a 0.4.1 code branch now
+// implements 100. Never relabel the historical design as a fresh release.
+const version=status.version||status.build;
 const renderOnly=process.env.PARALLAXE_RENDER_ONLY==='1';
-if(!/^\d+\.\d+\.\d+$/.test(version)||design.version!==version||content.version!==version)throw new Error('Design, workbook content and build status must share a valid semantic version.');
+if(!/^\d+\.\d+\.\d+$/.test(version)||design.version!==content.version)throw new Error('Runtime needs a semver, and the design / content source editions must agree.');
+if(design.version!==version)console.warn(`Historical design inputs v${design.version}; current runtime v${version}. This is an editorial working copy, not a new deployment.`);
+status.build=version;
+status.runtimeStatus??='Implémenté — QA partielle';
+status.runtimeQA??='Contrat runtime inspecté en code ; vérification GPU et multiappareils non réalisée.';
+const workingTokens={
+  networkQA:'À tester avec 2 à 4 vrais navigateurs et réseaux indépendants.',
+  geometrySummary:'Géométrie Three.js testée sur CPU ; pixels et performances GPU non certifiés.',
+  geometryQA:'Contrôles CPU / rendu réel encore à vérifier.',
+  sessionResilienceQA:'Tests du domaine et du réseau simulé ; validation réelle entre réseaux à faire.',
+  deliveryQA:'Compilation et paquet de la version historique ; nouvelle PR non déployée.',
+  radioPermissionQA:'Permissions contrôlées par tests ; micro physique non testé.',
+  radioControllerQA:'PTT simulé sur manette ; vraie manette non vérifiée.',
+  sceneTests:'31 ou plus (mesure exacte à relever sur la révision testée)',
+  portableQA:'Paquet autonome historique ; reconstruire sur le commit de livraison.',
+  qaScenarioCount:content.sheets.QA.rows.length,
+  evidenceSummary:'Preuves historiques 0.4.0 / 0.4.1, à distinguer des 100 effets du catalogue courant.',
+  browserRadioQA:'Harnais navigateur automatisé ; aucune audition matérielle.',
+  radioTests:'Tests radio automatisés historiques ; recette réelle restant ouverte.',
+};
+for(const [key,value]of Object.entries(workingTokens))status[key]??=value;
+status.patchSummary??='État de travail : 100 anomalies runtime / 20 conçues ; les quatre nouveaux cas nécessitent une réception GPU.';
+status.note??='Les modèles 0.4.0 restent la source de conception ; cette 0.4.1 de travail n’a pas été déployée et les tests physiques ne sont pas réputés réussis.';
 if(!/^\d{4}-\d{2}-\d{2}$/.test(status.date))throw new Error('Build status needs an ISO calendar date.');
 if(status.releaseState==='préparation'&&!renderOnly)throw new Error('This release is still in preparation. Confirm runtime content and QA before final export, or use PARALLAXE_RENDER_ONLY=1 to review layouts.');
 const outputDir=path.join(project,`outputs/design-v${version.replaceAll('.','')}-${status.date.replaceAll('-','')}`);
