@@ -335,7 +335,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   // Two new real, inspectable baseline props for the night-service hotel.
   // Their dimensions, wall anchors and lighting remain identical for both
   // observers. Only the private material/pose changes during an anomaly.
-  const coatRack = wallGroup(-1, 9.45);
+  const coatRack = wallGroup(-1, -2.15);
   box(.69, .12, .13, 0, 2.12, .10, mats.woodDark, coatRack);
   for (const x of [-.24, 0, .24]) sphere(.039, x, 2.08, .22, mats.brass, coatRack, 16);
   const coatShell = new THREE.Group(); coatRack.add(coatShell);
