@@ -604,6 +604,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   // Per-observer view state only: pause the hand while the camera faces the
   // clock; do not feed camera gaze or effect information into shared room state.
   let clockMotionTime = 0;
+  let clockGazeSeconds = 0;
   const clockWorldPoint = new THREE.Vector3();
   const clockLookDirection = new THREE.Vector3();
   box(.006, .34, .008, 0, .10, 0, new THREE.MeshStandardMaterial({ color: 0x6f3026 }), secondHand);
@@ -930,6 +931,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       environmentKey = nextEnvironmentKey; environmentStarted = elapsed;
       // Every reference / inspect passage begins with a fresh clock baseline.
       clockMotionTime = elapsed;
+      clockGazeSeconds = 0;
     }
     world.visible = levelId === 'hotel'; hotelLights.visible = levelId === 'hotel';
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
@@ -1092,7 +1094,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     const gazeOnClock = active && levelId === 'hotel'
       && clockDistance.lengthSq() < 100
       && clockLookDirection.dot(clockDistance.normalize()) > .985;
-    if (!effects.has('clock_stop_gaze') || !gazeOnClock) clockMotionTime += dt;
+    // Retain the physical clock baseline for glances shorter than two seconds.
+    if (effects.has('clock_stop_gaze') && gazeOnClock) clockGazeSeconds += dt;
+    else clockGazeSeconds = 0;
+    const clockFrozen = effects.has('clock_stop_gaze') && gazeOnClock && clockGazeSeconds >= 2;
+    if (!clockFrozen) clockMotionTime += dt;
     secondHand.rotation.z = (effects.has('clock_reverse') ? 1 : -1) * (clockMotionTime % 60) / 60 * Math.PI * 2;
     if (effects.has('coat_without_body')) coatShell.rotation.y = Math.sin(elapsed * .55) * .035;
     if (effects.has('fire_extinguisher_full')) fireMist.rotation.y = elapsed * .32;
