@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Contrôle structurel (lecture seule) des trois sources et du registre XLSX."""
 from __future__ import annotations
+import csv
 import json
 import re
 import sys
@@ -95,6 +96,29 @@ def main() -> None:
     assert_true(set(tracked) == set(design_ids), "Registre d'anomalies non synchronisé")
     for ident in ("clock_stop_gaze", "carpet_wrong_weave", "coat_without_body", "fire_extinguisher_full"):
         assert_true(tracked[ident]["statut_source"] == "Implémenté — QA partielle", f"Statut non actualisé : {ident}")
+    # The Excel-friendly CSV is not sufficient by itself: every authored A/B
+    # source must remain verbatim in the new detailed technical backlog.
+    backlog = json.loads((DOCS / "anomalies-gap-20261101.json").read_text(encoding="utf8"))
+    gap = backlog["remaining_anomalies"]
+    remaining_ids = set(design_ids) - set(runtime_ids)
+    assert_true(len(gap) == backlog["remaining"] == 20, "20 fiches manquantes attendues")
+    assert_true({item["id"] for item in gap} == remaining_ids, "Catalogue de la file d'attente incohérent")
+    design_by_id = {row[0]: row for row in design["anomalies"]}
+    for item in gap:
+        row = design_by_id[item["id"]]
+        for key, original_index in (
+            ("name", 1), ("family", 2), ("place", 3), ("intensity", 4),
+            ("baseline", 5), ("perceptionA", 6), ("perceptionB", 7),
+            ("comparison", 8), ("trigger", 9), ("success", 10),
+            ("assets", 11), ("fairness", 12),
+        ):
+            assert_true(item[key] == row[original_index], f"Source de conception altérée : {item['id']} / {key}")
+        assert_true(item["status"] == "Conçu — non implémenté", f"Fausse validation de {item['id']}")
+        assert_true(item["technicalImplementation"] and item["qaAcceptance"], f"Plan de recette vide : {item['id']}")
+    with (DOCS / "ANOMALIES_RESTANTES_20261101.csv").open(encoding="utf-8-sig",newline="") as source_csv:
+        parsed_csv = list(csv.DictReader(source_csv, delimiter=";"))
+    assert_true(len(parsed_csv) == 20 and {line["ID"] for line in parsed_csv} == remaining_ids,
+                "CSV Excel non synchronisé avec les 20 fiches restantes")
     for original in ORIGINALS:
         assert_true((DOCS / original).is_file(), f"Classeur historique absent: {original}")
     assert_true(INITIAL_XLSX.is_file(), "Première photographie Excel 96/24 manquante")
