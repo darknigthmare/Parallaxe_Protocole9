@@ -208,6 +208,78 @@ try {
     }
   });
 
+  check('new carpet proof stays local, has no collision and restores normal appearance', () => {
+    const patch = scene.getObjectByName('Saint-Clair — trame impossible');
+    assert.ok(patch, 'One unique carpet patch must be present in the scene');
+    game.setView({ effects: [], phase: 'inspect', levelId: 'hotel' });
+    assert.equal(patch.visible, false);
+    game.setView({ effects: ['carpet_wrong_weave'], phase: 'inspect', levelId: 'hotel' });
+    assert.equal(patch.visible, true);
+    game.setActive(true);
+    game.setPose({ x: 0, z: -5.25, yaw: 0, pitch: 0 });
+    game.setInput({ forward: 1, strafe: 0 });
+    const z = game.getPose().z; game.update(.05);
+    assert.notEqual(game.getPose().z, z, 'The woven visual change must not add a collision');
+    game.setInput({ forward: 0, strafe: 0 });
+    game.setView({ effects: [], phase: 'inspect', levelId: 'hotel' });
+    assert.equal(patch.visible, false, 'The next player and round get the correct rug');
+  });
+
+  check('clock stops only during the private witness gaze and resumes after turning away', () => {
+    const hand = scene.getObjectByName('Saint-Clair — trotteuse');
+    assert.ok(hand, 'Second hand of normal clock is modelled');
+    game.setView({ effects: ['clock_stop_gaze'], phase: 'inspect', levelId: 'hotel', loop: 29 });
+    game.setActive(true);
+    game.setPose({ x: 1.8, z: -5.65, yaw: -Math.PI / 2, pitch: Math.atan2(2.43 - 1.67, 3.62 - 1.8) });
+    game.setInput({ forward: 0, strafe: 0 });
+    game.update(.05);
+    const beforeGaze = hand.rotation.z;
+    for (let i = 0; i < 10; i++) game.update(.05);
+    assert.notEqual(hand.rotation.z, beforeGaze, 'A short glance should not freeze the clock');
+    for (let i = 0; i < 35; i++) game.update(.05);
+    const frozen = hand.rotation.z;
+    game.update(.05);
+    assert.equal(hand.rotation.z, frozen, 'Clock freezes only after two seconds of direct observation');
+    game.setPose({ yaw: 0, pitch: 0 });
+    game.update(.05);
+    assert.notEqual(hand.rotation.z, frozen, 'Turning away releases the clock');
+    game.setView({ effects: [], phase: 'reference', levelId: 'hotel', loop: 29 });
+    const before = hand.rotation.z;
+    game.update(.05);
+    assert.notEqual(hand.rotation.z, before, 'Clock must not stay frozen after the reference reset');
+    game.setActive(false);
+  });
+
+  check('coat shifts from a real hook to an unoccupied standing garment only in affected view', () => {
+    const coat = scene.getObjectByName('Saint-Clair — manteau de service');
+    assert.ok(coat);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'reference' });
+    const suspendedHeight = coat.position.y;
+    assert.ok(suspendedHeight > 1.4);
+    game.setView({ effects: ['coat_without_body'], levelId: 'hotel', phase: 'inspect' });
+    assert.ok(coat.position.y < suspendedHeight - .6);
+    assert.ok(coat.position.z > .7);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'inspect' });
+    assert.equal(coat.position.y, suspendedHeight);
+    assert.equal(coat.position.z, .27);
+  });
+
+  check('fire-extinguisher shell remains in place and restores its opaque material after a round', () => {
+    const body = scene.getObjectByName('Saint-Clair — corps de l’extincteur');
+    const mist = scene.getObjectByName('Saint-Clair — brume captive');
+    assert.ok(body && mist);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'reference' });
+    const opaque = body.material;
+    assert.equal(body.material.transparent, false);
+    assert.equal(mist.visible, false);
+    game.setView({ effects: ['fire_extinguisher_full'], levelId: 'hotel', phase: 'inspect' });
+    assert.equal(body.material.transparent, true);
+    assert.equal(mist.visible, true);
+    game.setView({ effects: [], levelId: 'hotel', phase: 'inspect' });
+    assert.equal(body.material, opaque);
+    assert.equal(mist.visible, false);
+  });
+
   check('relay values are legible text inputs, stable on repeat, and previous textures disposed', () => {
     const display = allObjects.find(object => object.material?.map?.image?.__text?.includes('RELAIS'));
     assert.ok(display);
@@ -248,6 +320,9 @@ try {
     const cases = {
       clock_reverse: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       clock_missing: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
+      clock_stop_gaze: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
+      coat_without_body: [[-2.1, -2.15], [-2.82, .75, -2.15], 'coat'],
+      fire_extinguisher_full: [[1.0, 7.30], [3.35, 1.32, 7.30], 'extinguisher'],
       portrait_eyes: [[-1.8, 5.15], [-3.45, 2.06, 5.15], 'portrait'],
       portrait_empty: [[-1.8, 5.15], [-3.45, 2.06, 5.15], 'portrait'],
       door_number: [[-1.8, 0], [-3.45, 2.31, 0], 'door'],

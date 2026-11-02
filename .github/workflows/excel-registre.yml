@@ -1,0 +1,43 @@
+name: Vérification des classeurs et de la conception
+
+on:
+  push:
+    branches: [continuation/excel-ouverts-20261101]
+    paths:
+      - 'docs/parallaxe-open-work-20261101.json'
+      - 'docs/PARALLAXE_Registre_Ouverts_2026-11-01*.xlsx'
+      - 'docs/anomalies-gap-20261101.json'
+      - 'docs/ANOMALIES_RESTANTES_20261101.csv'
+      - 'docs/anomalies-design.json'
+      - 'docs/runtime-catalog.json'
+      - 'scripts/build-design-workbook.mjs'
+      - 'scripts/build-open-workbook.mjs'
+      - 'scripts/validate-open-workbook.py'
+      - '.github/workflows/excel-registre.yml'
+  pull_request:
+    paths:
+      - 'docs/parallaxe-open-work-20261101.json'
+      - 'docs/PARALLAXE_Registre_Ouverts_2026-11-01*.xlsx'
+      - 'docs/anomalies-gap-20261101.json'
+      - 'docs/ANOMALIES_RESTANTES_20261101.csv'
+      - 'docs/anomalies-design.json'
+      - 'docs/runtime-catalog.json'
+      - 'scripts/build-design-workbook.mjs'
+      - 'scripts/build-open-workbook.mjs'
+      - 'scripts/validate-open-workbook.py'
+      - '.github/workflows/excel-registre.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  controle-registre:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contrôler les sources, le CSV et le classeur
+        run: python3 scripts/validate-open-workbook.py
+      - name: Vérifier la syntaxe des deux générateurs Excel
+        run: |
+          node --check scripts/build-design-workbook.mjs
+          node --check scripts/build-open-workbook.mjs

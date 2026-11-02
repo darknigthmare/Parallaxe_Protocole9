@@ -31,12 +31,39 @@ function roomWithTwo(){
   return room;
 }
 
-test('96 unique catalog entries have valid location scopes and include relational clues',()=>{
-  assert.equal(ANOMALIES.length,96);
-  assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,96);
+test('100 unique catalog entries have valid location scopes and include relational clues',()=>{
+  assert.equal(ANOMALIES.length,100);
+  assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,ANOMALIES.length);
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));
 });
+test('runtime catalogue, 120 original concepts and 600-entry Excel tracker agree',async()=>{
+  const [runtime,design,tracker]=await Promise.all([
+    readFile(new URL('../docs/runtime-catalog.json',import.meta.url),'utf8').then(JSON.parse),
+    readFile(new URL('../docs/anomalies-design.json',import.meta.url),'utf8').then(JSON.parse),
+    readFile(new URL('../docs/parallaxe-open-work-20261101.json',import.meta.url),'utf8').then(JSON.parse),
+  ]);
+  const ids=ANOMALIES.map(a=>a.id),live=runtime.map(a=>a.id),concepts=design.anomalies.map(a=>a[0]);
+  assert.equal(new Set(ids).size,ids.length);
+  assert.equal(new Set(live).size,live.length);
+  assert.deepEqual([...live].sort(),[...ids].sort(),'The JSON runtime export must match the selectable code IDs');
+  assert.equal(new Set(concepts).size,120);
+  assert.ok(ids.every(id=>concepts.includes(id)),'Every live anomaly needs its original A/B design record');
+  assert.equal(tracker.compteurs.anomalies_runtime,ids.length);
+  assert.equal(tracker.compteurs.anomalies_non_implantees,concepts.length-ids.length);
+  assert.equal(tracker.items.length,tracker.compteurs.items_total);
+  const status=new Map(tracker.items.filter(item=>item.domaine==='Anomalies').map(item=>[item.id,item.statut_source]));
+  assert.equal(status.size,concepts.length);
+  for(const id of concepts) {
+    assert.ok(status.has(id),`Missing tracker item for ${id}`);
+    assert.ok(ids.includes(id)
+      ? ['Présent — validation visuelle restante','Implémenté — QA partielle'].includes(status.get(id))
+      : status.get(id)==='Conçu — non implémenté',
+      `Excel implementation status disagrees with code for ${id}`);
+  }
+  assert.equal(tracker.lots.find(l=>l.id==='W08')?.domaine,`${concepts.length-ids.length} anomalies restant à intégrer`);
+});
+
 test('reference is clean, identical and not scored',()=>{
   const run=createRun({seed:'baseline',players:4});
   assert.equal(run.phase,'reference');
@@ -72,7 +99,7 @@ test('every anomaly has a witness and a baseline observer for 2–4 players',()=
       assert.ok(Array.from({length:players},(_,s)=>getPersonalView(run,s).effects).some(e=>e.length===0));
     }
   }
-  assert.equal(seen.size,96);
+  assert.equal(seen.size,ANOMALIES.length);
 });
 test('nine correct consecutive decisions win; repeated calls cannot double-score',()=>{
   let run=createRun({seed:'winning',mode:'single'});
