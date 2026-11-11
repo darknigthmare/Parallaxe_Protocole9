@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm}from'node:fs/promises';import{tmpdir}from'node:os';import{join}from'node:path';import{pathToFileURL}from'node:url';import{stripTypeScriptTypes}from'node:module';
 const dir=await mkdtemp(join(tmpdir(),'p9-lift-footsteps-'));
-for(const name of ['footstep-state','temporal-state','acoustic-state','acoustic-pcm','levels','catalog','rules','session']){let s=stripTypeScriptTypes(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'),{mode:'transform'}).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(dir,name+'.mjs'),s);}
+for(const name of ['footstep-state','temporal-state','acoustic-state','spoken-bank','spoken-pcm','acoustic-pcm','levels','catalog','rules','session']){let s=stripTypeScriptTypes(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'),{mode:'transform'}).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(dir,name+'.mjs'),s);}
 const {createFootstepState}=await import(pathToFileURL(join(dir,'footstep-state.mjs')));
 const {createTemporalState}=await import(pathToFileURL(join(dir,'temporal-state.mjs')));
 const {acousticPCM}=await import(pathToFileURL(join(dir,'acoustic-pcm.mjs')));

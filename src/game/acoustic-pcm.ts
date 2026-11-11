@@ -1,8 +1,10 @@
+import { spokenPCM } from './spoken-pcm';
 import type { AcousticKind } from './acoustic-state';
 /** Original deterministic, bounded mono cues. This module has no browser/microphone API. */
 export function acousticPCM(kind: AcousticKind, sampleRate: number): Float32Array {
   if (!Number.isInteger(sampleRate) || sampleRate < 8000 || sampleRate > 192000) throw new RangeError('Invalid sample rate');
-  const seconds = kind === 'footstep' ? .30 : kind === 'lift-chime' ? .65 : kind === 'call' ? .6 : kind === 'bell' ? 1.8 : kind === 'rain' ? 4 : kind === 'held-note' ? 2 : kind.startsWith('knock') ? 12 : 8;
+  if(kind.startsWith('spoken:'))return spokenPCM(kind.slice(7),sampleRate);
+  const seconds = kind === 'receiver-hiss'||kind === 'vent-fan'?2:kind === 'footstep' ? .30 : kind === 'lift-chime' ? .65 : kind === 'call' ? .6 : kind === 'bell' ? 1.8 : kind === 'rain' ? 4 : kind === 'held-note' ? 2 : kind.startsWith('knock') ? 12 : 8;
   const out = new Float32Array(seconds * sampleRate);
   const notes = [261.625565, 329.627557, 391.995436, 293.664768, 349.228231, 440, 391.995436, 523.251131];
   let seed = 91357, low = 0;
@@ -12,7 +14,9 @@ export function acousticPCM(kind: AcousticKind, sampleRate: number): Float32Arra
     const noise = seed / 2147483648 - 1;
     low = low * .91 + noise * .09;
     let value = 0;
-    if (kind === 'footstep') {
+    if(kind==='receiver-hiss')value=(noise-low)*.07*Math.min(1,t*50,(seconds-t)*50);
+    else if(kind==='vent-fan')value=(Math.sin(t*2*Math.PI*96)*.07+low*.10)*Math.min(1,t*50,(seconds-t)*50);
+    else if (kind === 'footstep') {
       // Original heel/toe impact; no speech, recording or third-party samples.
       const heel=Math.sin(t*2*Math.PI*83)*Math.exp(-t*28);
       const toe=t>.09?(low*.8+Math.sin((t-.09)*2*Math.PI*147)*.22)*Math.exp(-(t-.09)*34):0;

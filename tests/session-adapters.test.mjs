@@ -75,7 +75,7 @@ class CasStorageDouble{
 }
 
 let fixtureNumber=0;
-async function d1Fixture(count=2){
+async function d1Fixture(count=2,namedVoiceConsent=false){
   const folder=join(temporary,`d1-${++fixtureNumber}`);
   await mkdir(folder);
   await writeFile(join(folder,'env.mjs'),'export const env = {DB:null};\n');
@@ -101,9 +101,9 @@ async function d1Fixture(count=2){
   function decision(action,client,extra={}){
     return post({action,code:client.code,...extra,decisionEpoch:client.state.decisionEpoch},client);
   }
-  const host=await post({action:'create',name:'Handler Alpha',mode:'campaign'},null,201);
+  const host=await post({action:'create',name:'Handler Alpha',mode:'campaign',namedVoiceConsent},null,201);
   const clients=[host];
-  for(let i=1;i<count;i++)clients.push(await post({action:'join',code:host.code,name:`Handler ${i}`}));
+  for(let i=1;i<count;i++)clients.push(await post({action:'join',code:host.code,name:`Handler ${i}`,namedVoiceConsent}));
   await get(host);
   return {storage,post,get,decision,host,clients};
 }
@@ -281,4 +281,17 @@ test('real D1 prop handlers preserve one public intent, deduplicate retries and 
   assert.equal(expired.code,'STALE_DECISION_CONTEXT');
   assert.equal(expired.state.propEvents.length,0);
   assert.equal(f.storage.readRoom(alpha.code).propEvents.length,0);
+});
+
+
+test('D1 handlers persist explicit grants and irreversible name revocation without replaying a vote',async()=>{
+ const f=await d1Fixture(2,true),[a,b]=f.clients;await f.decision('start',a);await f.decision('next',a);
+ assert.ok(a.state.players.every(p=>p.namedVoiceConsent));const oldEpoch=a.state.decisionEpoch;
+ const reset=await f.post({action:'revoke-named-voice',code:a.code,namedVoiceConsent:true},a);
+ assert.equal(reset.state.phase,'reference');assert.equal(reset.state.streak,0);assert.ok(reset.state.decisionEpoch>oldEpoch);
+ const remote=await f.get(b);assert.equal(remote.players.find(p=>p.id===a.selfId).namedVoiceConsent,false);
+ const twice=await f.post({action:'revoke-named-voice',code:a.code},a);assert.equal(twice.state.decisionEpoch,reset.state.decisionEpoch);
+ await f.post({action:'grant-named-voice',code:a.code,namedVoiceConsent:true},a,400);
+ assert.equal(f.storage.readRoom(a.code).players.find(p=>p.id===a.selfId).namedVoiceConsent,false);
+ const stale=await f.post({action:'vote',code:a.code,vote:true,decisionEpoch:oldEpoch},a,409);assert.equal(stale.code,'STALE_DECISION_CONTEXT');
 });

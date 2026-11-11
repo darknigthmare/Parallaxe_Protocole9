@@ -163,11 +163,14 @@ ANOMALIES.push(
   {"id": "footsteps_unowned", "title": "Les pas sans propriétaire", "target": "floor", "intensity": 3, "difficulty": 2, "levels": ["hotel"], "baseline": "Les pas proviennent des déplacements réels des inspecteurs. Après l’arrêt de toute l’équipe, le couloir redevient silencieux en dehors de son ambiance.", "description": "Après trois secondes d’immobilité de toute l’équipe observée, des pas persistent depuis le fond du couloir sans marcheur.", "cooperation": "Arrêtez-vous ensemble cinq secondes. Comptez uniquement les pas résiduels, pas les pas de vos partenaires en mouvement.", "hint": "Des pas persistants avec des positions synchronisées et une équipe immobile constituent la preuve."}
 );
 
+// Authored local voice with explicit nickname permission; normal props remain visible.
+ANOMALIES.push({"id": "radio_future", "title": "Le bulletin de demain", "target": "service-radio", "intensity": 3, "difficulty": 2, "levels": ["hotel"], "baseline": "La radio émet uniquement un souffle discret.", "description": "Une voix annonce une action que personne n’a encore faite. Le partenaire : La radio souffle normalement.", "cooperation": "Répéter la phrase et comparer avec le journal des actions.", "hint": "Une annonce articulée absente de la référence est suffisante."},{"id": "vent_whisper", "title": "Le conduit qui nomme", "target": "vent", "intensity": 4, "difficulty": 2, "levels": ["hotel"], "baseline": "L’aération produit un ronronnement constant.", "description": "Un murmure épelle un pseudonyme du salon. Le partenaire : Il entend seulement le ventilateur.", "cooperation": "Lire ensemble le pseudonyme entendu et localiser la bouche.", "hint": "Une voix articulée dans le conduit est anormale."});
+
 const SHARED_ORIGINAL=new Set(['red_light','blackout','shadow_figure','ceiling_eyes','floor_trail','exit_false','corridor_fog','relay_mismatch']);
 ANOMALIES.forEach((entry,index)=>{if(!entry.levels)entry.levels=index<25&&!SHARED_ORIGINAL.has(entry.id)?['hotel']:['hotel','metro','clinic'];});
 // Only effects with a compatible physical or radio proof are selectable in the chalet.
 const CABIN_SHARED_EFFECTS = new Set(["red_light", "blackout", "exit_false", "relay_mismatch", "paired_arrow", "paired_clock", "reflection_delay", "reflection_absent", "reflection_independent", "reflection_seated", "reflection_badge_code", "reflection_no_team", "avatar_mannequin", "avatar_double", "avatar_shadow", "avatar_badge_missing", "avatar_height_offset", "avatar_hands_swap", "avatar_visor_watch", "avatar_no_contact"]);
-ANOMALIES.forEach(entry => { if ((entry.id.startsWith("radio_") || CABIN_SHARED_EFFECTS.has(entry.id)) && !entry.levels?.includes("cabin")) entry.levels?.push("cabin"); });
+ANOMALIES.forEach(entry => { if ((entry.id.startsWith("radio_")&&entry.id!=="radio_future" || CABIN_SHARED_EFFECTS.has(entry.id)) && !entry.levels?.includes("cabin")) entry.levels?.push("cabin"); });
 export function anomaliesForLevel(level:LevelId):Anomaly[]{return ANOMALIES.filter(a=>a.levels?.includes(level));}
 
 export const ANOMALY_BY_ID = Object.fromEntries(ANOMALIES.map(a => [a.id,a])) as Record<string,Anomaly>;

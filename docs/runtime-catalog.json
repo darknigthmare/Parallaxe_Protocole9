@@ -1719,5 +1719,33 @@
     "description": "Après trois secondes d’immobilité de toute l’équipe observée, des pas persistent depuis le fond du couloir sans marcheur.",
     "cooperation": "Arrêtez-vous ensemble cinq secondes. Comptez uniquement les pas résiduels, pas les pas de vos partenaires en mouvement.",
     "hint": "Des pas persistants avec des positions synchronisées et une équipe immobile constituent la preuve."
+  },
+  {
+    "id": "radio_future",
+    "title": "Le bulletin de demain",
+    "target": "service-radio",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "La radio émet uniquement un souffle discret.",
+    "description": "Une voix annonce une action que personne n’a encore faite. Le partenaire : La radio souffle normalement.",
+    "cooperation": "Répéter la phrase et comparer avec le journal des actions.",
+    "hint": "Une annonce articulée absente de la référence est suffisante."
+  },
+  {
+    "id": "vent_whisper",
+    "title": "Le conduit qui nomme",
+    "target": "vent",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "L’aération produit un ronronnement constant.",
+    "description": "Un murmure épelle un pseudonyme du salon. Le partenaire : Il entend seulement le ventilateur.",
+    "cooperation": "Lire ensemble le pseudonyme entendu et localiser la bouche.",
+    "hint": "Une voix articulée dans le conduit est anormale."
   }
 ]

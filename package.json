@@ -34,7 +34,8 @@
     "test:observation": "node tests/observation-state.test.mjs && node tests/observation-world.test.mjs",
     "test:acoustic": "node tests/acoustic.test.mjs",
     "test:temporal": "node tests/temporal-state.test.mjs && node tests/temporal-world.test.mjs",
-    "test:lift": "node tests/lift-footsteps.test.mjs"
+    "test:lift": "node tests/lift-footsteps.test.mjs",
+    "test:spoken": "node tests/spoken.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

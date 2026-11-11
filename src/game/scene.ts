@@ -11,6 +11,8 @@ import { createObservationWorld } from './observation-world';
 import { OBSERVATION_EFFECTS, type StarMask } from './observation-state';
 import { isLevelId, type LevelId } from './levels';
 import { createAcousticState, ACOUSTIC_EFFECTS } from './acoustic-state';
+import { createSpokenWorld } from './spoken-world';
+import { SPOKEN_EFFECTS } from './spoken-state';
 import { createTemporalWorld } from './temporal-world';
 import { createFootstepState } from './footstep-state';
 import { TEMPORAL_EFFECTS, PROP_ANCHORS, isPropTarget, type PropEvent } from './temporal-state';
@@ -32,7 +34,7 @@ export const SCENE_EFFECTS = [
   'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
   'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
   'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
-  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...TEMPORAL_EFFECTS, 'footsteps_unowned',
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...SPOKEN_EFFECTS, ...TEMPORAL_EFFECTS, 'footsteps_unowned',
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -773,6 +775,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const inspectionProps = createInspectionProps(); world.add(inspectionProps.root); targets.push(...inspectionProps.targets); occluders.push(...inspectionProps.colliders);
   const observationWorld = createObservationWorld(); world.add(observationWorld.root); targets.push(...observationWorld.targets); occluders.push(...observationWorld.colliders);
   const temporalWorld = createTemporalWorld(); world.add(temporalWorld.root); targets.push(...temporalWorld.targets); occluders.push(...temporalWorld.colliders);
+  const spokenWorld=createSpokenWorld();world.add(spokenWorld.root);targets.push(...spokenWorld.targets);
 
   // These reference stands have identical collision bounds for every observer.
   // When nobody else is present, numbered mannequins make the reflection count
@@ -979,6 +982,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     acoustics.setView({ ...view, phase, loop, effects: [...effects], levelId });
     footsteps.setView({ ...view, phase, loop, effects: [...effects], levelId });
     temporalWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    spokenWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
     reflectedDoor.visible = false;
@@ -1177,6 +1181,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     footsteps.update(dt,[{id:sharedMotion?selfIdentity.id:'training',x:pose.x,z:pose.z},...motionPeers.map(p=>({id:p.id,x:p.pose.x,z:p.pose.z,connected:p.connected}))],
       active && observationActive, !sharedMotion || motionSnapshotAge < 1.75);
     temporalWorld.update(dt, active && observationActive);
+    spokenWorld.update(dt,pose,active&&observationActive,temporalWorld.snapshot());
     const acousticFrame = acoustics.snapshot();
     musicLid.rotation.x = acousticFrame.musicPlaying ? -1.12 : 0;
     musicRoller.rotation.y = acousticFrame.musicAngle;
@@ -1260,6 +1265,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     world.remove(inspectionProps.root); inspectionProps.dispose();
     world.remove(observationWorld.root); observationWorld.dispose();
     world.remove(temporalWorld.root); temporalWorld.dispose();
+    world.remove(spokenWorld.root);spokenWorld.dispose();
     for (const model of [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)]) { scene.remove(model.root); peerGroup.remove(model.root); model.dispose(); }
     for (const location of Object.values(extraWorlds)) { scene.remove(location.root); location.dispose(); }
     const geometries = new Set<THREE.BufferGeometry>(); const materials = new Set<THREE.Material>();
@@ -1286,6 +1292,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     },
     setPeers,
     setIdentity,
+    setSpokenIdentity:spokenWorld.setIdentity,
+    getSpokenFrame:spokenWorld.snapshot,
     setInspectionRoster(members: InspectionMember[] | null) { inspectionRoster = members?.map(member => ({ ...member })) ?? null; updateInspectionRoster(); },
     setTalking(next: boolean) { talking = !!next; },
     setQuality,
@@ -1298,9 +1306,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       if(isPropTarget(target?.id))temporalWorld.focus(target!.id as import('./temporal-state').PropTarget);
       const a=acoustics.snapshot(),t=temporalWorld.snapshot(),anchor=t.focus?PROP_ANCHORS[t.focus]:null;
       const nearby=anchor&&Math.hypot(pose.x-anchor[0],pose.z-anchor[2])<=3.6;
-      const f=footsteps.snapshot();
+      const f=footsteps.snapshot(),s=spokenWorld.snapshot();
       const ownStepPrefix=`step-${sharedMotion?selfIdentity.id:'training'}-`;
-      return {...a,active:a.active||f.active,key:`${a.key}:${f.key}`,voices:[...a.voices,...t.voices,...f.voices.filter(v=>!v.id.startsWith(ownStepPrefix))],caption:nearby&&t.caption?t.caption:f.caption&&a.focus==='rain'?f.caption:a.caption};
+      return {...a,active:a.active||f.active,key:`${a.key}:${f.key}`,voices:[...a.voices,...t.voices,...s.voices,...f.voices.filter(v=>!v.id.startsWith(ownStepPrefix))],caption:s.caption|| (nearby&&t.caption?t.caption:f.caption&&a.focus==='rain'?f.caption:a.caption)};
     },
     setSharedInteractions: (events:readonly PropEvent[]|null,serverTime?:number) => {
       sharedMotion=events!==null;
@@ -1311,18 +1319,18 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     getFootstepFrame: footsteps.snapshot,
     getTemporalFrame: temporalWorld.snapshot,
     getPropTarget: () => active&&observationActive&&levelId==='hotel'&&isPropTarget(target?.id)?target!.id as import('./temporal-state').PropTarget:null,
-    activateProp() { if(!active||!observationActive||levelId!=='hotel'||!isPropTarget(target?.id))return false;return temporalWorld.activate(target!.id as import('./temporal-state').PropTarget,pose); },
+    activateProp() { if(!active||!observationActive||levelId!=='hotel'||!isPropTarget(target?.id))return false;if(target!.id!=='service-radio')spokenWorld.stop();return temporalWorld.activate(target!.id as import('./temporal-state').PropTarget,pose); },
     listen() {
       if (!active || !observationActive || levelId !== 'hotel') return false;
       const t = target;
-      if(t&&['phone','music-box','door','window','stars'].includes(t.id))temporalWorld.clearFocus();
+      if(t&&['phone','music-box','door','window','stars'].includes(t.id)){temporalWorld.clearFocus();spokenWorld.stop();}
       if (t?.id === 'phone' && !effects.has('phone_float')) return acoustics.activate('phone');
       if (t?.id === 'music-box') return acoustics.activate('music-box');
       if (t?.id === 'door' && t.label.includes('903')) return acoustics.activate('door');
       if (t?.id === 'window' || t?.id === 'stars') return acoustics.activate('rain');
       return false;
     },
-    stopListening() { acoustics.stop(); temporalWorld.clearFocus(); },
+    stopListening() { acoustics.stop(); temporalWorld.clearFocus(); spokenWorld.stop(); },
     dispose,
     getStats,
   };

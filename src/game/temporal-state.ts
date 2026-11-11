@@ -1,12 +1,12 @@
 import type { AcousticVoice } from './acoustic-state';
 /** Public intent only. The private delay/pose is never part of an interaction packet. */
-export type PropTarget = 'bell' | 'vase' | 'witness-door' | 'listening-mannequin' | 'lift';
+export type PropTarget = 'bell' | 'vase' | 'witness-door' | 'listening-mannequin' | 'lift' | 'service-radio';
 export type PropEvent = { id: string; target: PropTarget; at: number; sequence: number; actorId: string; x: number; z: number };
 export type TemporalView = { phase?: string; loop?: number; levelId?: string; effects?: readonly string[]; contextKey?: string };
 export const TEMPORAL_EFFECTS = ['bell_after_departure', 'flower_afterimage', 'door_future_shadow', 'mannequin_turns', 'elevator_count', 'visitor_one_frame'] as const;
-export const PROP_TARGETS: readonly PropTarget[] = ['bell', 'vase', 'witness-door', 'listening-mannequin', 'lift'];
-export const PROP_ANCHORS = { bell: [1.95, 1.23, 7.95], vase: [-3.30, 1.15, -4.10], 'witness-door': [3.22, 1.20, 11.10], 'listening-mannequin': [3.20, 1.20, -14.00], lift: [-2.45, 1.20, -15.65] } as const;
-export const PROP_COOLDOWN: Record<PropTarget, number> = { bell: 8, vase: 4, 'witness-door': 8, 'listening-mannequin': 2, lift: 14 };
+export const PROP_TARGETS: readonly PropTarget[] = ['bell', 'vase', 'witness-door', 'listening-mannequin', 'lift', 'service-radio'];
+export const PROP_ANCHORS = { bell: [1.95, 1.23, 7.95], vase: [-3.30, 1.15, -4.10], 'witness-door': [3.22, 1.20, 11.10], 'listening-mannequin': [3.20, 1.20, -14.00], lift: [-2.45, 1.20, -15.65], 'service-radio':[-3.20,1.35,7.35] } as const;
+export const PROP_COOLDOWN: Record<PropTarget, number> = { bell: 8, vase: 4, 'witness-door': 8, 'listening-mannequin': 2, lift: 14, 'service-radio':12 };
 const smooth = (n: number) => { n = Math.min(1, Math.max(0, n)); return n * n * (3 - 2 * n); };
 const doorProgress = (t: number) => t < 0 ? 0 : t < 1 ? smooth(t) : t < 3 ? 1 : t < 4 ? 1 - smooth(t - 3) : 0;
 const normalHeadYaw = Math.atan2(-3.475 - 3.20, -12.34 + 14);
@@ -95,7 +95,7 @@ export function createTemporalState() {
     if (focus === 'witness-door') caption = `Porte témoin — battant ${Math.round(door*90)}° ; ombre ${Math.round(shadow*90)}°. Ouverture volontaire temporisée.`;
     if (focus === 'listening-mannequin') caption = `Vitrine — tête ${Math.abs(headYaw)<.02?'orientée vers la fenêtre':`tournée de ${Math.round(Math.abs(headYaw)*180/Math.PI)}° vers le dernier signal`}. Message texte ou E pour appeler.`;
     if (focus === 'lift') caption = `Ascenseur — ÉTAGE 09 fixe ; ${liftCount} sonnerie${liftCount>1?'s':''} depuis l’appel ; portes ${liftOpening>=.999?'ouvertes':liftOpening>0?'en ouverture':'fermées'}${liftOpening>=.45 ? liftVisitor?' ; une silhouette dans l’encadrement.':' ; cabine vide.':'.'}`;
-    return {key,active,voices,caption:level==='hotel'&&['reference','inspect'].includes(phase)?caption:'',
+    return {key,active,now:seconds,voices,caption:level==='hotel'&&['reference','inspect'].includes(phase)?caption:'',
       bellPress:bellAge>=0&&bellAge<.2?Math.sin(bellAge/.2*Math.PI):0,vaseYaw,flowerYaw,door,shadow,headYaw,normalHeadYaw,
       liftOpening,liftCount,liftVisitor,liftVisitorProgress,
       focus,events:[...events.values()].map(e=>({...e}))};

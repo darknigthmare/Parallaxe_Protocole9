@@ -31,8 +31,8 @@ function roomWithTwo(){
   return room;
 }
 
-test('115 unique catalog entries have valid location scopes and include relational clues',()=>{
-  assert.equal(ANOMALIES.length,115);
+test('117 unique catalog entries have valid location scopes and include relational clues',()=>{
+  assert.equal(ANOMALIES.length,117);
   assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,ANOMALIES.length);
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));
@@ -84,7 +84,7 @@ test('seeded cases are deterministic with both clean and anomalous passages',()=
 test('every anomaly has a witness and a baseline observer for 2–4 players',()=>{
   const seen=new Set();
   for(const levelId of SELECTABLE_LEVELS)for(const players of [2,3,4])for(let seed=0;seed<900;seed++){
-    const run=advanceRun(createRun({seed:`coverage-${seed}`,players,mode:'single',levelId}));
+    const run=advanceRun(createRun({seed:`coverage-${seed}`,players,mode:'single',levelId,namedVoiceAllowed:true}));
     if(!run.currentAnomalyId)continue;
     seen.add(run.currentAnomalyId);
     assert.ok(ANOMALIES.find(a=>a.id===run.currentAnomalyId).levels.includes(levelId));

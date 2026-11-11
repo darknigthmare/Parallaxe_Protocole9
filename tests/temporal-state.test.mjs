@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';import {join} from 'node:path';import {pathToFileURL} from 'node:url';import {stripTypeScriptTypes} from 'node:module';
 const tmp=await mkdtemp(join(tmpdir(),'parallaxe-temporal-'));
-for(const name of ['temporal-state','acoustic-state','acoustic-pcm','levels','catalog','rules','session']){const s=stripTypeScriptTypes(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'),{mode:'transform'}).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(tmp,name+'.mjs'),s);}
+for(const name of ['temporal-state','acoustic-state','spoken-bank','spoken-pcm','acoustic-pcm','levels','catalog','rules','session']){const s=stripTypeScriptTypes(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'),{mode:'transform'}).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(tmp,name+'.mjs'),s);}
 const {createTemporalState,PROP_ANCHORS,PROP_COOLDOWN}=await import(pathToFileURL(join(tmp,'temporal-state.mjs')));
 const {acousticPCM}=await import(pathToFileURL(join(tmp,'acoustic-pcm.mjs')));
 const {createRoom,joinRoom,makePlayer,actRoom,projectRoom,PROP_ANCHORS:anchors}=await import(pathToFileURL(join(tmp,'session.mjs')));

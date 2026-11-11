@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state', 'footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
+  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -355,6 +355,24 @@ try {
       game.setView({effects:[],levelId:'hotel',phase:'reference',loop:0});
       assert.equal(game.getTemporalFrame().events.length,0);
     }
+  });
+
+  check('spoken props have unobstructed rays, a common lamp and private transcripts', () => {
+    inspectFrom('radio_future',[-1.9,7.35],[-3.03,1.35,7.35],'service-radio');
+    assert.equal(game.getPropTarget(),'service-radio');assert.equal(game.activateProp(),true);
+    for(let i=0;i<40;i++)game.update(.05);
+    assert.ok(game.getSpokenFrame().voices.some(v=>v.kind==='spoken:future'));
+    const lamp=scene.getObjectByName('Poste R9 — voyant du relais');assert.ok(lamp.material.emissiveIntensity>0);
+    for(let i=0;i<90;i++)game.update(.05);assert.equal(lamp.material.emissiveIntensity,0);
+    game.setView({effects:[],phase:'inspect',levelId:'hotel',loop:0});game.update(0);
+    assert.equal(lamp.material.emissiveIntensity,0,'Normal and affected view share the relay action');
+    assert.ok(!game.getSpokenFrame().voices.some(v=>v.kind.startsWith('spoken:')));
+    game.setView({effects:[],phase:'reference',levelId:'hotel',loop:1});game.update(0);assert.ok(lamp.material.emissiveIntensity>0);
+    inspectFrom('vent_whisper',[1.75,-3.10],[3.35,2.55,-3.10],'vent');
+    game.setSpokenIdentity('ECHO 09',true);for(let i=0;i<30;i++)game.update(.05);
+    assert.match(game.getSpokenFrame().caption,/ECH/);assert.ok(!game.getSpokenFrame().caption.includes('09'));
+    for(let i=0;i<70;i++)game.update(.05);assert.match(game.getSpokenFrame().caption,/ECHO \[espace\] 09/);
+    game.setSpokenIdentity('',false);game.update(0);assert.ok(!game.getSpokenFrame().caption.includes('ECHO'));
   });
 
   check('all 25 clue locations are raycast-inspectable from walkable positions', () => {

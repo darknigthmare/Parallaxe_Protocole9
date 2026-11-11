@@ -47,7 +47,7 @@ summary = wb.worksheets.add("Synthèse"); sheets["Synthèse"] = summary
 summary.get_range("A1:H30").format.font={"name":"Arial","size":10,"color":"#162733"}
 summary.merge_cells("A1:H2");summary.get_range("A1").values=[["PARALLAXE — PROTOCOLE 9"]]
 summary.get_range("A1:H2").format={"fill":navy,"font":{"name":"Arial","size":21,"bold":True,"color":"#FFFFFF"},"row_height":24,"vertical_alignment":"center"}
-summary.merge_cells("A3:H3");summary.get_range("A3").values=[["11 novembre 2026 · ascenseur et pas résiduels · état courant 115 / 120"]]
+summary.merge_cells("A3:H3");summary.get_range("A3").values=[["11 novembre 2026 · voix locales et autorisations · état courant 117 / 120"]]
 for c,w in zip("ABCDEFGH",[34,17,4,19,19,19,17,17]):summary.get_range(f"{c}1:{c}30").format.column_width=w
 summary.get_range("A6:B6").values=[["CATALOGUE","TOTAL"]]
 summary.get_range("A7:A13").values=[["Concepts originaux"],["Présents dans le code"],["Encore non intégrés"],["Part implémentée"],["Entrées de suivi"],["Lots prioritaires"],["Recettes QA encore ouvertes"]]
@@ -80,6 +80,7 @@ changes=[
 changes.extend(json.loads((root/"docs/acoustic-delivery-20261111.json").read_text()))
 changes.extend(json.loads((root/"docs/temporal-delivery-20261111.json").read_text()))
 changes.extend(json.loads((root/"docs/lift-delivery-20261111.json").read_text()))
+changes.extend(json.loads((root/"docs/spoken-delivery-20261111.json").read_text()))
 add_table("Livraison",["ID","Type","Modification appliquée","Vérification prévue ou exécutée","Limites","Source"],changes,[29,21,40,40,40,38])
 sources=[["Base de développement","https://github.com/darknigthmare/Parallaxe_Protocole9/commit/a1774830149d485af800133f688e94b208940883","Branche main examinée ; code de jeu identique à l’archive edbeab61."],
 ["Fiches originales","https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json","120 fiches originales conservées sans réécriture de leurs A/B."],
@@ -97,11 +98,11 @@ summary.get_range("B7:B13").formulas=[
 ["=COUNTA('Lots prioritaires'!$A$6:$A$33)"],
 ["=COUNTA('Recette QA'!$A$6:$A$129)"]]
 summary.get_range("B10").format.number_format="0.0%"
-summary.merge_cells("A16:H16");summary.get_range("A16").values=[["REPRISE : ASCENSEUR, PASSAGER ET PAS RÉSIDUELS"]]
+summary.merge_cells("A16:H16");summary.get_range("A16").values=[["REPRISE : BULLETIN VOCAL ET ÉPELLATION CONSENTIE"]]
 summary.get_range("A16:H16").format={"fill":navy,"font":{"bold":True,"color":"#FFFFFF"},"row_height":27}
 notes=[
-"Les 112 cas précédents sont conservés ; trois observations de l’ascenseur et du couloir sont ajoutées.",
-"E : appeler l’ascenseur. Immobilisez l’équipe pour écouter le couloir ; R revient à l’écoute ambiante.",
+"Les 115 cas précédents sont conservés ; le poste vocal et le conduit nominatif sont ajoutés.",
+"E : tester le poste. Approchez le conduit ; épellation uniquement avec accord explicite. R arrête.",
 "446 lignes ont retrouvé leur vrai critère de fin ; les 600 clés de suivi restent conservées.",
 f"{len(runtime)} cas sont intégrés au code ; {len(gap['remaining_anomalies'])} concepts restent à développer. La réception humaine n’est pas clôturée.",
 "Les recettes GPU, microphones, TURN et 2–4 appareils physiques restent à effectuer.",

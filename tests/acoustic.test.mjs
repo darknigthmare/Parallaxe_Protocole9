@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { stripTypeScriptTypes } from 'node:module';
 const temp=await mkdtemp(join(tmpdir(),'parallaxe-acoustic-'));
-for(const name of ['acoustic-state','acoustic-pcm','acoustic-audio','levels','catalog','rules','session']) {
+for(const name of ['acoustic-state','spoken-bank','spoken-pcm','acoustic-pcm','acoustic-audio','levels','catalog','rules','session']) {
   const code=stripTypeScriptTypes(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'),{mode:'transform'})
     .replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");
   await writeFile(join(temp,`${name}.mjs`),code);
@@ -121,4 +121,15 @@ test('muting, suspension, private view switch and passage reset stop old audio w
   c.state='suspended';sound.sync(s.snapshot(),pose,true);assert.ok(c.sources.every(s=>s.stops===1));
   c.state='running';s.setView({phase:'reference',loop:2});sound.sync(s.snapshot(),pose,true);assert.equal(c.sources.filter(s=>s.stops===0).length,1);
   sound.dispose();
+});
+
+
+test('expired one-shot speech offsets never wrap and replay the beginning',()=>{
+  const c=new Context(),sound=new AcousticAudio(c,new Node());
+  const voice={id:'spoken-test',kind:'spoken:future',offset:20,loop:false,position:[0,1,0],gain:.4};
+  const frame={...state().snapshot(),active:true,voices:[voice]};
+  sound.sync(frame,pose,true);assert.equal(c.sources.length,0);
+  voice.offset=.3;sound.sync(frame,pose,true);assert.equal(c.sources.length,1);assert.equal(c.sources[0].started[1],.3);
+  voice.offset=20;sound.sync(frame,pose,true);assert.equal(c.sources[0].stops,1);assert.equal(c.sources.length,1);
+  voice.offset=NaN;sound.sync(frame,pose,true);assert.equal(c.sources.length,1);sound.dispose();
 });

@@ -1,3 +1,5 @@
+> **Reprise voix — 11/11/2026** : 117/120 concepts intégrés sur la branche de travail (pas de déploiement). Le poste R9 annonce une extinction programmée de sa lampe ; V9 épelle le seul indicatif propre consenti. L’option nominative est facultative, désactivée par défaut et retirable dans Paramètres. Voir `docs/QA_VOIX_20261111.md` et le classeur courant `docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx`. Les anciens rapports ci-dessous gardent leur portée historique.
+
 > **État courant — 11/11/2026 : 115/120 anomalies dans la branche, 5 concepts encore absents.** Ascenseur réel, appel coopératif, neuf carillons privés, passager persistant et pas résiduels après immobilité. Excel courant : `docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx`. Voir `docs/QA_ASCENSEUR_20261111.md`. Les livraisons ci-dessous sont historiques ; aucune publication du site par ce lot.
 
 # PARALLAXE — Protocole 9

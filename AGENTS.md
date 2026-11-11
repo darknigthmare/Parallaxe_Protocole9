@@ -1,3 +1,6 @@
+## État courant voix — 11 novembre 2026
+117 anomalies dans le catalogue ; 3 concepts absents. L’autorité courante de suivi est `docs/parallaxe-open-work-20261101.json`. Ne pas modifier les références originales A/B. `vent_whisper` est exclu par défaut ; requiert le consentement explicite de chaque membre et utilise uniquement le nom propre local. Ne jamais remplacer le générateur embarqué par une capture ou du TTS réseau. `radio_future` annonce un événement normal du relais à +6 s, pas une action future de l’utilisateur. Exécuter `npm run test:spoken` et les suites précédentes ; audio humain et GPU restent non validés.
+
 > **Reprise courante :** 115 cas dans la branche, sources normales/A/B conservées (120). Le maître historique 0.4.1 reste inchangé ; consulter `docs/parallaxe-open-work-20261101.json` et `docs/QA_ASCENSEUR_20261111.md`.
 
 # Consignes de développement — PARALLAXE

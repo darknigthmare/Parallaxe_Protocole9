@@ -157,6 +157,14 @@ try{
   assert.equal(cabinVerdict.state.levelId,'cabin');
   for(const client of [...cabinClients].reverse())assert.equal((await action({action:'leave',code:cabin.code},client.token)).left,true);
   console.log(JSON.stringify({chalet:{clients:4,diagnoses:9,won:true,privateReadingsProtected:true}}));
+  const voiceHost=await action({action:'create',name:'ECHO 09',namedVoiceConsent:true});
+  const voicePeer=await action({action:'join',code:voiceHost.code,name:'BRAVO',namedVoiceConsent:true});
+  const voiceStart=await action({action:'start',code:voiceHost.code,decisionEpoch:voicePeer.state.decisionEpoch},voiceHost.token);
+  assert.ok(voiceStart.state.players.every(p=>p.namedVoiceConsent));
+  const revoked=await action({action:'revoke-named-voice',code:voiceHost.code},voiceHost.token);
+  assert.equal(revoked.state.phase,'reference');assert.equal(revoked.state.players.find(p=>p.id===voiceHost.selfId).namedVoiceConsent,false);
+  await action({action:'grant-named-voice',code:voiceHost.code},voiceHost.token,400);
+  for(const c of [voicePeer,voiceHost])await action({action:'leave',code:voiceHost.code},c.token);
   console.log(JSON.stringify({portable:'passed',checks:[
     'precompiled package starts without node_modules',
     'HTML served',
@@ -174,6 +182,7 @@ try{
     'unanimity resolves correctly',
     'old vote rejected after next passage',
     'both leave cleanly',
+    'explicit name grants and irreversible withdrawal persist through actual HTTP handlers',
     'four clients complete nine Chalet diagnoses and win',
     'Chalet pings never broadcast private reading text',
     'all four Chalet clients leave cleanly',

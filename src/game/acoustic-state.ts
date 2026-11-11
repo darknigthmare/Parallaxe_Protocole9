@@ -1,5 +1,5 @@
 /** Local listening evidence. No microphone, room answer, remote voice or shared mutable state. */
-export type AcousticKind = 'rain' | 'knock3' | 'knock4' | 'breath' | 'melody' | 'melody-held' | 'held-note' | 'bell' | 'call' | 'lift-chime' | 'footstep';
+export type AcousticKind = 'rain' | 'knock3' | 'knock4' | 'breath' | 'melody' | 'melody-held' | 'held-note' | 'bell' | 'call' | 'lift-chime' | 'footstep' | 'receiver-hiss' | 'vent-fan' | `spoken:${string}`;
 export type AcousticFocus = 'rain' | 'door' | 'phone' | 'music-box';
 export type AcousticView = { phase?: string; loop?: number; levelId?: string; effects?: readonly string[]; knockCount?: 0 | 3 | 4 };
 export type AcousticPose = { x: number; y?: number; z: number; yaw?: number; pitch?: number };

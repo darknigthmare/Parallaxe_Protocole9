@@ -15,7 +15,7 @@ const session=between('  const resetSession=useCallback(','  const cancelOpening
 const modals=between('  const openModal=useCallback(','  const acceptState=useCallback(');
 const accepted=between('  const acceptState=useCallback(','  useEffect(()=>()=>{sessionScope.current!.invalidate();},[]);');
 const blur=between('    const onBlur=','    const onMouse=');
-const pointers=between('  const canUsePointer=','  const patchPref=');
+const pointers=between('  const canUsePointer=','  const revokeNamedVoice=');
 const vote=between('  const vote=','  const switchView=');
 const blocked=between('  useEffect(()=>{if(inputBlocked||!playing)resetControls();','\n  useEffect(()=>{\n    let disposed=false;');
 const harnessSource=`

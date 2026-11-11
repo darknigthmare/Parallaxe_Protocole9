@@ -41,7 +41,8 @@ export class AcousticAudio {
     for (const spec of frame.voices) {
       let voice = this.voices.get(spec.id);
       const buffer = this.buffer(spec.kind);
-      const offset = Math.max(0, spec.offset) % buffer.duration;
+      if(!Number.isFinite(spec.offset)||spec.offset<0||!spec.loop&&spec.offset>=buffer.duration){this.stopVoice(spec.id);continue;}
+      const offset = spec.loop?spec.offset % buffer.duration:spec.offset;
       // Restart on replay/solo mask/reset, not on every animation frame. Allow normal loop wrap.
       const expected = voice ? (t - voice.timeOrigin) % buffer.duration : offset;
       const drift = Math.min(Math.abs(expected - offset), buffer.duration - Math.abs(expected - offset));

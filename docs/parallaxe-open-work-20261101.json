@@ -49,8 +49,8 @@
   "compteurs": {
     "conception_ouverts": 446,
     "anomalies_concues": 120,
-    "anomalies_runtime": 115,
-    "anomalies_non_implantees": 5,
+    "anomalies_runtime": 117,
+    "anomalies_non_implantees": 3,
     "session_ouverts": 9,
     "radio_ouverts": 8,
     "items_total": 600,
@@ -63,7 +63,8 @@
     "Ne pas modifier le catalogue runtime en mettant à jour le seul registre.",
     "Le classeur initial (96/24) est un instantané historique ; le classeur _v2 (100/20) est la version actualisée du registre. Les deux restent conservés.",
     "Pour les nouvelles anomalies, « Implémenté — QA partielle » exige toujours une réception GPU et multijoueur réel avant clôture.",
-    "Les gestes du lot temporel sont publics, les résultats de perception restent privés. Leurs tests automatiques ne remplacent pas la réception réseau humain/GPU."
+    "Les gestes du lot temporel sont publics, les résultats de perception restent privés. Leurs tests automatiques ne remplacent pas la réception réseau humain/GPU.",
+    "Les voix synthétiques nominatives requièrent un accord explicite de chaque membre de l’équipe ; elles ne sont pas une captation ni une imitation vocale."
   ],
   "lots": [
     {
@@ -139,11 +140,11 @@
     {
       "id": "W08",
       "priorite": "P1",
-      "domaine": "5 anomalies restant à intégrer",
-      "action": "Intégrer les cinq concepts restants après leurs prérequis de lieu, voix ou confort, sans assimiler une fiche à du code jouable.",
+      "domaine": "3 anomalies restant à intégrer",
+      "action": "Intégrer le couloir qui s’allonge, l’ombre qui pointe et l’observatoire après leurs prérequis physiques et de confort.",
       "criteres": "Chaque case nouvellement jouable seulement après ajout moteur + lieux + tests de comparaison, sans marketing fictif",
       "preuve": "PR code par lot, baseline/QA, table d'identifiants",
-      "liens": "P51 ; 5 concepts absents du runtime ; 3 cas intégrés dans le lot ascenseur",
+      "liens": "P51 ; 3 concepts absents du runtime ; 2 cas vocaux intégrés dans ce lot",
       "etat": "À traiter / vérifier"
     },
     {
@@ -8081,16 +8082,16 @@
       "domaine": "Anomalies",
       "id": "radio_future",
       "nom": "Le bulletin de demain",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet radio_future dans le moteur et son lieu compatible (Radio) ; prévoir Voix originale, texte privé identique au contenu.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Réceptionner le poste R9 et sa lampe : phrase synthétique locale privée après E, extinction normale à T+6 s, rallumage à T+9 s ; B et référence restent au souffle.",
       "critere": "Référence : La radio émet uniquement un souffle discret. | A : Une voix annonce une action que personne n’a encore faite. | B : La radio souffle normalement. | comparaison : Répéter la phrase et comparer avec le journal des actions. | réussite : Une annonce articulée absente de la référence est suffisante.",
-      "details": "Famille Son ; intensité 3 ; déclenchement Interaction avec le bouton de radio. ; équité Pas d’analyse ni d’imitation de la voix réelle des joueurs.",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Voix synthétisée hors ligne et embarquée, aucun enregistrement ni appel TTS externe. Validation de l’intelligibilité et du timbre sur matériel réel non effectuée. Le bulletin annonce une action programmée normale du relais, jamais une commande future du joueur.",
+      "verification": "npm run test:spoken ; npm run test:acoustic ; npm run test:scene ; npm run test:session-adapters ; écoute humaine et 2–4 appareils réels restant requis",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Révision et logs de tests ; captures A/B et écoute datée sur casque/haut-parleurs. Pas de clôture sur une génération audio seule."
     },
     {
       "cle": "ANOM/telephone_breath",
@@ -8113,16 +8114,16 @@
       "domaine": "Anomalies",
       "id": "vent_whisper",
       "nom": "Le conduit qui nomme",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet vent_whisper dans le moteur et son lieu compatible (Ventilation) ; prévoir Lettres audio synthétiques, sous-titres privés.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Réceptionner le conduit V9 : entrée à 2 m, épellation synthétique du seul indicatif consenti du témoin, transcription lettre par lettre ; vérifier refus et retrait immédiat.",
       "critere": "Référence : L’aération produit un ronronnement constant. | A : Un murmure épelle un pseudonyme du salon. | B : Il entend seulement le ventilateur. | comparaison : Lire ensemble le pseudonyme entendu et localiser la bouche. | réussite : Une voix articulée dans le conduit est anormale.",
-      "details": "Famille Son ; intensité 4 ; déclenchement Approche à deux mètres. ; équité Seuls les pseudonymes consentis sont utilisés, jamais des données externes.",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Voix synthétisée hors ligne et embarquée, aucun enregistrement ni appel TTS externe. Validation de l’intelligibilité et du timbre sur matériel réel non effectuée. Autorisation explicite pour cette partie, désactivée par défaut ; tirage exclu si un membre ne consent pas. Alphabet A–Z, chiffres, espace, tirets - et _. Les autres indicatifs restent jouables sans cette option. Retrait : référence sans pénalité et sans révélation du cas.",
+      "verification": "npm run test:spoken ; npm run test:acoustic ; npm run test:scene ; npm run test:session-adapters ; écoute humaine et 2–4 appareils réels restant requis",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Révision et logs de tests ; captures A/B et écoute datée sur casque/haut-parleurs. Pas de clôture sur une génération audio seule."
     },
     {
       "cle": "ANOM/music_one_note",
@@ -9949,24 +9950,25 @@
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
   ],
-  "version_suivi": "v6 / 115-anomalies",
+  "version_suivi": "v7 / 117-anomalies",
   "snapshot_initial": {
     "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "runtime_at_creation": 96,
     "planned_at_creation": 24,
     "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
   },
-  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx",
+  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx",
   "source_revision": "continuation/observations-20261110",
   "date_revision": "2026-11-11",
-  "gap_json": "docs/anomalies-gap-lift-20261111.json",
-  "gap_csv": "docs/ANOMALIES_RESTANTES_ASCENSEUR_20261111.csv",
+  "gap_json": "docs/anomalies-gap-spoken-20261111.json",
+  "gap_csv": "docs/ANOMALIES_RESTANTES_VOIX_20261111.csv",
   "historical_workbooks": [
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Acoustique.xlsx",
-    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx"
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx",
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx"
   ],
   "audit_20261110": {
     "criteria_remapped": 446,
@@ -9988,5 +9990,5 @@
     "local_observation_state_tests": 10,
     "pending": "CI géométrie, typage et builds ; GPU physique, micro et TURN non réalisés"
   },
-  "code_base_revision": "03e59a9f2e4f672e98929f9305f271392f0ccfe9"
+  "code_base_revision": "b16609c9650e8812eac95b980bfc184feef1c621"
 }
