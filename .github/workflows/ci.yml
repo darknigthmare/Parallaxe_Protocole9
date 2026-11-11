@@ -57,6 +57,10 @@ jobs:
         run: npm run test:cabin
       - name: Vérifier les documents et les objets physiques d’inspection
         run: npm run test:inspection
+      - name: Vérifier les quatre nouvelles observations
+        run: npm run test:observation
+      - name: Vérifier le suivi courant et les sources A/B
+        run: python3 scripts/validate-open-workbook.py
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio

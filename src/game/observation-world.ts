@@ -25,12 +25,16 @@ export function createObservationWorld() {
   function wall(side:number,z:number) {const g=new THREE.Group();g.position.set(side*3.62,0,z);g.rotation.y=-side*Math.PI/2;root.add(g);return g;}
 
   // Six distant points occupy the upper window pane, behind the existing glass.
+  // Offset the cluster 9 cm from the middle mullion so its two shared points
+  // remain visible. The reading proxy is just in front of the glass/trim.
+  // It covers only the upper pane; the lower window keeps its original target.
   // Left/right four-point masks share two points and reconstruct the same six positions.
-  const sky = new THREE.Group();sky.position.set(-3.475,2.54,-12.25);sky.rotation.y=Math.PI/2;root.add(sky);
+  const sky = new THREE.Group();sky.position.set(-3.475,2.54,-12.34);sky.rotation.y=Math.PI/2;root.add(sky);
   sky.name='G9 — constellation six points';
   const starMaterial=new THREE.MeshBasicMaterial({color:0xf5e8b8});materials.add(starMaterial);
   const stars=STAR_POSITIONS.map(([x,y],i)=>{const o=sphere(.025,[x,y,0],starMaterial,sky);o.name=`G9 — étoile ${i+1}`;o.castShadow=false;return o;});
-  const starTarget=box([1.10,.68,.008],[0,.03,.018],new THREE.MeshBasicMaterial({visible:false}),sky);
+  const starTarget=box([1.10,.68,.008],[0,.03,.095],new THREE.MeshBasicMaterial({visible:false}),sky);
+  starTarget.name='G9 — zone de lecture de la vitre';
   starTarget.castShadow=false;tag(sky,'stars','Fenêtre G9 — motif de six étoiles');
   const station=new THREE.Group();station.position.set(-1.95,.018,-12.25);station.rotation.x=-Math.PI/2;root.add(station);
   const stationMap=label('ICI · FACE À LA FENÊTRE');plane(.90,.225,[0,0,0],stationMap,station).castShadow=false;
