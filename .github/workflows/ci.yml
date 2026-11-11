@@ -65,6 +65,8 @@ jobs:
         run: npm run test:temporal
       - name: Vérifier l’ascenseur, le passager et les pas résiduels
         run: npm run test:lift
+      - name: Vérifier les voix locales et le retrait de leur autorisation
+        run: npm run test:spoken
       - name: Vérifier le suivi courant et les sources A/B
         run: python3 scripts/validate-open-workbook.py
       - name: Vérifier la radio et les autorisations
