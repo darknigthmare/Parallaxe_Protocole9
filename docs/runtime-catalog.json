@@ -1677,5 +1677,47 @@
     "description": "À un message texte ou un appel volontaire, sa tête pivote vers l’émetteur uniquement dans la perception affectée.",
     "cooperation": "Envoyez un message ou utilisez E devant la vitrine ; comparez le menton par rapport aux montants. Aucun microphone requis.",
     "hint": "Le corps garde son orientation tandis que seule la tête suit le signal."
+  },
+  {
+    "id": "elevator_count",
+    "title": "L’ascenseur au-dessous",
+    "target": "lift",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Après un appel, l’ascenseur de service émet une sonnerie. La cabine reste au niveau 09 ; les portes s’ouvrent et la cabine est vide.",
+    "description": "Neuf sonneries d’arrêt se succèdent alors que la cabine, le seuil et l’afficheur 09 restent immobiles.",
+    "cooperation": "Appuyez une seule fois sur E, puis comptez ensemble les sonneries et comparez le même afficheur 09.",
+    "hint": "Plusieurs arrêts audibles sans changement de niveau sont incompatibles avec la référence."
+  },
+  {
+    "id": "visitor_one_frame",
+    "title": "Le passager qui reste",
+    "target": "lift",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "La cabine de l’ascenseur de service ouverte est vide ; son afficheur indique 09.",
+    "description": "À l’ouverture, un passager inédit apparaît dans la cabine, avance dans l’encadrement et y demeure.",
+    "cooperation": "Comparez la place de la silhouette par rapport à l’afficheur 09. Elle persiste ; aucune réaction instantanée n’est requise.",
+    "hint": "Un occupant absent de la cabine normale confirme la différence."
+  },
+  {
+    "id": "footsteps_unowned",
+    "title": "Les pas sans propriétaire",
+    "target": "floor",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Les pas proviennent des déplacements réels des inspecteurs. Après l’arrêt de toute l’équipe, le couloir redevient silencieux en dehors de son ambiance.",
+    "description": "Après trois secondes d’immobilité de toute l’équipe observée, des pas persistent depuis le fond du couloir sans marcheur.",
+    "cooperation": "Arrêtez-vous ensemble cinq secondes. Comptez uniquement les pas résiduels, pas les pas de vos partenaires en mouvement.",
+    "hint": "Des pas persistants avec des positions synchronisées et une équipe immobile constituent la preuve."
   }
 ]

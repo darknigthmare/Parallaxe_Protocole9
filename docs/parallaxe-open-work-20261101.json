@@ -49,8 +49,8 @@
   "compteurs": {
     "conception_ouverts": 446,
     "anomalies_concues": 120,
-    "anomalies_runtime": 112,
-    "anomalies_non_implantees": 8,
+    "anomalies_runtime": 115,
+    "anomalies_non_implantees": 5,
     "session_ouverts": 9,
     "radio_ouverts": 8,
     "items_total": 600,
@@ -139,11 +139,11 @@
     {
       "id": "W08",
       "priorite": "P1",
-      "domaine": "8 anomalies restant à intégrer",
-      "action": "Produire les huit concepts encore absents du catalogue avec référence A/B, lieu réel, déclenchement et équité.",
+      "domaine": "5 anomalies restant à intégrer",
+      "action": "Intégrer les cinq concepts restants après leurs prérequis de lieu, voix ou confort, sans assimiler une fiche à du code jouable.",
       "criteres": "Chaque case nouvellement jouable seulement après ajout moteur + lieux + tests de comparaison, sans marketing fictif",
       "preuve": "PR code par lot, baseline/QA, table d'identifiants",
-      "liens": "P51 ; 8 fiches restantes ; 12 cas intégrés depuis le catalogue 100",
+      "liens": "P51 ; 5 concepts absents du runtime ; 3 cas intégrés dans le lot ascenseur",
       "etat": "À traiter / vérifier"
     },
     {
@@ -8065,13 +8065,13 @@
       "domaine": "Anomalies",
       "id": "footsteps_unowned",
       "nom": "Les pas sans propriétaire",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet footsteps_unowned dans le moteur et son lieu compatible (Couloir) ; prévoir Pas spatialisés et sous-titres directionnels.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter la référence normale, le déclenchement, les perceptions privées, la pause et la remise à zéro dans Saint-Clair. Équipe immobile au moins trois secondes, puis cinq secondes de comptage ; aucun résidu après mouvement ou perte de synchronisation.",
       "critere": "Référence : Les bruits de pas correspondent aux déplacements des joueurs. | A : Il entend des pas qui continuent après l’arrêt de l’équipe. | B : Il entend le silence. | comparaison : S’arrêter ensemble cinq secondes et compter les pas résiduels. | réussite : Des pas persistants sans marcheur confirment l’anomalie.",
-      "details": "Famille Son ; intensité 3 ; déclenchement Tous les joueurs immobiles trois secondes. ; équité Les sons propres des joueurs sont exclus du comptage de preuve.",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Intégré dans le lot ascenseur depuis 03e59a9. Contrôles CPU et logique ; rendu physique et écoute humaine non certifiés. Aucun nouvel état privé dans les intentions serveur.",
+      "verification": "npm run test:lift ; npm run test:scene ; npm run test:temporal ; npm test ; réception GPU / audio / deux appareils humains",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -8145,13 +8145,13 @@
       "domaine": "Anomalies",
       "id": "elevator_count",
       "nom": "L’ascenseur au-dessous",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet elevator_count dans le moteur et son lieu compatible (Ascenseur) ; prévoir Carillon original, afficheur d’étage.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter la référence normale, le déclenchement, les perceptions privées, la pause et la remise à zéro dans Saint-Clair. E sur l’ascenseur au fond à gauche : même appel partagé, afficheur 09 fixe.",
       "critere": "Référence : L’ascenseur produit une seule sonnerie à l’arrêt. | A : Il entend neuf arrêts sans déplacement visible. | B : Il entend une sonnerie. | comparaison : Compter les sonneries et lire l’étage affiché. | réussite : Plusieurs arrêts sans déplacement observable sont anormaux.",
-      "details": "Famille Son ; intensité 3 ; déclenchement Appui sur bouton d’appel. ; équité L’ascenseur ne devient pas un piège nécessaire à la preuve.",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Intégré dans le lot ascenseur depuis 03e59a9. Contrôles CPU et logique ; rendu physique et écoute humaine non certifiés. Aucun nouvel état privé dans les intentions serveur.",
+      "verification": "npm run test:lift ; npm run test:scene ; npm run test:temporal ; npm test ; réception GPU / audio / deux appareils humains",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -8513,13 +8513,13 @@
       "domaine": "Anomalies",
       "id": "visitor_one_frame",
       "nom": "Le passager qui reste",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet visitor_one_frame dans le moteur et son lieu compatible (Ascenseur) ; prévoir Personnage original et ascenseur.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter la référence normale, le déclenchement, les perceptions privées, la pause et la remise à zéro dans Saint-Clair. E sur l’ascenseur au fond à gauche : même appel partagé, afficheur 09 fixe.",
       "critere": "Référence : L’ascenseur ouvert est vide. | A : Un occupant est visible puis demeure dans l’encadrement. | B : La cabine est vide. | comparaison : Comparer la place du passager par rapport au panneau des étages. | réussite : L’occupant inédit confirme.",
-      "details": "Famille Entité ; intensité 4 ; déclenchement Ouverture de l’ascenseur. ; équité Persistance d’au moins dix secondes, aucun indice d’une seule image.",
-      "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
+      "details": "Intégré dans le lot ascenseur depuis 03e59a9. Contrôles CPU et logique ; rendu physique et écoute humaine non certifiés. Aucun nouvel état privé dans les intentions serveur.",
+      "verification": "npm run test:lift ; npm run test:scene ; npm run test:temporal ; npm test ; réception GPU / audio / deux appareils humains",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -9949,23 +9949,24 @@
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
   ],
-  "version_suivi": "112 / 120 — gestes partagés et fractures temporelles",
+  "version_suivi": "v6 / 115-anomalies",
   "snapshot_initial": {
     "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "runtime_at_creation": 96,
     "planned_at_creation": 24,
     "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
   },
-  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx",
+  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx",
   "source_revision": "continuation/observations-20261110",
   "date_revision": "2026-11-11",
-  "gap_json": "docs/anomalies-gap-temporal-20261111.json",
-  "gap_csv": "docs/ANOMALIES_RESTANTES_TEMPORAL_20261111.csv",
+  "gap_json": "docs/anomalies-gap-lift-20261111.json",
+  "gap_csv": "docs/ANOMALIES_RESTANTES_ASCENSEUR_20261111.csv",
   "historical_workbooks": [
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx",
-    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Acoustique.xlsx"
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Acoustique.xlsx",
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx"
   ],
   "audit_20261110": {
     "criteria_remapped": 446,
@@ -9986,5 +9987,6 @@
     "local_domain_tests": 168,
     "local_observation_state_tests": 10,
     "pending": "CI géométrie, typage et builds ; GPU physique, micro et TURN non réalisés"
-  }
+  },
+  "code_base_revision": "03e59a9f2e4f672e98929f9305f271392f0ccfe9"
 }

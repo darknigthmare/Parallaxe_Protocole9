@@ -12,6 +12,7 @@ import { OBSERVATION_EFFECTS, type StarMask } from './observation-state';
 import { isLevelId, type LevelId } from './levels';
 import { createAcousticState, ACOUSTIC_EFFECTS } from './acoustic-state';
 import { createTemporalWorld } from './temporal-world';
+import { createFootstepState } from './footstep-state';
 import { TEMPORAL_EFFECTS, PROP_ANCHORS, isPropTarget, type PropEvent } from './temporal-state';
 
 /** Original procedural environment. No downloaded models or textures are required. */
@@ -31,7 +32,7 @@ export const SCENE_EFFECTS = [
   'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
   'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
   'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
-  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...TEMPORAL_EFFECTS,
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...TEMPORAL_EFFECTS, 'footsteps_unowned',
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -72,6 +73,10 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   let active = false;
   let observationActive = true;
   const acoustics = createAcousticState();
+  const footsteps = createFootstepState();
+  let sharedMotion = false, motionSnapshotAge = 0, lastMotionServerTime = -1;
+  let motionContextKey = "";
+  let motionPeers: {id:string;pose:{x:number;z:number};connected:boolean}[] = [];
   let alive = true;
   let elapsed = 0;
   let quality: 'low' | 'medium' | 'high' = 'high';
@@ -304,7 +309,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   box(.22, 3.6, 28.4, -3.85, 1.8, -2, mats.wall);
   box(.22, 3.6, 28.4, 3.85, 1.8, -2, mats.wall);
   box(7.8, .16, 28.4, 0, 3.6, -2, mats.stone);
-  box(7.6, 3.6, .25, 0, 1.8, -16, mats.wall);
+  // Permanent rear-left lift recess. Opening x[-3.55,-1.35], below y=2.80;
+  // the corridor clamp stays z>=-15.10, so the inspection can never trap a player.
+  box(.25, 3.6, .25, -3.675, 1.8, -16, mats.wall);
+  box(5.15, 3.6, .25, 1.225, 1.8, -16, mats.wall);
+  box(2.20, .80, .25, -2.45, 3.20, -16, mats.wall);
   box(7.6, 3.6, .25, 0, 1.8, 12.1, mats.wall);
   for (const side of [-1, 1]) {
     box(.06, 1.04, 28, side * 3.707, .55, -2, mats.woodDark);
@@ -952,6 +961,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     return true;
   }
   function applyView(view: PersonalView) {
+    if ((view.contextKey??'') !== motionContextKey) {motionContextKey=view.contextKey??'';lastMotionServerTime=-1;motionSnapshotAge=0;}
     phase = view.phase || phase; loop = view.loop || 0;
     effects = new Set((phase === 'reference' ? [] : view.effects || []).filter(e => (SCENE_EFFECTS as readonly string[]).includes(e)));
     const nextLevel = isLevelId(view.levelId) ? view.levelId : levelId;
@@ -967,6 +977,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
     observationWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     acoustics.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    footsteps.setView({ ...view, phase, loop, effects: [...effects], levelId });
     temporalWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
@@ -1048,6 +1059,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     peers.set(id, result); return result;
   }
   function setPeers(items: any[]) {
+    motionPeers = items.filter(item=>String(item.id)!==selfIdentity.id).slice(0,4).map(item=>({
+      id:String(item.id??''),pose:{x:item.pose?.x,z:item.pose?.z},connected:item.connected!==false}));
     const ids = new Set<string>();
     items.forEach((item, index) => {
       const id = String(item.id || item.playerId || String(item.slot ?? index));
@@ -1160,6 +1173,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     if (levelId === 'hotel') inspectionProps.update(elapsed);
     observationWorld.update(dt, pose, active && observationActive);
     acoustics.update(dt, pose, active && observationActive);
+    motionSnapshotAge += Number.isFinite(dt) ? Math.max(0,dt) : 0;
+    footsteps.update(dt,[{id:sharedMotion?selfIdentity.id:'training',x:pose.x,z:pose.z},...motionPeers.map(p=>({id:p.id,x:p.pose.x,z:p.pose.z,connected:p.connected}))],
+      active && observationActive, !sharedMotion || motionSnapshotAge < 1.75);
     temporalWorld.update(dt, active && observationActive);
     const acousticFrame = acoustics.snapshot();
     musicLid.rotation.x = acousticFrame.musicPlaying ? -1.12 : 0;
@@ -1282,9 +1298,17 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       if(isPropTarget(target?.id))temporalWorld.focus(target!.id as import('./temporal-state').PropTarget);
       const a=acoustics.snapshot(),t=temporalWorld.snapshot(),anchor=t.focus?PROP_ANCHORS[t.focus]:null;
       const nearby=anchor&&Math.hypot(pose.x-anchor[0],pose.z-anchor[2])<=3.6;
-      return {...a,voices:[...a.voices,...t.voices],caption:nearby&&t.caption?t.caption:a.caption};
+      const f=footsteps.snapshot();
+      const ownStepPrefix=`step-${sharedMotion?selfIdentity.id:'training'}-`;
+      return {...a,active:a.active||f.active,key:`${a.key}:${f.key}`,voices:[...a.voices,...t.voices,...f.voices.filter(v=>!v.id.startsWith(ownStepPrefix))],caption:nearby&&t.caption?t.caption:f.caption&&a.focus==='rain'?f.caption:a.caption};
     },
-    setSharedInteractions: (events:readonly PropEvent[]|null,serverTime?:number) => temporalWorld.sync(events,serverTime),
+    setSharedInteractions: (events:readonly PropEvent[]|null,serverTime?:number) => {
+      sharedMotion=events!==null;
+      if(events===null){lastMotionServerTime=-1;motionSnapshotAge=0;}
+      else if(Number.isSafeInteger(serverTime)&&serverTime!>lastMotionServerTime){lastMotionServerTime=serverTime!;motionSnapshotAge=0;}
+      temporalWorld.sync(events,serverTime);
+    },
+    getFootstepFrame: footsteps.snapshot,
     getTemporalFrame: temporalWorld.snapshot,
     getPropTarget: () => active&&observationActive&&levelId==='hotel'&&isPropTarget(target?.id)?target!.id as import('./temporal-state').PropTarget:null,
     activateProp() { if(!active||!observationActive||levelId!=='hotel'||!isPropTarget(target?.id))return false;return temporalWorld.activate(target!.id as import('./temporal-state').PropTarget,pose); },

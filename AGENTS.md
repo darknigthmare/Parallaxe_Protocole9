@@ -1,4 +1,4 @@
-> **Reprise courante :** 112 cas dans la branche, sources normales/A/B conservées (120). Le maître historique 0.4.1 reste inchangé ; consulter `docs/parallaxe-open-work-20261101.json` et `docs/QA_TEMPORAL_20261111.md`.
+> **Reprise courante :** 115 cas dans la branche, sources normales/A/B conservées (120). Le maître historique 0.4.1 reste inchangé ; consulter `docs/parallaxe-open-work-20261101.json` et `docs/QA_ASCENSEUR_20261111.md`.
 
 # Consignes de développement — PARALLAXE
 

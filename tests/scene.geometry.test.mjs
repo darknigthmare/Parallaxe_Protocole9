@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state', 'temporal-state', 'temporal-world']) {
+  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state', 'footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|temporal-state|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -878,6 +878,34 @@ try {
     game.setView({effects:[],phase:'inspect',levelId:'cabin'});game.update(0);
     assert.equal(game.getAcousticFrame().voices.length,0);
     game.setView({effects:[],phase:'inspect',levelId:'hotel'});
+  });
+
+  check('lift button remains reachable in the complete scene and cannot trap the player behind its doors', () => {
+    game.setPeers([]);game.setSharedInteractions(null);game.setActive(true);game.setObservationActive(true);
+    game.setView({phase:'inspect',loop:91,levelId:'hotel',effects:['visitor_one_frame']});
+    game.setPose({x:-2.45,z:-13.95,yaw:0,pitch:0});game.setInput({forward:0,strafe:0});
+    scene.updateMatrixWorld(true);for(let i=0;i<4;i++)game.update(.016);
+    assert.equal(game.getTarget()?.id,'lift');assert.equal(game.getPropTarget(),'lift');assert.equal(game.activateProp(),true);
+    for(let i=0;i<4*60;i++)game.update(1/60);
+    assert.equal(scene.getObjectByName('Ascenseur — passager persistant').visible,true);
+    game.setInput({forward:1,strafe:0});for(let i=0;i<4*60;i++)game.update(1/60);
+    assert.ok(game.getPose().z>=-15.10,'Player stays in the corridor, not the moving cabin');
+    game.setInput({forward:-1,strafe:0});for(let i=0;i<60;i++)game.update(1/60);
+    assert.ok(game.getPose().z>-14,'Retreat always works');game.setInput({forward:0,strafe:0});
+    game.setView({phase:'reference',loop:92,levelId:'hotel',effects:[]});
+    assert.equal(scene.getObjectByName('Ascenseur — passager persistant').visible,false);
+  });
+
+  check('actual post-collision poses drive footsteps and lost remote snapshots suppress residual proof', () => {
+    game.setPeers([]);game.setSharedInteractions(null);game.setActive(true);game.setObservationActive(true);
+    game.setView({phase:'inspect',loop:93,levelId:'hotel',effects:['footsteps_unowned']});game.setPose({x:0,z:0,yaw:0,pitch:0});
+    game.setInput({forward:0,strafe:0});for(let i=0;i<4*60;i++)game.update(1/60);
+    assert.ok(game.getFootstepFrame().residualCount>0);
+    game.setInput({forward:1,strafe:0});game.update(.05);assert.equal(game.getFootstepFrame().residualCount,0);game.setInput({forward:0,strafe:0});
+    game.setSharedInteractions([],1000);for(let i=0;i<5*60;i++)game.update(1/60);
+    assert.equal(game.getFootstepFrame().residualCount,0);assert.match(game.getFootstepFrame().caption,/synchronisées/);
+    game.setSharedInteractions([],900);game.update(.01);assert.equal(game.getFootstepFrame().networkFresh,false,'Old poll cannot re-enable the residual proof');
+    game.setSharedInteractions(null);game.setObservationActive(false);game.update(.1);assert.equal(game.getFootstepFrame().voices.length,0);game.setObservationActive(true);
   });
 
   check('real scene observation timers stop behind a modal or unfocused browser', () => {

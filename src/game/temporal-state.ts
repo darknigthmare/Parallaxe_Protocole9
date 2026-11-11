@@ -1,12 +1,12 @@
 import type { AcousticVoice } from './acoustic-state';
 /** Public intent only. The private delay/pose is never part of an interaction packet. */
-export type PropTarget = 'bell' | 'vase' | 'witness-door' | 'listening-mannequin';
+export type PropTarget = 'bell' | 'vase' | 'witness-door' | 'listening-mannequin' | 'lift';
 export type PropEvent = { id: string; target: PropTarget; at: number; sequence: number; actorId: string; x: number; z: number };
 export type TemporalView = { phase?: string; loop?: number; levelId?: string; effects?: readonly string[]; contextKey?: string };
-export const TEMPORAL_EFFECTS = ['bell_after_departure', 'flower_afterimage', 'door_future_shadow', 'mannequin_turns'] as const;
-export const PROP_TARGETS: readonly PropTarget[] = ['bell', 'vase', 'witness-door', 'listening-mannequin'];
-export const PROP_ANCHORS = { bell: [1.95, 1.23, 7.95], vase: [-3.30, 1.15, -4.10], 'witness-door': [3.22, 1.20, 11.10], 'listening-mannequin': [3.20, 1.20, -14.00] } as const;
-export const PROP_COOLDOWN: Record<PropTarget, number> = { bell: 8, vase: 4, 'witness-door': 8, 'listening-mannequin': 2 };
+export const TEMPORAL_EFFECTS = ['bell_after_departure', 'flower_afterimage', 'door_future_shadow', 'mannequin_turns', 'elevator_count', 'visitor_one_frame'] as const;
+export const PROP_TARGETS: readonly PropTarget[] = ['bell', 'vase', 'witness-door', 'listening-mannequin', 'lift'];
+export const PROP_ANCHORS = { bell: [1.95, 1.23, 7.95], vase: [-3.30, 1.15, -4.10], 'witness-door': [3.22, 1.20, 11.10], 'listening-mannequin': [3.20, 1.20, -14.00], lift: [-2.45, 1.20, -15.65] } as const;
+export const PROP_COOLDOWN: Record<PropTarget, number> = { bell: 8, vase: 4, 'witness-door': 8, 'listening-mannequin': 2, lift: 14 };
 const smooth = (n: number) => { n = Math.min(1, Math.max(0, n)); return n * n * (3 - 2 * n); };
 const doorProgress = (t: number) => t < 0 ? 0 : t < 1 ? smooth(t) : t < 3 ? 1 : t < 4 ? 1 - smooth(t - 3) : 0;
 const normalHeadYaw = Math.atan2(-3.475 - 3.20, -12.34 + 14);
@@ -31,7 +31,7 @@ export function createTemporalState() {
     if (serverTime! > lastServer) { seconds = Math.max(seconds, serverTime! / 1000); lastServer = serverTime!; }
     // At most one latest, whitelisted intent per prop. Repeated polls never replay it.
     const fresh = new Map<PropTarget, PropEvent>();
-    for (const event of incoming.slice(-4)) {
+    for (const event of incoming.slice(-PROP_TARGETS.length)) {
       if (!event || !isPropTarget(event.target) || typeof event.id !== 'string' || event.id.length > 96
         || !Number.isFinite(event.at) || event.at < 0 || event.at > serverTime! + 1000
         || !Number.isSafeInteger(event.sequence) || event.sequence < 1 || event.sequence > 1_000_000
@@ -73,13 +73,31 @@ export function createTemporalState() {
     if(active&&headEvent&&headAge>=0&&headAge<.6)voices.push({id:`call-${headEvent.id}`,kind:'call',offset:headAge,loop:false,position:[headEvent.x,1.67,headEvent.z],gain:.35});
     const difference = headEvent ? Math.atan2(Math.sin(Math.atan2(headEvent.x-3.20,headEvent.z+14)-normalHeadYaw), Math.cos(Math.atan2(headEvent.x-3.20,headEvent.z+14)-normalHeadYaw)) : 0;
     const headYaw = effects.has('mannequin_turns') && headEvent ? Math.max(-1.3,Math.min(1.3,difference))*smooth(headAge/.8) : 0;
+    // The shaft never moves and 09 never changes. Only the personal sound count
+    // and the persistent passenger differ; a late client sees the current opening.
+    const liftEvent = events.get('lift'), liftAge = age('lift');
+    const liftOpening = !liftEvent ? 0 : liftEvent.sequence>1&&liftAge<.35 ? 1-smooth(liftAge/.35) : smooth((liftAge-1)/1.4);
+    const liftCount = liftEvent && liftAge >= .4
+      ? Math.min(effects.has('elevator_count') ? 9 : 1, Math.floor((liftAge - .4 + 1e-8) / .8) + 1) : 0;
+    const liftBeat = Math.floor((liftAge - .4 + 1e-8) / .8);
+    const liftBeatAge = liftAge - .4 - liftBeat * .8;
+    if (active && liftEvent && liftBeat >= 0 && liftBeat < (effects.has('elevator_count') ? 9 : 1)
+      && liftBeatAge >= -1e-8 && liftBeatAge < .65) voices.push({
+        id:`lift-${liftEvent.id}-${liftBeat}`,kind:'lift-chime',offset:Math.max(0,liftBeatAge),loop:false,
+        position:PROP_ANCHORS.lift,gain:.45});
+    // Never a one-frame clue: occupant stays in the doorway until the next call
+    // (14 s minimum cooldown) or the next passage; changing observer hides it only.
+    const liftVisitor = effects.has('visitor_one_frame') && !!liftEvent && (liftAge >= 1.8 || liftEvent.sequence>1&&liftAge<.35);
+    const liftVisitorProgress = liftVisitor ? liftAge<.35 ? 1 : smooth((liftAge-1.8)/1.2) : 0;
     let caption = '';
     if (focus === 'bell') caption = bellAge < 0 ? 'Cloche — contact partagé en préparation.' : audibleAge < 0 ? `Cloche — contact effectué ; silence depuis ${Math.floor(bellAge)} s.` : `Cloche — sonnerie ${bellDelay === 0 ? 'au contact' : '5 s après le contact'}.`;
     if (focus === 'vase') caption = `Vase — repère ${Math.round(vaseYaw*180/Math.PI)%360}° ; fleur ${Math.round(flowerYaw*180/Math.PI)%360}°. E tourne d’un quart de tour.`;
     if (focus === 'witness-door') caption = `Porte témoin — battant ${Math.round(door*90)}° ; ombre ${Math.round(shadow*90)}°. Ouverture volontaire temporisée.`;
     if (focus === 'listening-mannequin') caption = `Vitrine — tête ${Math.abs(headYaw)<.02?'orientée vers la fenêtre':`tournée de ${Math.round(Math.abs(headYaw)*180/Math.PI)}° vers le dernier signal`}. Message texte ou E pour appeler.`;
+    if (focus === 'lift') caption = `Ascenseur — ÉTAGE 09 fixe ; ${liftCount} sonnerie${liftCount>1?'s':''} depuis l’appel ; portes ${liftOpening>=.999?'ouvertes':liftOpening>0?'en ouverture':'fermées'}${liftOpening>=.45 ? liftVisitor?' ; une silhouette dans l’encadrement.':' ; cabine vide.':'.'}`;
     return {key,active,voices,caption:level==='hotel'&&['reference','inspect'].includes(phase)?caption:'',
       bellPress:bellAge>=0&&bellAge<.2?Math.sin(bellAge/.2*Math.PI):0,vaseYaw,flowerYaw,door,shadow,headYaw,normalHeadYaw,
+      liftOpening,liftCount,liftVisitor,liftVisitorProgress,
       focus,events:[...events.values()].map(e=>({...e}))};
   }
   return {setView,sync,update,activate,snapshot,clearFocus(){focus=null;},focus(target:PropTarget){if(isPropTarget(target))focus=target;}};

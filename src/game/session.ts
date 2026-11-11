@@ -3,11 +3,11 @@ import {isLevelId,type LevelId,type GameMode} from './levels';
 
 export const PRESENCE_TIMEOUT=45_000;
 export const SESSION_TTL=12*60*60*1000;
-export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace','coat','extinguisher','stars','aged-photo','landing','music-box','bell','vase','witness-door','listening-mannequin'];
-export type PropTarget='bell'|'vase'|'witness-door'|'listening-mannequin';
+export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace','coat','extinguisher','stars','aged-photo','landing','music-box','bell','vase','witness-door','listening-mannequin','lift'];
+export type PropTarget='bell'|'vase'|'witness-door'|'listening-mannequin'|'lift';
 export type PropEvent={id:string;target:PropTarget;at:number;sequence:number;actorId:string;x:number;z:number};
-export const PROP_ANCHORS:Record<PropTarget,readonly [number,number]>={bell:[1.95,7.95],vase:[-3.30,-4.10],'witness-door':[3.22,11.10],'listening-mannequin':[3.20,-14.00]};
-const PROP_WAIT:Record<PropTarget,number>={bell:8000,vase:4000,'witness-door':8000,'listening-mannequin':2000};
+export const PROP_ANCHORS:Record<PropTarget,readonly [number,number]>={bell:[1.95,7.95],vase:[-3.30,-4.10],'witness-door':[3.22,11.10],'listening-mannequin':[3.20,-14.00],lift:[-2.45,-15.65]};
+const PROP_WAIT:Record<PropTarget,number>={bell:8000,vase:4000,'witness-door':8000,'listening-mannequin':2000,lift:14000};
 export const SIGNAL_TTL=60_000;
 export type RadioSignal={id:string;from:string;to:string;fromEpoch:string;toEpoch:string;at:number;description?:{type:'offer'|'answer';sdp:string};candidate?:{candidate:string;sdpMid:string|null;sdpMLineIndex:number|null;usernameFragment?:string|null}|null;reset?:boolean};
 export type Pose={x:number;y:number;z:number;yaw:number;pitch:number};
@@ -75,7 +75,7 @@ export function createRoom(code:string,host:Player,difficulty:Difficulty,seed:st
   return {code,hostId:host.id,started:false,run:createRun({seed,difficulty,players:2,...options}),players:[host],messages:[],pings:[],createdAt:now,revision:0,decisionEpoch:0,decisionPaused:false,signals:[]};
 }
 export function upgradeRoom(room:Room):Room {
-  return {...room,propEvents:Array.isArray(room.propEvents)?room.propEvents.filter(e=>e&&Object.hasOwn(PROP_ANCHORS,e.target)&&typeof e.id==='string'&&Number.isFinite(e.at)&&Number.isSafeInteger(e.sequence)&&e.sequence>0&&Number.isFinite(e.x)&&Number.isFinite(e.z)).slice(-4):[],decisionEpoch:Number.isSafeInteger(room.decisionEpoch)&&room.decisionEpoch>=0?room.decisionEpoch:0,decisionPaused:room.decisionPaused===true,run:migrateRun(room.run)??createRun({seed:`recovered:${room.createdAt}`,mode:'single'}),signals:Array.isArray(room.signals)?room.signals:[],players:room.players.map(p=>({...p,radioEnabled:p.radioEnabled===true,radioEpoch:typeof p.radioEpoch==='string'?p.radioEpoch:'',talking:p.talking===true,radioTalkAt:p.radioTalkAt??0}))};
+  return {...room,propEvents:Array.isArray(room.propEvents)?room.propEvents.filter(e=>e&&Object.hasOwn(PROP_ANCHORS,e.target)&&typeof e.id==='string'&&Number.isFinite(e.at)&&Number.isSafeInteger(e.sequence)&&e.sequence>0&&Number.isFinite(e.x)&&Number.isFinite(e.z)).slice(-Object.keys(PROP_ANCHORS).length):[],decisionEpoch:Number.isSafeInteger(room.decisionEpoch)&&room.decisionEpoch>=0?room.decisionEpoch:0,decisionPaused:room.decisionPaused===true,run:migrateRun(room.run)??createRun({seed:`recovered:${room.createdAt}`,mode:'single'}),signals:Array.isArray(room.signals)?room.signals:[],players:room.players.map(p=>({...p,radioEnabled:p.radioEnabled===true,radioEpoch:typeof p.radioEpoch==='string'?p.radioEpoch:'',talking:p.talking===true,radioTalkAt:p.radioTalkAt??0}))};
 }
 
 export function validateSignal(room:Room,actor:Player,payload:Record<string,unknown>,now:number):RadioSignal {

@@ -215,13 +215,18 @@ export default function Game({portable=false}:{portable?:boolean}){
             const pressed=(index:number)=>down[index]&&!padHeld.current[index];
             if(pressed(0))actions.current.interact();if(pressed(2))actions.current.vote();if(pressed(3))actions.current.torch();if(pressed(8))actions.current.journal();if(pressed(9))actions.current.pause();
           }
-          if(Math.abs(forward)+Math.abs(strafe)>0.2)audio.current?.tone("step");
+          // Footsteps are generated from the actual post-collision poses, not held keys.
         }
         padHeld.current=down;
         world.setInput({forward:Math.max(-1,Math.min(1,forward)),strafe:Math.max(-1,Math.min(1,strafe)),sprint:!s.reduceMotion&&keys.current.has("ShiftLeft")});
         // Observation timers stop on pause, reading panels, focus loss and hidden tabs.
         world.setObservationActive(s.playing && !s.blocked && focused);
+        const previousPose=world.getPose();
         world.update(dt);
+        const currentPose=world.getPose();
+        // Preserve each location's existing sole sound, but do not play it for a
+        // movement key held against a wall or behind a modal.
+        if(s.playing&&!s.blocked&&focused&&Math.hypot(currentPose.x-previousPose.x,currentPose.z-previousPose.z)>.001)audio.current?.tone("step");
         const acousticFrame=world.getAcousticFrame?.();
         if(acousticFrame)audio.current?.syncObservations?.(acousticFrame,world.getPose());
         if(now-targetTick>130){targetTick=now;const t=world.getTarget();setTarget(old=>old?.id===t?.id&&old?.label===t?.label?old:t);if(acousticFrame)setAcousticCaption(acousticFrame.caption);}
@@ -322,7 +327,7 @@ export default function Game({portable=false}:{portable?:boolean}){
     if(playing&&resetKey!==lastPhase.current){engine.current?.setPose({x:0,y:1.67,z:9,yaw:0,pitch:0});lastPhase.current=resetKey;setNotes([]);}
     audio.current?.tension(streak/9);
   },[ready,online?.view,run,slot,loop,playing,phase,streak,levelId,previewLevel]);
-  useEffect(()=>{engine.current?.setPeers(online?.players.filter(p=>p.id!==credentials?.selfId&&p.connected)??[]);},[online?.players,credentials?.selfId,ready]);
+  useEffect(()=>{engine.current?.setPeers(online?.players.filter(p=>p.id!==credentials?.selfId)??[]);},[online?.players,credentials?.selfId,ready]);
   useEffect(()=>{if(run){safeWrite("parallaxe-training",run);setSavedRun(["won","lost"].includes(run.phase)?null:run);}},[run]);
   useEffect(()=>{
     if(!roundFinished||!reveal)return;

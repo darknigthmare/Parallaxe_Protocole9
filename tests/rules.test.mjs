@@ -31,8 +31,8 @@ function roomWithTwo(){
   return room;
 }
 
-test('112 unique catalog entries have valid location scopes and include relational clues',()=>{
-  assert.equal(ANOMALIES.length,112);
+test('115 unique catalog entries have valid location scopes and include relational clues',()=>{
+  assert.equal(ANOMALIES.length,115);
   assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,ANOMALIES.length);
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));

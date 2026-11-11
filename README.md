@@ -1,4 +1,4 @@
-> **État courant — 11/11/2026 : 112/120 anomalies dans la branche, 8 concepts encore absents.** Quatre nouveaux gestes : cloche, vase, porte témoin et mannequin. Intentions partagées et horodatées, résultats privés ; entraînement solo A/B conservé. Excel courant : `docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx`. Voir `docs/QA_TEMPORAL_20261111.md`. Les versions ci-dessous restent des livraisons historiques, pas une publication du site de ce lot.
+> **État courant — 11/11/2026 : 115/120 anomalies dans la branche, 5 concepts encore absents.** Ascenseur réel, appel coopératif, neuf carillons privés, passager persistant et pas résiduels après immobilité. Excel courant : `docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx`. Voir `docs/QA_ASCENSEUR_20261111.md`. Les livraisons ci-dessous sont historiques ; aucune publication du site par ce lot.
 
 # PARALLAXE — Protocole 9
 

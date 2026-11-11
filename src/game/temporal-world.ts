@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createLiftWorld } from './lift-world';
 import { createTemporalState, PROP_ANCHORS, type PropEvent, type PropTarget, type TemporalView } from './temporal-state';
 /** Four authored props, a single shared gesture, and private reversible outcomes. */
 export function createTemporalWorld() {
@@ -57,7 +58,8 @@ export function createTemporalWorld() {
   cylinder(.055,.055,.09,0,-.06,0,brass,head);const skull=sphere(.14,0,.08,0,ceramic,head);skull.scale.y=1.22;
   sphere(.032,0,.07,.137,ceramic,head);for(const x of [-.05,.05])sphere(.014,x,.12,.124,iron,head);
   label(vitrine,'E · APPELER / MESSAGE',.64,1.98,.36);
-  function apply(){const f=state.snapshot();button.position.y=.075-f.bellPress*.035;vasePivot.rotation.y=f.vaseYaw;flower.rotation.y=f.flowerYaw;hinge.rotation.y=f.door===0?0:-f.door*Math.PI/2;shadowPivot.rotation.y=f.shadow===0?0:-f.shadow*Math.PI/2;head.rotation.y=f.headYaw;}
+  const lift=createLiftWorld();root.add(lift.root);targets.push(lift.root);
+  function apply(){const f=state.snapshot();lift.apply(f);button.position.y=.075-f.bellPress*.035;vasePivot.rotation.y=f.vaseYaw;flower.rotation.y=f.flowerYaw;hinge.rotation.y=f.door===0?0:-f.door*Math.PI/2;shadowPivot.rotation.y=f.shadow===0?0:-f.shadow*Math.PI/2;head.rotation.y=f.headYaw;}
   function setView(view:TemporalView){if(disposed)return;root.visible=(view.levelId??'hotel')==='hotel';state.setView(view);apply();}
   setView({phase:'menu',levelId:'hotel',loop:0});
   return {root,targets,colliders,setView,
@@ -65,5 +67,5 @@ export function createTemporalWorld() {
     update(dt:number,active:boolean){if(disposed)return;state.update(dt,active);apply();},
     activate(target:PropTarget,pose:{x:number;z:number}){if(disposed)return false;const ok=state.activate(target,pose);apply();return ok;},
     snapshot:state.snapshot,focus:state.focus,clearFocus:state.clearFocus,
-    dispose(){if(disposed)return;disposed=true;geometries.forEach(x=>x.dispose());materials.forEach(x=>x.dispose());textures.forEach(x=>x.dispose());root.clear();}};
+    dispose(){if(disposed)return;disposed=true;root.remove(lift.root);lift.dispose();geometries.forEach(x=>x.dispose());materials.forEach(x=>x.dispose());textures.forEach(x=>x.dispose());root.clear();}};
 }
