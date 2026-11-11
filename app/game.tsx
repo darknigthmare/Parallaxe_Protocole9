@@ -25,7 +25,7 @@ type SessionResponse={code?:string;token?:string;selfId?:string;state?:OnlineSta
 type Preferences={volume:number;radioVolume:number;radioMono:boolean;sensitivity:number;quality:"low"|"medium"|"high";muted:boolean;reduceMotion:boolean};
 const DEFAULTS:Preferences={volume:0.38,radioVolume:0.75,radioMono:false,sensitivity:1,quality:"medium",muted:false,reduceMotion:false};
 const LETTERS=["α","β","γ","δ"];
-const TARGET_NAMES:Record<string,string>={assignment:"dossier D2",luggage:"consigne C9",document:"dossier 09",newspaper:"journal",hourglass:"sablier",cup:"tasse",keys:"râtelier",iv:"pied de perfusion",train:"tableau du quai",signal:"signalisation",tracks:"voies",bed:"lit",player:"inspecteur",guestbook:"registre des arrivées",glove:"gant du vestiaire","weather-photo":"photographie du quai","team-photo":"photographie de service","floor-map":"plan d’étage",regulations:"règlement",occupancy:"compteur des occupants",table:"table du chalet",fireplace:"cheminée"};
+const TARGET_NAMES:Record<string,string>={"music-box":"boîte à musique",coat:"manteau de service",extinguisher:"extincteur",stars:"fenêtre G9","aged-photo":"portrait P9",landing:"palier de service",assignment:"dossier D2",luggage:"consigne C9",document:"dossier 09",newspaper:"journal",hourglass:"sablier",cup:"tasse",keys:"râtelier",iv:"pied de perfusion",train:"tableau du quai",signal:"signalisation",tracks:"voies",bed:"lit",player:"inspecteur",guestbook:"registre des arrivées",glove:"gant du vestiaire","weather-photo":"photographie du quai","team-photo":"photographie de service","floor-map":"plan d’étage",regulations:"règlement",occupancy:"compteur des occupants",table:"table du chalet",fireplace:"cheminée"};
 function safeRead<T>(key:string,fallback:T):T{try{return JSON.parse(localStorage.getItem(key)||"null")??fallback;}catch{return fallback;}}
 function safeWrite(key:string,value:unknown){try{localStorage.setItem(key,JSON.stringify(value));}catch{/* Safari private storage may be unavailable. */}}
 function Brand({compact=false}:{compact?:boolean}){return <div className={"brand "+(compact?"brand-small":"")}><span className="brand-mark" aria-hidden="true"><i/><i/></span><div><b>PARALLAXE</b><span>PROGRAMME D’OBSERVATION · 09</span></div></div>;}
@@ -46,6 +46,7 @@ export default function Game({portable=false}:{portable?:boolean}){
   const probeActions=useRef<RadioActionGate|null>(null);
   if(!probeActions.current)probeActions.current=new RadioActionGate(setProbePending);
   const [observation,setObservation]=useState<InspectionReading|null>(null);
+  const [acousticCaption,setAcousticCaption]=useState("");
   const [mission,setMission]=useState<MissionChoice>({mode:"campaign",levelId:"hotel"});
   const [previewLevel,setPreviewLevel]=useState<LevelId>("hotel");
   const padHeld=useRef<boolean[]>([]);
@@ -128,7 +129,7 @@ export default function Game({portable=false}:{portable?:boolean}){
     touchLook.current=null;
   },[]);
   const resetControls=useCallback(()=>{keys.current.clear();resetJoystick();resetLook();},[resetJoystick,resetLook]);
-  const blockControls=useCallback(()=>{frameState.current.blocked=true;resetControls();},[resetControls]);
+  const blockControls=useCallback(()=>{frameState.current.blocked=true;resetControls();audio.current?.stopObservations?.();},[resetControls]);
   const suspendTalking=useCallback(()=>{padTalk.current?.suspend();radio.current?.setTalking(false);},[]);
   const stopRadio=useCallback(()=>{stopCalibration();suspendTalking();radioActions.current?.cancel();radio.current?.disablePlayback();},[stopCalibration,suspendTalking]);
   const stopMicrophone=useCallback(()=>{suspendTalking();radioActions.current?.cancel();radio.current?.disableMicrophone();},[suspendTalking]);
@@ -221,12 +222,14 @@ export default function Game({portable=false}:{portable?:boolean}){
         // Observation timers stop on pause, reading panels, focus loss and hidden tabs.
         world.setObservationActive(s.playing && !s.blocked && focused);
         world.update(dt);
-        if(now-targetTick>130){targetTick=now;const t=world.getTarget();setTarget(old=>old?.id===t?.id&&old?.label===t?.label?old:t);}
+        const acousticFrame=world.getAcousticFrame?.();
+        if(acousticFrame)audio.current?.syncObservations?.(acousticFrame,world.getPose());
+        if(now-targetTick>130){targetTick=now;const t=world.getTarget();setTarget(old=>old?.id===t?.id&&old?.label===t?.label?old:t);if(acousticFrame)setAcousticCaption(acousticFrame.caption);}
         raf=requestAnimationFrame(animate);
       };raf=requestAnimationFrame(animate);
     }).catch(e=>{if(!destroyed)setGraphicsError(e instanceof Error?e.message:"WebGL 2 est indisponible sur cet appareil.");});
     const onLock=()=>setLocked(document.pointerLockElement===canvasRef.current);
-    const onBlur=()=>{resetControls();suspendTalking();};
+    const onBlur=()=>{resetControls();suspendTalking();audio.current?.stopObservations?.();};
     const onVisibility=()=>{if(document.hidden)onBlur();};
     const onMouse=(e:MouseEvent)=>{if(document.pointerLockElement===canvasRef.current&&!frameState.current.blocked)engine.current?.look(e.movementX*frameState.current.sensitivity,e.movementY*frameState.current.sensitivity);};
     const onKey=(e:KeyboardEvent)=>{
@@ -239,6 +242,7 @@ export default function Game({portable=false}:{portable?:boolean}){
       if(!frameState.current.playing||frameState.current.blocked)return;
       if(["KeyE","KeyV","KeyF","KeyJ","KeyT","Tab","Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();
       if(e.code==="KeyE")actions.current.interact();
+      if(e.code==="KeyR"){engine.current?.stopListening?.();audio.current?.stopObservations?.();}
       if(e.code==="KeyV")actions.current.vote();
       if(e.code==="KeyJ")actions.current.journal();
       if(e.code==="KeyF")actions.current.torch();
@@ -399,6 +403,13 @@ export default function Game({portable=false}:{portable?:boolean}){
     const t=engine.current?.getTarget();
     if(t?.id==="exit"){if(phase==="inspect")openModal("vote");else if(phase==="reference")openModal("journal");return;}
     if(!t){notify("Visez un objet pour le signaler à votre équipe.");return;}
+    if(engine.current?.listen?.()) {
+      audio.current?.start();
+      const caption=engine.current.getAcousticFrame().caption;
+      setAcousticCaption(caption);notify("Écoute locale. E rejoue le même objet ; la légende décrit votre perception.");
+      if(online)request("ping",{target:t.id},true);
+      return;
+    }
     audio.current?.tone("signal");
     const label=`${LETTERS[currentSlot].toUpperCase()} · ${t.label}`;
     setNotes(n=>[label,...n.filter(x=>x!==label)].slice(0,12));
@@ -526,6 +537,7 @@ export default function Game({portable=false}:{portable?:boolean}){
       {modal==="radio"&&<><h2 id="modal-title">Votre voix dans le noir.</h2><p className="modal-intro">Échangez des faits précis. Une interférence dans une seule perception peut faire partie de l’enquête ; une erreur de liaison est signalée séparément.</p><RadioPanel peerNames={Object.fromEntries((online?.players??[]).map(p=>[p.id,p.name]))} status={radioStatus} isOnline={!!online} pending={radioPending} caption={radioCaption} reference={getRadioReferenceCaption({relayCode})} probePending={probePending} onStopProbe={stopCalibration} onEnable={enableMicrophone} onListen={listenRadio} onReconnect={reconnectRadio} onStop={stopRadio} onDisable={stopMicrophone} onTalk={setTalking} onProbe={probeRadio}/>{online&&<><div className="radio-messages" role="log" aria-live="polite">{!online?.messages.length&&<p className="empty-radio">Ligne ouverte. Aucun message pour le moment.</p>}{online?.messages.map(m=><article key={m.id}><b>{m.name}</b><p>{m.text}</p></article>)}</div><form className="radio-form" onSubmit={sendChat}><input autoFocus maxLength={280} aria-label="Message radio" placeholder="Ex. L’horloge tourne à l’envers chez moi." value={chat} onChange={e=>setChat(e.target.value)}/><button className="solid-button" disabled={busy||!chat.trim()} type="submit"><ArrowRight size={18}/><span className="sr-only">Envoyer</span></button></form><p className="fine-print">Les messages restent dans ce salon temporaire.</p></>}</>}
       {error&&<p className="error-line" role="alert"><AlertTriangle size={15}/>{error}</p>}
     </section></div>}
+    {playing&&modal==="none"&&acousticCaption&&<div className="acoustic-caption" role="status" aria-live="polite"><span>ÉCOUTE LOCALE</span><p>{acousticCaption}</p><button onClick={()=>{engine.current?.stopListening();audio.current?.stopObservations();}}>Reposer / arrêter</button></div>}
     {toast&&<div className="toast" role="status"><Radio size={15}/>{toast}</div>}
     {error&&modal==="none"&&phase!=="lobby"&&!roundFinished&&<div className="global-error" role="alert">{error}<button aria-label="Fermer l’erreur" onClick={()=>setError("")}><X size={15}/></button></div>}
   </main>;

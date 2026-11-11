@@ -1,3 +1,5 @@
+> **Reprise acoustique (11/11/2026)** : 108 anomalies sur 120 dans la branche de travail ; 12 concepts restent à produire. Quatre nouveaux cas sonores privés, légende équivalente sans audio, commandes E (écouter/rejouer) et R (reposer). Le classeur courant est indiqué dans `docs/parallaxe-open-work-20261101.json`. Voir `docs/QA_ACOUSTIQUE_20261111.md`. Les publications historiques ci-dessous ne sont pas un déploiement de ce lot.
+
 # PARALLAXE — Protocole 9
 
 **Édition jouable 0.4.1 · 29 octobre 2026**

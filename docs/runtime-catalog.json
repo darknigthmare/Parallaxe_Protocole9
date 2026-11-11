@@ -1565,5 +1565,61 @@
     "description": "Après le milieu du parcours, une silhouette articulée marche lentement à l’envers sur le plafond, uniquement pour le témoin affecté.",
     "cooperation": "Nommez la travée et la porte situées sous la silhouette. Les autres témoins peuvent comparer depuis le même point.",
     "hint": "La présence suffit ; elle ne poursuit personne et ne bloque pas le passage."
+  },
+  {
+    "id": "paired_knocks",
+    "title": "Le quatrième coup",
+    "target": "door",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Une porte silencieuse reste silencieuse.",
+    "description": "Il entend trois coups. Le partenaire : Il entend quatre coups.",
+    "cooperation": "Attendre le cycle suivant, compter puis partager le rythme.",
+    "hint": "Tout coup est déjà anormal. La différence précise la preuve."
+  },
+  {
+    "id": "telephone_breath",
+    "title": "La respiration dans le fil",
+    "target": "phone",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le téléphone ne sonne pas et le combiné reste muet.",
+    "description": "Une respiration se fait entendre au combiné. Le partenaire : Il perçoit un téléphone silencieux.",
+    "cooperation": "Décrire un cycle long d’inspiration et d’expiration.",
+    "hint": "La respiration inhabituelle peut être signalée immédiatement."
+  },
+  {
+    "id": "music_one_note",
+    "title": "La note retenue",
+    "target": "music-box",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "La boîte à musique suit une courte mélodie.",
+    "description": "La dernière note se prolonge indéfiniment. Le partenaire : La mélodie boucle normalement.",
+    "cooperation": "Écouter un cycle complet puis comparer la fin.",
+    "hint": "La note tenue après le cycle confirme l’anomalie."
+  },
+  {
+    "id": "rain_inside",
+    "title": "La pluie dans la pièce",
+    "target": "window",
+    "intensity": 2,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "La pluie vient seulement de l’extérieur.",
+    "description": "La pluie s’entend depuis le plafond intérieur. Le partenaire : Elle vient de la fenêtre.",
+    "cooperation": "Fermer l’écoute près de la fenêtre puis se déplacer sous le centre.",
+    "hint": "Origine intérieure impossible du son."
   }
 ]

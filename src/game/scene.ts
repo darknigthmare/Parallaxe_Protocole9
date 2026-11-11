@@ -10,13 +10,14 @@ import { CABIN_EFFECTS } from './cabin';
 import { createObservationWorld } from './observation-world';
 import { OBSERVATION_EFFECTS, type StarMask } from './observation-state';
 import { isLevelId, type LevelId } from './levels';
+import { createAcousticState, ACOUSTIC_EFFECTS } from './acoustic-state';
 
 /** Original procedural environment. No downloaded models or textures are required. */
 export type SceneInput = { forward: number; strafe: number; lookX?: number; lookY?: number; sprint?: boolean };
 export type ScenePose = { x: number; y: number; z: number; yaw: number; pitch: number };
 type InspectorTarget = { kind: 'self' | 'peer' | 'double'; id: string };
 type SceneTarget = { id: string; label: string; inspector?: InspectorTarget };
-export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string; starMask?: StarMask };
+export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string; starMask?: StarMask; knockCount?: 0 | 3 | 4 };
 export const SCENE_EFFECTS = [
   'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'coat_without_body', 'fire_extinguisher_full', 'portrait_empty', 'door_number', 'door_open',
   'plant_dead', 'plant_tall', 'trolley_missing', 'red_light', 'blackout', 'shadow_figure',
@@ -28,7 +29,7 @@ export const SCENE_EFFECTS = [
   'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
   'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
   'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
-  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS,
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS,
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -68,6 +69,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   let input: SceneInput = { forward: 0, strafe: 0 };
   let active = false;
   let observationActive = true;
+  const acoustics = createAcousticState();
   let alive = true;
   let elapsed = 0;
   let quality: 'low' | 'medium' | 'high' = 'high';
@@ -498,6 +500,27 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   for (let y = 0; y < 2; y++) cylinder(.029, .024, .13, .025 + y * .105, .102, mats.brass, radio, .029, 32).rotation.x = Math.PI / 2;
   cylinder(.004, .36, .13, .36, -.03, mats.brass, radio, .004, 12).rotation.z = -.18;
   tag(radio, 'radio', 'Radio — fréquence 09'); obstacle(-2.72, 4.3, .45, .45);
+
+  // Service music box: physical lid, pinned cylinder, comb and winding handle.
+  // Wall mounted; the common corridor and existing observation props stay clear.
+  const musicBox = wallGroup(-1, -10.10);
+  musicBox.name = 'Saint-Clair — boîte à musique';
+  box(.60, .045, .39, 0, 1.03, .24, mats.woodDark, musicBox);
+  for (const x of [-.23, .23]) box(.035, .18, .26, x, .94, .17, mats.brass, musicBox);
+  box(.46, .10, .29, 0, 1.105, .24, mats.wood, musicBox, .018);
+  box(.42, .018, .25, 0, 1.163, .24, mats.darkMetal, musicBox);
+  const musicLid = new THREE.Group(); musicLid.position.set(0, 1.16, .105); musicBox.add(musicLid);
+  box(.46, .028, .29, 0, .01, .14, mats.woodDark, musicLid, .01);
+  const musicRoller = cylinder(.044, .28, 0, 1.21, .23, mats.brass, musicBox, .044, 24);
+  musicRoller.rotation.z = Math.PI / 2; musicRoller.name = 'Boîte — cylindre épinglé';
+  for (let i = 0; i < 12; i++) {
+    box(.012, .01, .11, -.14 + i * .025, 1.18, .32, mats.brass, musicBox);
+    const pin = sphere(.007, 0, -.13 + i * .023, .047, mats.darkMetal, musicRoller, 8); pin.castShadow = false;
+  }
+  cylinder(.015, .09, .275, 1.16, .24, mats.brass, musicBox, .015, 12).rotation.z = Math.PI / 2;
+  panel(.43, .075, 0, 1.07, .445, labelTexture('BOÎTE · E : ÉCOUTER'), musicBox);
+  tag(musicBox, 'music-box', 'Boîte à musique du salon — E pour remonter');
+  obstacle(-3.38, -10.10, .22, .34);
 
   // Plant geometry uses bent leaves, lathed planters, stems, soil and stone grains.
   const plantLeafMat = new THREE.MeshStandardMaterial({ color: 0x2c5635, roughness: .73, side: THREE.DoubleSide });
@@ -940,6 +963,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     world.visible = levelId === 'hotel'; hotelLights.visible = levelId === 'hotel';
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
     observationWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    acoustics.setView({ ...view, phase, loop, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
     reflectedDoor.visible = false;
@@ -1131,6 +1155,14 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     if (levelId !== 'hotel') extraWorlds[levelId].update(elapsed);
     if (levelId === 'hotel') inspectionProps.update(elapsed);
     observationWorld.update(dt, pose, active && observationActive);
+    acoustics.update(dt, pose, active && observationActive);
+    const acousticFrame = acoustics.snapshot();
+    musicLid.rotation.x = acousticFrame.musicPlaying ? -1.12 : 0;
+    musicRoller.rotation.y = acousticFrame.musicAngle;
+    if (!effects.has('phone_float')) {
+      phoneReceiver.position.y = acousticFrame.phoneLifted ? .30 : .11;
+      phoneReceiver.rotation.z = acousticFrame.phoneLifted ? -.20 : 0;
+    }
     updateEnvironment(elapsed - environmentStarted);
     updateWitnessVisibility();
     const selfSpeed = active && dt > 0 ? Math.hypot(pose.x - oldX, pose.z - oldZ) / dt : 0;
@@ -1240,6 +1272,17 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     setObservationActive(next: boolean) { observationActive = next === true; },
     getTarget: () => target,
     getInspection,
+    getAcousticFrame: () => acoustics.snapshot(),
+    listen() {
+      if (!active || !observationActive || levelId !== 'hotel') return false;
+      const t = target;
+      if (t?.id === 'phone' && !effects.has('phone_float')) return acoustics.activate('phone');
+      if (t?.id === 'music-box') return acoustics.activate('music-box');
+      if (t?.id === 'door' && t.label.includes('903')) return acoustics.activate('door');
+      if (t?.id === 'window' || t?.id === 'stars') return acoustics.activate('rain');
+      return false;
+    },
+    stopListening() { acoustics.stop(); },
     dispose,
     getStats,
   };

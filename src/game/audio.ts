@@ -1,8 +1,11 @@
 import type { LevelId } from './levels';
+import { AcousticAudio } from './acoustic-audio';
+import type { AcousticFrame, AcousticPose } from './acoustic-state';
 
 /** Original synthesized ambience. No recordings or external audio dependencies. */
 export class Atmosphere {
   private context: AudioContext | null = null;
+  private observations: AcousticAudio | null = null;
   private master: GainNode | null = null;
   private drone: GainNode | null = null;
   private volume = 0.38;
@@ -26,6 +29,7 @@ export class Atmosphere {
       const out = this.master = c.createGain();
       out.gain.value = this.enabled ? this.volume : 0;
       out.connect(c.destination);
+      this.observations = new AcousticAudio(c, out);
       const ambient = this.drone = c.createGain();
       ambient.gain.value = 0.06;
       ambient.connect(out);
@@ -55,7 +59,9 @@ export class Atmosphere {
     this.volume=Math.max(0,Math.min(1,v));
     if(this.master&&this.context)this.master.gain.setTargetAtTime(this.enabled?this.volume:0,this.context.currentTime,0.15);
   }
-  setEnabled(enabled:boolean){this.enabled=enabled;this.setVolume(this.volume);}
+  setEnabled(enabled:boolean){this.enabled=enabled;this.setVolume(this.volume);if(!enabled)this.observations?.stop();}
+  syncObservations(frame:AcousticFrame,pose:AcousticPose){this.observations?.sync(frame,pose,this.enabled&&this.volume>0);}
+  stopObservations(){this.observations?.stop();}
   setLocation(location:LevelId) {
     this.location=location;
     const c=this.context;if(!c)return;
@@ -77,5 +83,5 @@ export class Atmosphere {
     o.connect(g).connect(this.master);o.start();o.stop(t+values[2]+0.05);
     o.onended=()=>{o.disconnect();g.disconnect();};
   }
-  dispose(){this.context?.close().catch(()=>{});this.context=null;this.oscillators=[];this.airFilter=null;}
+  dispose(){this.observations?.dispose();this.observations=null;this.context?.close().catch(()=>{});this.context=null;this.oscillators=[];this.airFilter=null;this.master=null;this.drone=null;}
 }

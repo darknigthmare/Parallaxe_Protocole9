@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world']) {
+  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -825,6 +825,41 @@ try {
       }
     }
     game.setInput({ forward: 0, strafe: 0 }); game.setView({ effects: [], levelId: 'hotel' });
+  });
+
+  check('real acoustic props are reachable, animate on intent and preserve private sound through A/B', () => {
+    game.setObservationActive(true);
+    inspectFrom('telephone_breath', [2.4, 8.65], [2.56, 1.25, 7.65], 'phone');
+    assert.equal(game.listen(), true);
+    game.update(.05);
+    assert.equal(game.getAcousticFrame().phoneLifted, true);
+    assert.ok(game.getAcousticFrame().voices.some(v => v.kind === 'breath'));
+    const receiver = rootByLabel('Téléphone de la réception').children.find(o => o.isGroup);
+    assert.equal(receiver.position.y, .30);
+    game.setView({effects: [], levelId: 'hotel', phase: 'inspect'});game.update(0);
+    assert.equal(game.getAcousticFrame().phoneLifted, true);
+    assert.ok(!game.getAcousticFrame().voices.some(v => v.kind === 'breath'));
+    game.stopListening();game.update(0);assert.equal(receiver.position.y, .11);
+    inspectFrom('music_one_note', [-1.8, -10.10], [-3.35, 1.18, -10.10], 'music-box');
+    assert.equal(game.listen(), true);
+    for (let i=0;i<180;i++)game.update(.05);
+    assert.ok(game.getAcousticFrame().voices.some(v=>v.kind==='held-note'));
+    game.setObservationActive(false);game.update(.05);
+    assert.equal(game.getAcousticFrame().voices.length,0);
+    const angle=game.getAcousticFrame().musicAngle;
+    for(let i=0;i<50;i++)game.update(.05);
+    assert.equal(game.getAcousticFrame().musicAngle,angle);
+    assert.equal(game.listen(),false);
+    game.setObservationActive(true);
+    game.setView({effects:['rain_inside'],phase:'inspect',levelId:'hotel',loop:777});
+    game.setPose({x:0,z:2.65});game.update(.05);
+    assert.match(game.getAcousticFrame().caption,/plafond/);
+    game.setView({effects:[],phase:'reference',levelId:'hotel',loop:778});game.update(0);
+    assert.match(game.getAcousticFrame().caption,/fenêtre/);
+    assert.equal(game.getAcousticFrame().musicPlaying,false);
+    game.setView({effects:[],phase:'inspect',levelId:'cabin'});game.update(0);
+    assert.equal(game.getAcousticFrame().voices.length,0);
+    game.setView({effects:[],phase:'inspect',levelId:'hotel'});
   });
 
   check('real scene observation timers stop behind a modal or unfocused browser', () => {

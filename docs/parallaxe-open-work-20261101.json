@@ -49,8 +49,8 @@
   "compteurs": {
     "conception_ouverts": 446,
     "anomalies_concues": 120,
-    "anomalies_runtime": 104,
-    "anomalies_non_implantees": 16,
+    "anomalies_runtime": 108,
+    "anomalies_non_implantees": 12,
     "session_ouverts": 9,
     "radio_ouverts": 8,
     "items_total": 600,
@@ -138,11 +138,11 @@
     {
       "id": "W08",
       "priorite": "P1",
-      "domaine": "16 anomalies restant à intégrer",
-      "action": "Intégrer les seize concepts encore absents en conservant leur référence, leurs perceptions A/B, leur déclenchement et un lieu réellement construit.",
+      "domaine": "12 anomalies restant à intégrer",
+      "action": "Produire les 12 concepts encore hors catalogue, avec déclenchement réel, repère physique, référence A/B et validation sur la cible.",
       "criteres": "Chaque case nouvellement jouable seulement après ajout moteur + lieux + tests de comparaison, sans marketing fictif",
       "preuve": "PR code par lot, baseline/QA, table d'identifiants",
-      "liens": "P51 ; 16 fiches originales ; 104 cas dans le code",
+      "liens": "P51 ; 12 fiches restantes ; 8 cas intégrés depuis le lot 100",
       "etat": "À traiter / vérifier"
     },
     {
@@ -8000,16 +8000,16 @@
       "domaine": "Anomalies",
       "id": "paired_knocks",
       "nom": "Le quatrième coup",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet paired_knocks dans le moteur et son lieu compatible (Porte) ; prévoir Impacts spatialisés, sous-titres de rythme.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter l’écoute spatialisée et sa légende privée : référence, A/B, activation volontaire ou proximité, pause, silence et retour au passage conforme.",
       "critere": "Référence : Une porte silencieuse reste silencieuse. | A : Il entend trois coups. | B : Il entend quatre coups. | comparaison : Attendre le cycle suivant, compter puis partager le rythme. | réussite : Tout coup est déjà anormal. La différence précise la preuve.",
-      "details": "Famille Son ; intensité 3 ; déclenchement Cycle répété toutes les 12 secondes. ; équité Sous-titres privés équivalents et replay volontaire.",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Lot acoustique du 11/11/2026 : génération PCM originale, routage dans le volume ambiance, aucun microphone ni enregistrement. Recette physique encore ouverte.",
+      "verification": "npm run test:acoustic ; npm test ; npm run test:scene ; écoute casque / haut-parleurs et essai 2–4 appareils",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Tests CPU/PCM et contrat de vue privée ; puis vidéo et relevé d’écoute sur appareils identifiés. Ne pas confondre analyse du signal et écoute humaine."
     },
     {
       "cle": "ANOM/paired_newspaper",
@@ -8096,16 +8096,16 @@
       "domaine": "Anomalies",
       "id": "telephone_breath",
       "nom": "La respiration dans le fil",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet telephone_breath dans le moteur et son lieu compatible (Téléphone) ; prévoir Souffle synthétique contrôlé, combiné.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter l’écoute spatialisée et sa légende privée : référence, A/B, activation volontaire ou proximité, pause, silence et retour au passage conforme.",
       "critere": "Référence : Le téléphone ne sonne pas et le combiné reste muet. | A : Une respiration se fait entendre au combiné. | B : Il perçoit un téléphone silencieux. | comparaison : Décrire un cycle long d’inspiration et d’expiration. | réussite : La respiration inhabituelle peut être signalée immédiatement.",
-      "details": "Famille Son ; intensité 4 ; déclenchement Décrocher volontairement. ; équité Volume plafonné, sous-titre « respiration lente ».",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Lot acoustique du 11/11/2026 : génération PCM originale, routage dans le volume ambiance, aucun microphone ni enregistrement. Recette physique encore ouverte.",
+      "verification": "npm run test:acoustic ; npm test ; npm run test:scene ; écoute casque / haut-parleurs et essai 2–4 appareils",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Tests CPU/PCM et contrat de vue privée ; puis vidéo et relevé d’écoute sur appareils identifiés. Ne pas confondre analyse du signal et écoute humaine."
     },
     {
       "cle": "ANOM/vent_whisper",
@@ -8128,16 +8128,16 @@
       "domaine": "Anomalies",
       "id": "music_one_note",
       "nom": "La note retenue",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet music_one_note dans le moteur et son lieu compatible (Salon) ; prévoir Mélodie originale, automate audio.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter l’écoute spatialisée et sa légende privée : référence, A/B, activation volontaire ou proximité, pause, silence et retour au passage conforme.",
       "critere": "Référence : La boîte à musique suit une courte mélodie. | A : La dernière note se prolonge indéfiniment. | B : La mélodie boucle normalement. | comparaison : Écouter un cycle complet puis comparer la fin. | réussite : La note tenue après le cycle confirme l’anomalie.",
-      "details": "Famille Son ; intensité 2 ; déclenchement Activation volontaire de la boîte. ; équité Visualisation discrète du rythme pour jouer sans son.",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Lot acoustique du 11/11/2026 : génération PCM originale, routage dans le volume ambiance, aucun microphone ni enregistrement. Recette physique encore ouverte.",
+      "verification": "npm run test:acoustic ; npm test ; npm run test:scene ; écoute casque / haut-parleurs et essai 2–4 appareils",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Tests CPU/PCM et contrat de vue privée ; puis vidéo et relevé d’écoute sur appareils identifiés. Ne pas confondre analyse du signal et écoute humaine."
     },
     {
       "cle": "ANOM/elevator_count",
@@ -8160,16 +8160,16 @@
       "domaine": "Anomalies",
       "id": "rain_inside",
       "nom": "La pluie dans la pièce",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet rain_inside dans le moteur et son lieu compatible (Salon) ; prévoir Pluie spatialisée, sous-titres de provenance.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter l’écoute spatialisée et sa légende privée : référence, A/B, activation volontaire ou proximité, pause, silence et retour au passage conforme.",
       "critere": "Référence : La pluie vient seulement de l’extérieur. | A : La pluie s’entend depuis le plafond intérieur. | B : Elle vient de la fenêtre. | comparaison : Fermer l’écoute près de la fenêtre puis se déplacer sous le centre. | réussite : Origine intérieure impossible du son.",
-      "details": "Famille Son ; intensité 2 ; déclenchement Approche du centre du salon. ; équité Les sous-titres indiquent une zone, pas le diagnostic automatique.",
-      "verification": "npm run test:radio ; essai audio 2–4 appareils / TURN si réseau",
+      "details": "Lot acoustique du 11/11/2026 : génération PCM originale, routage dans le volume ambiance, aucun microphone ni enregistrement. Recette physique encore ouverte.",
+      "verification": "npm run test:acoustic ; npm test ; npm run test:scene ; écoute casque / haut-parleurs et essai 2–4 appareils",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Tests CPU/PCM et contrat de vue privée ; puis vidéo et relevé d’écoute sur appareils identifiés. Ne pas confondre analyse du signal et écoute humaine."
     },
     {
       "cle": "ANOM/bell_after_departure",
@@ -9948,21 +9948,22 @@
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
   ],
-  "version_suivi": "v3 / observations 104-anomalies",
+  "version_suivi": "108 / 120 — lot acoustique",
   "snapshot_initial": {
     "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "runtime_at_creation": 96,
     "planned_at_creation": 24,
     "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
   },
-  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx",
+  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-11_Acoustique.xlsx",
   "source_revision": "continuation/observations-20261110",
   "date_revision": "2026-11-11",
-  "gap_json": "docs/anomalies-gap-20261110.json",
-  "gap_csv": "docs/ANOMALIES_RESTANTES_20261110.csv",
+  "gap_json": "docs/anomalies-gap-acoustique-20261111.json",
+  "gap_csv": "docs/ANOMALIES_RESTANTES_ACOUSTIQUE_20261111.csv",
   "historical_workbooks": [
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
-    "docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx"
+    "docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx",
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx"
   ],
   "audit_20261110": {
     "criteria_remapped": 446,

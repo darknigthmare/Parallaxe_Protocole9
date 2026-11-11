@@ -39,3 +39,8 @@
 
 /* Four selectable locations keep readable labels on narrow screens. */
 @media(max-width:380px){.location-choices{grid-template-columns:1fr}}
+
+/* Private, equivalent listening evidence: never sent through team pings. */
+.acoustic-caption{position:fixed;left:50%;bottom:7.5rem;transform:translateX(-50%);z-index:25;width:min(36rem,88vw);padding:.7rem 1rem;background:rgba(9,24,25,.91);border:1px solid rgba(186,175,138,.32);border-radius:8px;color:#e6e5d7;pointer-events:auto;text-align:center;}
+.acoustic-caption span{font-size:.65rem;letter-spacing:.16em;color:#bac6bb;}.acoustic-caption p{font-size:.82rem;line-height:1.35;margin:.25rem 0;}.acoustic-caption button{font-size:.7rem;color:#e4cb93;border-bottom:1px solid currentColor;padding:.2rem;}.acoustic-caption button:focus-visible{outline:2px solid #e4cb93;outline-offset:3px;}
+@media(max-width:750px){.acoustic-caption{bottom:11.5rem;padding:.5rem .7rem;width:83vw;}.acoustic-caption p{font-size:.75rem;}}

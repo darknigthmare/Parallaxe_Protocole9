@@ -6,7 +6,7 @@ root = pathlib.Path(__file__).resolve().parents[1]
 track = json.loads((root/"docs/parallaxe-open-work-20261101.json").read_text())
 design = json.loads((root/"docs/anomalies-design.json").read_text())
 runtime = json.loads((root/"docs/runtime-catalog.json").read_text())
-gap = json.loads((root/"docs/anomalies-gap-20261110.json").read_text())
+gap = json.loads((root/track["gap_json"]).read_text())
 by_id = {a["id"]:a for a in runtime}
 wb = Workbook.create()
 navy, muted, pale, teal, amber = "#173A4B", "#53616B", "#F3F6F7", "#DDEEE8", "#FFF2D8"
@@ -47,7 +47,7 @@ summary = wb.worksheets.add("Synthèse"); sheets["Synthèse"] = summary
 summary.get_range("A1:H30").format.font={"name":"Arial","size":10,"color":"#162733"}
 summary.merge_cells("A1:H2");summary.get_range("A1").values=[["PARALLAXE — PROTOCOLE 9"]]
 summary.get_range("A1:H2").format={"fill":navy,"font":{"name":"Arial","size":21,"bold":True,"color":"#FFFFFF"},"row_height":24,"vertical_alignment":"center"}
-summary.merge_cells("A3:H3");summary.get_range("A3").values=[["Reprise du 11 novembre 2026 · contenu, critères et réception"]]
+summary.merge_cells("A3:H3");summary.get_range("A3").values=[["11 novembre 2026 · reprise acoustique · état courant 108 / 120"]]
 for c,w in zip("ABCDEFGH",[34,17,4,19,19,19,17,17]):summary.get_range(f"{c}1:{c}30").format.column_width=w
 summary.get_range("A6:B6").values=[["CATALOGUE","TOTAL"]]
 summary.get_range("A7:A13").values=[["Concepts originaux"],["Présents dans le code"],["Encore non intégrés"],["Part implémentée"],["Entrées de suivi"],["Lots prioritaires"],["Recettes QA encore ouvertes"]]
@@ -77,13 +77,14 @@ changes=[
 ["MIST-01","Correctif","La brume de l’extincteur tourne autour du centre du cylindre, pas autour de la fixation murale.","Contrôle géométrique sur 100 pas et retour normal.","Contrôle GPU distinct.","src/game/scene.ts"],
 ["XLSX-446","Correction du suivi","446 critères et actions reliés aux bonnes colonnes d’origine. Commandes de recette remises dans leur domaine.","Clés et sources conservées ; états historiques non clôturés arbitrairement.","600 entrées ne représentent pas 600 fonctionnalités absentes.","docs/parallaxe-open-work-20261101.json"],
 ]
+changes.extend(json.loads((root/"docs/acoustic-delivery-20261111.json").read_text()))
 add_table("Livraison",["ID","Type","Modification appliquée","Vérification prévue ou exécutée","Limites","Source"],changes,[29,21,40,40,40,38])
 sources=[["Base de développement","https://github.com/darknigthmare/Parallaxe_Protocole9/commit/a1774830149d485af800133f688e94b208940883","Branche main examinée ; code de jeu identique à l’archive edbeab61."],
 ["Fiches originales","https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json","120 fiches originales conservées sans réécriture de leurs A/B."],
 ["Source actuelle","https://github.com/darknigthmare/Parallaxe_Protocole9/tree/continuation/observations-20261110","Branche du lot, pas une publication du site."],
 ["Contrôles CPU","tests/observation-state.test.mjs ; tests/observation-world.test.mjs","Chronométrie/logique ne certifient pas un rendu GPU."],
 ["Registre de travail","docs/parallaxe-open-work-20261101.json","600 clés maintenues, 446 critères remappés."],
-["Liste restante","docs/anomalies-gap-20261110.json","16 cas absents du catalogue ; CSV associé."],
+["Liste restante",track["gap_json"],f"{len(gap['remaining_anomalies'])} cas non intégrés ; CSV synchronisé."],
 ]+[[p,"Archive conservée","Ne pas utiliser son ancien compteur pour la version actuelle."] for p in track["historical_workbooks"]]+[[f"docs/{p}","Classeur historique conservé","Son état antérieur n’est pas une recette du nouveau lot."] for p in ["PARALLAXE_Design_Complet.xlsx","PARALLAXE_Suivi_Reprise_2026-10-28.xlsx","PARALLAXE_Suivi_Sessions_2026-10-29.xlsx"]]
 add_table("Sources",["Référence","Lien / chemin","Portée"],sources,[36,40,40])
 summary.get_range("B7:B13").formulas=[
@@ -94,13 +95,13 @@ summary.get_range("B7:B13").formulas=[
 ["=COUNTA('Lots prioritaires'!$A$6:$A$33)"],
 ["=COUNTA('Recette QA'!$A$6:$A$129)"]]
 summary.get_range("B10").format.number_format="0.0%"
-summary.merge_cells("A16:H16");summary.get_range("A16").values=[["CE LOT : 4 CAS INTÉGRÉS + CORRECTIFS + SUIVI RÉCONCILIÉ"]]
+summary.merge_cells("A16:H16");summary.get_range("A16").values=[["REPRISE : 4 OBSERVATIONS + 4 CAS ACOUSTIQUES"]]
 summary.get_range("A16:H16").format={"fill":navy,"font":{"bold":True,"color":"#FFFFFF"},"row_height":27}
 notes=[
-"Constellation · Portrait vieillissant · Escalier uniquement dans l’ombre · Marcheur au plafond.",
-"Les signalements du manteau et de l’extincteur sont acceptés par le serveur. La brume reste dans le cylindre.",
+"Constellation, portrait, ombre-escalier et marcheur conservés ; ajout des quatre écoutes originales.",
+"Coups 3/4 · Respiration du combiné · Note retenue · Pluie au plafond. E pour écouter/rejouer ; R pour reposer.",
 "446 lignes ont retrouvé leur vrai critère de fin ; les 600 clés de suivi restent conservées.",
-"104 cas sont intégrés au code ; 16 concepts sont encore à développer. Aucun d’eux n’est annoncé jouable.",
+f"{len(runtime)} cas sont intégrés au code ; {len(gap['remaining_anomalies'])} concepts restent à développer. La réception humaine n’est pas clôturée.",
 "Les recettes GPU, microphones, TURN et 2–4 appareils physiques restent à effectuer.",
 "La campagne reste Saint-Clair → Terminus 09 → Aile blanche ; le Chalet reste un lieu autonome.",
 "Les anciens Excel sont des archives. Ce classeur et son fichier source JSON portent l’état courant."
