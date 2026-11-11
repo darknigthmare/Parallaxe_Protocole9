@@ -32,6 +32,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/temporal-proof"
           git merge-base --is-ancestor e8ae289681dd37d9b7893b4cf8cb1370a58656bf HEAD
           python3 .delivery/temporal/apply.py | tee "$RUNNER_TEMP/temporal-proof/restoration.json"
+          python3 .delivery/temporal/overlay.py | tee "$RUNNER_TEMP/temporal-proof/placement-correction.json"
           python3 scripts/validate-open-workbook.py | tee "$RUNNER_TEMP/temporal-proof/workbook.json"
           npm test > "$RUNNER_TEMP/temporal-proof/domain.log" 2>&1
           node tests/temporal-state.test.mjs > "$RUNNER_TEMP/temporal-proof/temporal-state.log" 2>&1
