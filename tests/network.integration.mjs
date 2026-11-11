@@ -23,7 +23,7 @@ async function state(client){
   const response=await fetch(`${endpoint}?code=${client.code}`,{headers:{Authorization:`Bearer ${client.token}`}});
   const value=await response.json();assert.equal(response.status,200,JSON.stringify(value));client.state=value.state;return value.state;
 }
-const answerFor=states=>states.some(s=>s.view.effects.length>0)||['relayCode','arrowDirection','syncTime'].some(key=>new Set(states.map(s=>s.view[key])).size>1);
+const answerFor=states=>states.some(s=>s.view.effects.length>0)||['relayCode','arrowDirection','syncTime','starMask'].some(key=>new Set(states.map(s=>s.view[key])).size>1);
 try{
   const host=await call({action:'create',name:'QA Alpha',difficulty:'standard',mode:'campaign'},null,201);clients.push(host);
   const arrivals=await Promise.allSettled(['Bravo','Charlie','Delta'].map(async name=>{

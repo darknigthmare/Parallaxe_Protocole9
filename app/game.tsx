@@ -218,6 +218,8 @@ export default function Game({portable=false}:{portable?:boolean}){
         }
         padHeld.current=down;
         world.setInput({forward:Math.max(-1,Math.min(1,forward)),strafe:Math.max(-1,Math.min(1,strafe)),sprint:!s.reduceMotion&&keys.current.has("ShiftLeft")});
+        // Observation timers stop on pause, reading panels, focus loss and hidden tabs.
+        world.setObservationActive(s.playing && !s.blocked && focused);
         world.update(dt);
         if(now-targetTick>130){targetTick=now;const t=world.getTarget();setTarget(old=>old?.id===t?.id&&old?.label===t?.label?old:t);}
         raf=requestAnimationFrame(animate);

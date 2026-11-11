@@ -31,8 +31,8 @@ function roomWithTwo(){
   return room;
 }
 
-test('100 unique catalog entries have valid location scopes and include relational clues',()=>{
-  assert.equal(ANOMALIES.length,100);
+test('104 unique catalog entries have valid location scopes and include relational clues',()=>{
+  assert.equal(ANOMALIES.length,104);
   assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,ANOMALIES.length);
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));
@@ -255,4 +255,23 @@ test('explicit departure clears stale votes and preserves an inspectable anomaly
   assert.equal(room.run.streak,1);
   room=actRoom(room,'a','next',{},1700);
   assert.ok(room.run.observerSlots.every(slot=>[0,2].includes(slot)));
+});
+
+
+test('six-star relational case exposes only the recipient mask, four points on each side',()=>{
+ const run={...createRun({seed:'stars',players:4,mode:'single'}),phase:'inspect',loop:1,currentAnomalyId:'paired_stars',observerSlots:[1,3]};
+ const views=[0,1,2,3].map(slot=>getPersonalView(run,slot));
+ assert.deepEqual(views.map(v=>v.starMask),['right','left','right','left']);
+ assert.ok(views.every(v=>v.effects.length===0));
+ for(let slot=0;slot<4;slot++)assert.equal(getPersonalView({...run,phase:'reference'},slot).starMask,'all');
+});
+
+test('old and new observation landmarks are accepted as public pings without publishing private results',()=>{
+ const room=roomWithTwo();
+ for(const target of ['coat','extinguisher','stars','aged-photo','landing']){
+  const changed=actRoom(room,'a','ping',{target},1001);
+  const visible=projectRoom(changed,'b',1001);
+  assert.equal(visible.pings.at(-1).target,target);
+  assert.deepEqual(Object.keys(visible.pings.at(-1)).sort(),['at','id','name','target']);
+ }
 });

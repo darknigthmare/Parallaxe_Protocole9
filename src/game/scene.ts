@@ -7,6 +7,8 @@ import { createInspector, type InspectorIdentity, type InspectorModel, type Insp
 import { createLocation, reflectiveGlass, type LocationWorld } from './locations';
 import { createInspectionProps, INSPECTION_EFFECTS, type InspectionMember } from './inspection-props';
 import { CABIN_EFFECTS } from './cabin';
+import { createObservationWorld } from './observation-world';
+import { OBSERVATION_EFFECTS, type StarMask } from './observation-state';
 import { isLevelId, type LevelId } from './levels';
 
 /** Original procedural environment. No downloaded models or textures are required. */
@@ -14,7 +16,7 @@ export type SceneInput = { forward: number; strafe: number; lookX?: number; look
 export type ScenePose = { x: number; y: number; z: number; yaw: number; pitch: number };
 type InspectorTarget = { kind: 'self' | 'peer' | 'double'; id: string };
 type SceneTarget = { id: string; label: string; inspector?: InspectorTarget };
-export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string };
+export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string; starMask?: StarMask };
 export const SCENE_EFFECTS = [
   'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'coat_without_body', 'fire_extinguisher_full', 'portrait_empty', 'door_number', 'door_open',
   'plant_dead', 'plant_tall', 'trolley_missing', 'red_light', 'blackout', 'shadow_figure',
@@ -26,7 +28,7 @@ export const SCENE_EFFECTS = [
   'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
   'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
   'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
-  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS,
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS,
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -65,6 +67,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const pose: ScenePose = { x: 0, y: 1.67, z: 9, yaw: 0, pitch: 0 };
   let input: SceneInput = { forward: 0, strafe: 0 };
   let active = false;
+  let observationActive = true;
   let alive = true;
   let elapsed = 0;
   let quality: 'low' | 'medium' | 'high' = 'high';
@@ -366,14 +369,14 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   box(.24, .055, .095, .055, 1.72, .28, mats.darkMetal, safetyRack, .018);
   const fireHose = torus(.14, .019, -.16, 1.57, .29, mats.darkMetal, safetyRack);
   fireHose.rotation.y = Math.PI / 2;
-  const fireMist = new THREE.Group();
+  const fireMist = new THREE.Group(); fireMist.position.set(0, 1.30, .28);
   safetyRack.add(fireMist); anomaly('fire_extinguisher_full', fireMist);
   fireMist.name = 'Saint-Clair — brume captive';
   const mistMat = new THREE.MeshStandardMaterial({ color: 0xcadad2, emissive: 0x57746b, emissiveIntensity: .20,
     transparent: true, opacity: .27, depthWrite: false });
   for (let i = 0; i < 7; i++) {
     const t = i * 2.399, radius = .025 + .018 * (i % 2);
-    const vapour = sphere(radius, Math.cos(t) * .048, 1.05 + i * .069, .28 + Math.sin(t) * .04, mistMat, fireMist, 16);
+    const vapour = sphere(radius, Math.cos(t) * .048, -.25 + i * .069, Math.sin(t) * .04, mistMat, fireMist, 16);
     vapour.scale.set(1.2, 1.6, .9);
   }
   tag(safetyRack, 'extinguisher', 'Extincteur de sécurité du service');
@@ -734,6 +737,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   for (const x of [-.18, .18]) for (const z of [-.18, .18]) cylinder(.018, .43, x, .22, z, mats.brass, reflectionSeat);
   tag(reflectionSeat, 'chair', 'Siège vide du contrôle des reflets');
   const inspectionProps = createInspectionProps(); world.add(inspectionProps.root); targets.push(...inspectionProps.targets); occluders.push(...inspectionProps.colliders);
+  const observationWorld = createObservationWorld(); world.add(observationWorld.root); targets.push(...observationWorld.targets); occluders.push(...observationWorld.colliders);
 
   // These reference stands have identical collision bounds for every observer.
   // When nobody else is present, numbered mannequins make the reflection count
@@ -935,6 +939,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     }
     world.visible = levelId === 'hotel'; hotelLights.visible = levelId === 'hotel';
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
+    observationWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
     reflectedDoor.visible = false;
@@ -946,6 +951,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       effects.has('coat_without_body') ? .81 : .27);
     coatShell.rotation.y = 0; coatShell.rotation.z = 0;
     fireBody.material = effects.has('fire_extinguisher_full') ? fireClear : fireRed;
+    if (!effects.has('fire_extinguisher_full')) fireMist.rotation.y = 0;
     (paintingCanvas.material as THREE.MeshStandardMaterial).map = effects.has('portrait_empty') ? portraitEmpty : portraitNormal;
     doorNumberMaterials.forEach((material, i) => { material.map = i === 0 && effects.has('door_number') ? wrongNumberMap : doorNumberMaps[i]; material.emissiveMap = material.map; });
     doorLeaves.forEach((leaf, i) => { leaf.rotation.y = i === 0 && effects.has('door_open') ? -1.12 : 0; });
@@ -1124,6 +1130,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     particles.rotation.y = Math.sin(elapsed * .02) * .01;
     if (levelId !== 'hotel') extraWorlds[levelId].update(elapsed);
     if (levelId === 'hotel') inspectionProps.update(elapsed);
+    observationWorld.update(dt, pose, active && observationActive);
     updateEnvironment(elapsed - environmentStarted);
     updateWitnessVisibility();
     const selfSpeed = active && dt > 0 ? Math.hypot(pose.x - oldX, pose.z - oldZ) / dt : 0;
@@ -1193,11 +1200,12 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       }
       if (model) return { title: observed.id === 'mirror' ? 'Badge dans le miroir' : 'Badge physique', location: observed.label, lines: model.badge.userData.code ? [`INSPECTEUR ${model.badge.userData.code}`, 'PARALLAXE'] : ['PLAQUE VIERGE'] };
     }
-    return levelId === 'hotel' ? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
+    return levelId === 'hotel' ? observationWorld.getReading(observed?.id) ?? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
   }
   function dispose() {
     if (disposed) return; disposed = true; alive = false;
     world.remove(inspectionProps.root); inspectionProps.dispose();
+    world.remove(observationWorld.root); observationWorld.dispose();
     for (const model of [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)]) { scene.remove(model.root); peerGroup.remove(model.root); model.dispose(); }
     for (const location of Object.values(extraWorlds)) { scene.remove(location.root); location.dispose(); }
     const geometries = new Set<THREE.BufferGeometry>(); const materials = new Set<THREE.Material>();
@@ -1229,6 +1237,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     setQuality,
     setFlashlight(on: boolean) { flashlightOn = on; },
     setActive(next: boolean) { active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); updateWitnessVisibility(); },
+    setObservationActive(next: boolean) { observationActive = next === true; },
     getTarget: () => target,
     getInspection,
     dispose,

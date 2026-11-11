@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props']) {
+  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -280,6 +280,30 @@ try {
     assert.equal(mist.visible, false);
   });
 
+  check('new observation props are installed in the actual scene and reset between passages', () => {
+    const photo = scene.getObjectByName('P9 — portrait du gardien');
+    const figure = scene.getObjectByName('Plafond — marcheur inversé');
+    assert.ok(photo && figure);
+    game.setView({ levelId:'hotel', phase:'inspect', loop:71, effects:['photo_age','ceiling_walker'] });
+    game.setActive(true);game.setInput({forward:0,strafe:0});game.setPose({x:-1.8,z:-14.2});
+    for(let i=0;i<450;i++)game.update(.05);
+    assert.ok(photo.userData.age>.99);assert.equal(figure.visible,true);
+    game.setView({ levelId:'hotel', phase:'reference', loop:72, effects:[] });
+    assert.equal(photo.userData.age,0);assert.equal(figure.visible,false);
+    game.setActive(false);
+  });
+
+  check('extinguisher mist stays within its cylinder during rotation and resets without residue', () => {
+    const body = scene.getObjectByName('Saint-Clair — corps de l’extincteur');
+    const mist = scene.getObjectByName('Saint-Clair — brume captive');
+    game.setView({effects:['fire_extinguisher_full'],levelId:'hotel',phase:'inspect'});
+    for(let i=0;i<100;i++){
+      game.update(.05);mist.updateMatrixWorld(true);body.updateMatrixWorld(true);
+      for(const puff of mist.children){const local=body.worldToLocal(puff.getWorldPosition(new THREE.Vector3()));assert.ok(Math.hypot(local.x,local.z)<.08);assert.ok(Math.abs(local.y)<.31);}
+    }
+    game.setView({effects:[],levelId:'hotel',phase:'reference'});assert.equal(mist.visible,false);assert.equal(mist.rotation.y,0);
+  });
+
   check('relay values are legible text inputs, stable on repeat, and previous textures disposed', () => {
     const display = allObjects.find(object => object.material?.map?.image?.__text?.includes('RELAIS'));
     assert.ok(display);
@@ -319,6 +343,9 @@ try {
     const ceiling = [[0, 5], [0, 3.45, 2], 'ceiling'];
     const cases = {
       clock_reverse: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
+      photo_age: [[-1.8, -14.2], [-3.45, 2.05, -14.2], 'aged-photo'],
+      stair_wrong_shadow: [[1.6, -7.65], [3.50, 1.85, -7.65], 'landing'],
+      paired_stars: [[-1.8, -12.25], [-3.475, 2.54, -12.25], 'stars'],
       clock_missing: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       clock_stop_gaze: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       coat_without_body: [[-2.1, -2.15], [-2.82, .75, -2.15], 'coat'],
@@ -798,6 +825,22 @@ try {
       }
     }
     game.setInput({ forward: 0, strafe: 0 }); game.setView({ effects: [], levelId: 'hotel' });
+  });
+
+  check('real scene observation timers stop behind a modal or unfocused browser', () => {
+    game.setView({ effects: ['photo_age'], phase: 'inspect', levelId: 'hotel', loop: 811 });
+    game.setActive(true); game.setPose({ x: -1.8, z: -14.2, yaw: 0, pitch: 0 });
+    game.setInput({ forward: 0, strafe: 0 });
+    const portrait = scene.getObjectByName('P9 — portrait du gardien');
+    assert.ok(portrait);
+    game.setObservationActive(false);
+    for (let i = 0; i < 500; i++) game.update(.05);
+    assert.equal(portrait.userData.age, 0, 'Modal time must not secretly age the portrait');
+    game.setObservationActive(true);
+    for (let i = 0; i < 440; i++) game.update(.05);
+    assert.ok(portrait.userData.age > .99, 'The visible inspection resumes normally');
+    game.setView({ effects: [], phase: 'reference', levelId: 'hotel', loop: 812 });
+    assert.equal(portrait.userData.age, 0);
   });
 
   check('quality caps, peer cleanup and ready callback are consistent', () => {

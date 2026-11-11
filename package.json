@@ -30,7 +30,8 @@
     "test:session-actions": "node tests/session-actions.test.mjs",
     "test:session-adapters": "node tests/session-adapters.test.mjs",
     "test:session-client": "node tests/session-scope.test.mjs",
-    "test:movement": "node tests/movement-input.test.mjs"
+    "test:movement": "node tests/movement-input.test.mjs",
+    "test:observation": "node tests/observation-state.test.mjs && node tests/observation-world.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

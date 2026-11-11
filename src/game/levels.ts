@@ -52,6 +52,12 @@ LEVELS.hotel.baseline.push(
   'Le plan G9 montre 901 à gauche et 902 à droite près de l’entrée, puis 903 à gauche et 904 à droite vers la sortie. Le règlement R9 demande SIGNALEZ TOUTE ANOMALIE.',
   'Aucune racine ne sort sous les portes ; les murs restent secs, le joint de sortie immobile, et le miroir ne crée pas de porte supplémentaire.',
 );
+LEVELS.hotel.baseline.push(
+  'Le manteau du service est suspendu à son crochet. L’extincteur reste rouge opaque, sans contenu visible. La trotteuse continue même sous votre regard, et le tapis conserve ses losanges réguliers.',
+  'Depuis le repère ICI, face à la fenêtre G9, les six étoiles forment deux rangées de trois points. Comparez les positions depuis ce même côté ; il ne faut aucune connaissance astronomique.',
+  'Le portrait P9 près de l’issue garde les mêmes cheveux sombres, yeux et posture, même après dix secondes près du cadre. E affiche votre lecture locale.',
+  'Le palier de service porte une rampe horizontale à six montants sous son applique ; sa projection ne forme pas un escalier. La seconde moitié du plafond reste vide.',
+);
 LEVELS.metro.baseline.push(
   'Le tableau ARCHIVES reste fixe : 01:09 T09 → OBSERVATOIRE et 01:12 T12 ← BELVÉDÈRE. Le plan relie BELVÉDÈRE, OBSERVATOIRE et TERMINUS 09, sans station intermédiaire.',
   'Le portique SCELLÉ affiche 0000, sans passage physique possible. Le tunnel ne laisse entrer ni ciel bleu ni soleil.',

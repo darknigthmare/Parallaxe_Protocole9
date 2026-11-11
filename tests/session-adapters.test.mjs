@@ -108,7 +108,7 @@ async function d1Fixture(count=2){
   return {storage,post,get,decision,host,clients};
 }
 const answerFor=states=>states.some(state=>state.view.effects.length>0)
-  ||['relayCode','arrowDirection','syncTime'].some(key=>new Set(states.map(state=>state.view[key])).size>1);
+  ||['relayCode','arrowDirection','syncTime','starMask'].some(key=>new Set(states.map(state=>state.view[key])).size>1);
 async function finishRound(fixture){
   const states=await Promise.all(fixture.clients.map(fixture.get));
   const answer=answerFor(states);

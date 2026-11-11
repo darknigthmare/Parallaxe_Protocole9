@@ -1509,5 +1509,61 @@
     "description": "La coque rouge devient translucide et révèle une brume claire en mouvement à l’intérieur.",
     "cooperation": "Comparez la visibilité de la coque et le contenu du cylindre, sans toucher la poignée.",
     "hint": "La brume confinée dans un appareil devenu transparent est une preuve visuelle."
+  },
+  {
+    "id": "paired_stars",
+    "title": "La constellation amputée",
+    "target": "stars",
+    "intensity": 2,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Six points lumineux fixes se voient dans la partie haute de la fenêtre G9 depuis le repère ICI.",
+    "description": "Certains témoins voient quatre étoiles à gauche, les autres quatre à droite ; leurs positions réunies reconstituent les six points de référence.",
+    "cooperation": "Depuis le même repère, nommez les positions gauche, centre et droite, haut et bas. Reconstituez le motif entier à deux.",
+    "hint": "Quatre points différents dans deux perceptions du même ciel constituent une contradiction ; ne comparez pas deux fenêtres."
+  },
+  {
+    "id": "photo_age",
+    "title": "Le visage vieilli",
+    "target": "aged-photo",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le portrait P9 du gardien, au-delà de la fenêtre, conserve ses cheveux sombres, son regard ouvert et sa posture droite.",
+    "description": "Après dix secondes près du cadre, le visage grisonne, se ride et se voûte progressivement pour un témoin. La transformation reste visible jusqu’au verdict.",
+    "cooperation": "Observez le même cadre à deux reprises : comparez cheveux, yeux et épaules. La lecture E reprend la perception locale.",
+    "hint": "Un visage qui change entre deux observations ne fait pas partie de la photographie de référence."
+  },
+  {
+    "id": "stair_wrong_shadow",
+    "title": "L’escalier absent",
+    "target": "landing",
+    "intensity": 3,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Sous l’applique du palier de service, une rampe horizontale à six montants projette le même dessin sur le mur.",
+    "description": "Une ombre de six marches ascendantes remplace celle de la rampe, sans aucun escalier réel devant le mur.",
+    "cooperation": "Comparez la rampe physique, l’applique et sa projection. Aucun saut ni déplacement de meuble n’est nécessaire.",
+    "hint": "Les marches existent uniquement dans la projection, pas dans la géométrie du palier."
+  },
+  {
+    "id": "ceiling_walker",
+    "title": "Les pas renversés",
+    "target": "ceiling",
+    "intensity": 5,
+    "difficulty": 2,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Le plafond reste vide dans la seconde moitié du couloir.",
+    "description": "Après le milieu du parcours, une silhouette articulée marche lentement à l’envers sur le plafond, uniquement pour le témoin affecté.",
+    "cooperation": "Nommez la travée et la porte situées sous la silhouette. Les autres témoins peuvent comparer depuis le même point.",
+    "hint": "La présence suffit ; elle ne poursuit personne et ne bloque pas le passage."
   }
 ]

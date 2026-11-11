@@ -3,7 +3,7 @@ import { LEVEL_ORDER,isLevelId,type LevelId,type GameMode } from './levels';
 
 export type Difficulty = 'standard' | 'relaxed';
 export type Phase = 'reference' | 'inspect' | 'reveal' | 'won' | 'lost';
-export type PersonalView = { effects: string[]; variant: number; phase: Phase | 'lobby'; loop: number; relayCode:string;levelId:LevelId;arrowDirection:'left'|'right';syncTime:string };
+export type PersonalView = { effects: string[]; variant: number; phase: Phase | 'lobby'; loop: number; relayCode:string;levelId:LevelId;arrowDirection:'left'|'right';syncTime:string;starMask:'all'|'left'|'right' };
 export type RunResult = {correct:boolean;hasAnomaly:boolean;title:string;description:string;observerSlots:number[];anomalyId:string|null};
 export type Run = {
   seed:string;difficulty:Difficulty;players:number;phase:Phase;loop:number;streak:number;
@@ -76,7 +76,7 @@ export function getPersonalView(run:Run,slot:number):PersonalView {
   const minutes=run.phase==='reference'?189:hashSeed(`${run.seed}:clock:${run.loop}`)%1440;
   const shownMinutes=run.currentAnomalyId==='paired_clock'&&visible?(minutes+7)%1440:minutes;
   const syncTime=`${String(Math.floor(shownMinutes/60)).padStart(2,'0')}:${String(shownMinutes%60).padStart(2,'0')}`;
-  return {effects:visible&&!['relay_mismatch','paired_arrow','paired_clock'].includes(run.currentAnomalyId!)?[run.currentAnomalyId!]:[],variant:run.phase==='reference'?0:hashSeed(`${run.seed}:inspection:${run.loop}`)%16,phase:run.phase,loop:run.loop,relayCode,levelId:run.levelId,arrowDirection,syncTime};
+  return {effects:visible&&!['relay_mismatch','paired_arrow','paired_clock','paired_stars'].includes(run.currentAnomalyId!)?[run.currentAnomalyId!]:[],variant:run.phase==='reference'?0:hashSeed(`${run.seed}:inspection:${run.loop}`)%16,phase:run.phase,loop:run.loop,relayCode,levelId:run.levelId,arrowDirection,syncTime,starMask:run.phase!=='reference'&&run.currentAnomalyId==='paired_stars'?(visible?'left':'right'):'all'};
 }
 
 /** Evaluates a single final team answer. Never call with an individual unconfirmed vote. */
