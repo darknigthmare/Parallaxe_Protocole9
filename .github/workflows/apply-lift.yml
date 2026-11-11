@@ -1,0 +1,85 @@
+name: Appliquer et vérifier l’ascenseur et les pas résiduels
+
+on:
+  push:
+    branches: [continuation/observations-20261110]
+    paths: ['.github/workflows/apply-lift.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-parallaxe-lift
+  cancel-in-progress: false
+
+jobs:
+  apply-reviewed-lot:
+    if: github.repository == 'darknigthmare/Parallaxe_Protocole9' && github.ref == 'refs/heads/continuation/observations-20261110'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restaurer les sources et le classeur contrôlés par empreinte
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/lift-proof"
+          git merge-base --is-ancestor 03e59a9f2e4f672e98929f9305f271392f0ccfe9 HEAD
+          python3 .delivery/lift/apply.py | tee "$RUNNER_TEMP/lift-proof/restoration.json"
+          python3 scripts/validate-open-workbook.py | tee "$RUNNER_TEMP/lift-proof/workbook.json"
+          npm test > "$RUNNER_TEMP/lift-proof/domain.log" 2>&1
+          npm run test:lift > "$RUNNER_TEMP/lift-proof/lift.log" 2>&1
+      - name: Installer uniquement les dépendances verrouillées
+        run: npm ci
+      - name: Vérifier le typage, la scène, les interactions et la radio
+        run: |
+          set -euo pipefail
+          npx tsc --noEmit 2>&1 | tee "$RUNNER_TEMP/lift-proof/typecheck.log"
+          npm run test:scene 2>&1 | tee "$RUNNER_TEMP/lift-proof/scene.log"
+          npm run test:temporal 2>&1 | tee "$RUNNER_TEMP/lift-proof/temporal.log"
+          npm run test:observation 2>&1 | tee "$RUNNER_TEMP/lift-proof/observations.log"
+          npm run test:acoustic 2>&1 | tee "$RUNNER_TEMP/lift-proof/acoustic.log"
+          npm run test:cabin 2>&1 | tee "$RUNNER_TEMP/lift-proof/cabin.log"
+          npm run test:inspection 2>&1 | tee "$RUNNER_TEMP/lift-proof/inspection.log"
+          npm run test:radio 2>&1 | tee "$RUNNER_TEMP/lift-proof/radio.log"
+          npm run test:radio-ui 2>&1 | tee "$RUNNER_TEMP/lift-proof/radio-ui.log"
+          npm run test:radio-config 2>&1 | tee "$RUNNER_TEMP/lift-proof/radio-config.log"
+      - name: Compiler les éditions hébergée et locale sans publier le site
+        run: |
+          set -euo pipefail
+          npm run build 2>&1 | tee "$RUNNER_TEMP/lift-proof/hosted-build.log"
+          npm run build:local 2>&1 | tee "$RUNNER_TEMP/lift-proof/local-build.log"
+      - name: Appliquer les fichiers lisibles à la branche de travail
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test "$(git ls-remote origin refs/heads/continuation/observations-20261110 | cut -f1)" = "$EXPECTED_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AGENTS.md README.md package.json app/game.tsx docs scripts src/game tests
+          git rm -r .delivery/lift
+          if git diff --cached --name-only | grep -q '^.github/'; then echo 'Unexpected workflow edit'; exit 1; fi
+          git commit -m 'feat: integrate 115 anomalies with a physical lift, persistent visitor and guarded residual footsteps'
+          git push origin HEAD:refs/heads/continuation/observations-20261110
+          git rev-parse HEAD > "$RUNNER_TEMP/lift-proof/COMMIT.txt"
+          git archive --format=tar.gz --output="$RUNNER_TEMP/lift-proof/PARALLAXE_sources.tar.gz" HEAD
+      - name: Construire et lancer le paquet depuis le commit exact
+        run: |
+          set -euo pipefail
+          npm run package:release 2>&1 | tee "$RUNNER_TEMP/lift-proof/package.log"
+          python3 tests/package-archive.test.py 2>&1 | tee "$RUNNER_TEMP/lift-proof/archive.log"
+          cp outputs/release-v*/*.zip "$RUNNER_TEMP/lift-proof/"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lift-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/lift-proof/
+          if-no-files-found: error
+          retention-days: 14
