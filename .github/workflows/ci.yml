@@ -61,6 +61,8 @@ jobs:
         run: npm run test:observation
       - name: Vérifier les séquences acoustiques, le mode silencieux et le routage local
         run: npm run test:acoustic
+      - name: Vérifier les gestes coopératifs et leurs perceptions temporelles
+        run: npm run test:temporal
       - name: Vérifier le suivi courant et les sources A/B
         run: python3 scripts/validate-open-workbook.py
       - name: Vérifier la radio et les autorisations
