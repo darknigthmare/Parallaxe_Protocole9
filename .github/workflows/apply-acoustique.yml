@@ -1,5 +1,5 @@
 name: Appliquer et vérifier les observations acoustiques
-
+# Includes the focus/audio regression harness corrected after the first verification.
 on:
   push:
     branches: [continuation/observations-20261110]
@@ -35,6 +35,7 @@ jobs:
           python3 scripts/validate-open-workbook.py | tee "$RUNNER_TEMP/acoustique-proof/workbook.json"
           npm test > "$RUNNER_TEMP/acoustique-proof/domain.log" 2>&1
           npm run test:acoustic > "$RUNNER_TEMP/acoustique-proof/acoustic.log" 2>&1
+          node tests/radio-input.test.mjs > "$RUNNER_TEMP/acoustique-proof/focus.log" 2>&1
       - name: Installer uniquement les dépendances verrouillées
         run: npm ci
       - name: Vérifier TypeScript, les observations, la scène et les interfaces radio
