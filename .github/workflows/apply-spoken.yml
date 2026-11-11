@@ -1,5 +1,5 @@
 name: Appliquer et vérifier les voix synthétiques privées
-
+# Retry with order-independent, exact generated-file allowlist validation.
 on:
   push:
     branches: [continuation/observations-20261110]

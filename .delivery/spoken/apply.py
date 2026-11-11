@@ -56,7 +56,7 @@ with zipfile.ZipFile(destination(book['previous'])) as old,zipfile.ZipFile(buffe
         if sha(result)!=after:raise ValueError('Workbook result changed: '+name)
         new.writestr(name,result)
 planned[book['output']]=buffer.getvalue()
-assert payload['generated_voice_files']==['src/game/spoken-bank.ts','src/game/spoken-timing.ts','docs/spoken-bank-manifest.json']
+assert sorted(payload['generated_voice_files'])==['docs/spoken-bank-manifest.json','src/game/spoken-bank.ts','src/game/spoken-timing.ts']
 for name,data in planned.items():
     p=destination(name);p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
 print(json.dumps({'restored_files':len(planned),'workbook_parts_verified':len(seen),'runtime':117,'remaining':3,'voice_generation_required':payload['generated_voice_files'],'workbook':book['output'],'workbook_sha256':sha(buffer.getvalue())},ensure_ascii=False))
