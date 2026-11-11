@@ -2,7 +2,7 @@ import type { AcousticKind } from './acoustic-state';
 /** Original deterministic, bounded mono cues. This module has no browser/microphone API. */
 export function acousticPCM(kind: AcousticKind, sampleRate: number): Float32Array {
   if (!Number.isInteger(sampleRate) || sampleRate < 8000 || sampleRate > 192000) throw new RangeError('Invalid sample rate');
-  const seconds = kind === 'rain' ? 4 : kind === 'held-note' ? 2 : kind.startsWith('knock') ? 12 : 8;
+  const seconds = kind === 'call' ? .6 : kind === 'bell' ? 1.8 : kind === 'rain' ? 4 : kind === 'held-note' ? 2 : kind.startsWith('knock') ? 12 : 8;
   const out = new Float32Array(seconds * sampleRate);
   const notes = [261.625565, 329.627557, 391.995436, 293.664768, 349.228231, 440, 391.995436, 523.251131];
   let seed = 91357, low = 0;
@@ -12,7 +12,9 @@ export function acousticPCM(kind: AcousticKind, sampleRate: number): Float32Arra
     const noise = seed / 2147483648 - 1;
     low = low * .91 + noise * .09;
     let value = 0;
-    if (kind === 'rain') value = (low * .7 + noise * .09) * .32 * Math.min(1, t * 50, (seconds - t) * 50);
+    if (kind === 'call') { const a=t%.3; value=Math.sin(t*2*Math.PI*(t<.3?330:440))*.09*Math.sin(Math.PI*a/.3); }
+    else if (kind === 'bell') value = (Math.sin(t*2*Math.PI*1280)+.35*Math.sin(t*2*Math.PI*2731)+.12*Math.sin(t*2*Math.PI*4120))*.22*Math.exp(-t*4.2)*Math.min(1,t*700);
+    else if (kind === 'rain') value = (low * .7 + noise * .09) * .32 * Math.min(1, t * 50, (seconds - t) * 50);
     else if (kind === 'breath') {
       const envelope = t < 3.2 ? Math.sin(Math.PI * t / 3.2) : t < 3.8 ? 0 : Math.sin(Math.PI * (t - 3.8) / 4.2) * .72;
       value = low * Math.max(0, envelope) * .50;

@@ -82,8 +82,23 @@ try{
   const missing=await action({action:'start',code:host.code},host.token,409);
   assert.equal(missing.code,'INVALID_DECISION_CONTEXT');assert.equal(missing.state.phase,'lobby');
   const started=await action({action:'start',code:host.code,decisionEpoch:missing.state.decisionEpoch},host.token);assert.equal(started.state.phase,'reference');
+  // Exercise new gestures through the actual packaged HTTP server, not only the domain.
+  for(const client of [host,beta])await action({action:'pose',code:host.code,pose:{x:1.7,y:1.67,z:8,yaw:0,pitch:0}},client.token);
+  const propRequest={action:'prop',code:host.code,target:'bell',requestId:'portable-bell-0001',expectedSequence:0,decisionEpoch:started.state.decisionEpoch};
+  await action(propRequest,undefined,401);
+  const shared=await action(propRequest,host.token);
+  const remoteShared=(await fetch(`${origin}/api/session?code=${host.code}`,{headers:{Authorization:`Bearer ${beta.token}`}}).then(r=>r.json())).state;
+  assert.deepEqual(shared.state.propEvents,remoteShared.propEvents);
+  assert.deepEqual(Object.keys(remoteShared.propEvents[0]).sort(),['actorId','at','id','sequence','target','x','z']);
+  assert.equal(remoteShared.propEvents.length,1);
+  const sameGesture=await action(propRequest,host.token);
+  assert.deepEqual(sameGesture.state.propEvents,shared.state.propEvents);
+  await action({...propRequest,requestId:'portable-bell-0002'},beta.token,409);
   const nextRequest={action:'next',code:host.code,decisionEpoch:started.state.decisionEpoch};
   const first=await action(nextRequest,host.token);assert.equal(first.state.phase,'inspect');
+  assert.equal(first.state.propEvents.length,0);
+  const obsoleteGesture=await action(propRequest,host.token,409);
+  assert.equal(obsoleteGesture.code,'STALE_DECISION_CONTEXT');assert.equal(obsoleteGesture.state.propEvents.length,0);
   const repeatedNext=await action(nextRequest,host.token,409);
   assert.equal(repeatedNext.code,'STALE_DECISION_CONTEXT');assert.equal(repeatedNext.state.loop,first.state.loop);assert.equal(repeatedNext.state.phase,'inspect');
   const second=await fetch(`${origin}/api/session?code=${host.code}`,{headers:{Authorization:`Bearer ${beta.token}`}}).then(r=>r.json());
@@ -150,6 +165,8 @@ try{
     'server modules blocked after path normalization',
     'encoded traversal outside public root rejected',
     'two real clients join',
+    'two HTTP clients receive one authenticated public gesture without private results',
+    'gesture replay is idempotent and old-passage gestures are rejected',
     'missing decision context returns 409 and current private state',
     'reference and inspection start',
     'duplicate next cannot skip a passage',

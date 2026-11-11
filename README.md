@@ -1,4 +1,4 @@
-> **Reprise acoustique (11/11/2026)** : 108 anomalies sur 120 dans la branche de travail ; 12 concepts restent à produire. Quatre nouveaux cas sonores privés, légende équivalente sans audio, commandes E (écouter/rejouer) et R (reposer). Le classeur courant est indiqué dans `docs/parallaxe-open-work-20261101.json`. Voir `docs/QA_ACOUSTIQUE_20261111.md`. Les publications historiques ci-dessous ne sont pas un déploiement de ce lot.
+> **État courant — 11/11/2026 : 112/120 anomalies dans la branche, 8 concepts encore absents.** Quatre nouveaux gestes : cloche, vase, porte témoin et mannequin. Intentions partagées et horodatées, résultats privés ; entraînement solo A/B conservé. Excel courant : `docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx`. Voir `docs/QA_TEMPORAL_20261111.md`. Les versions ci-dessous restent des livraisons historiques, pas une publication du site de ce lot.
 
 # PARALLAXE — Protocole 9
 
@@ -209,10 +209,10 @@ L’observation cyclique s’inscrit dans le genre de [The Exit 8](https://playi
 
 Références techniques : [connexions WebRTC](https://webrtc.org/getting-started/peer-connections), [relais TURN](https://webrtc.org/getting-started/turn-server), [permissions du microphone](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia), [Three.js](https://threejs.org/docs/). Les bibliothèques conservent leurs licences : [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
 
-## Lot de travail — observations du 10 novembre 2026
+## Archive du lot — observations du 10 novembre 2026
 
-Le suivi courant est [PARALLAXE_Suivi_Courant_2026-11-11.xlsx](docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx).
-Le catalogue de cette branche contient **104 anomalies sur les 120 concepts**, dont quatre nouvelles observations de Saint-Clair : constellation à reconstituer entre témoins, portrait vieillissant, escalier visible seulement dans l’ombre et marcheur au plafond. Les détails, correctifs, conditions et limites de test figurent dans [QA_OBSERVATIONS_20261111.md](docs/QA_OBSERVATIONS_20261111.md).
+Le suivi archivé de ce lot est [PARALLAXE_Suivi_Courant_2026-11-11.xlsx](docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx).
+Le catalogue de ce lot contenait **104 anomalies sur les 120 concepts**, dont quatre nouvelles observations de Saint-Clair : constellation à reconstituer entre témoins, portrait vieillissant, escalier visible seulement dans l’ombre et marcheur au plafond. Les détails, correctifs, conditions et limites de test figurent dans [QA_OBSERVATIONS_20261111.md](docs/QA_OBSERVATIONS_20261111.md).
 Les anciens classeurs demeurent des instantanés de leurs livraisons ; ils ne remplacent pas ce suivi. `npm run test:observation` exerce les nouveaux états et les géométries réelles sur CPU. La réception GPU et multiappareils reste ouverte.
 
 La reprise du **11 novembre 2026** matérialise le lot auparavant interrompu au transfert. Les menus, lectures et interruptions du navigateur suspendent les chronomètres des observations. Voir `docs/QA_OBSERVATIONS_20261111.md`.

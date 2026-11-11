@@ -260,3 +260,25 @@ test('real Node HTTP server from source passes the four-client campaign protocol
   const saved=JSON.parse(await readFile(join(folder,'.parallaxe-data/sessions.json'),'utf8'));
   assert.ok(saved.length>0);assert.ok(saved.every(entry=>entry.room.players.every(player=>player.left)),'all protocol test clients must leave');
 });
+
+
+test('real D1 prop handlers preserve one public intent, deduplicate retries and reject delayed gestures',async()=>{
+  const f=await d1Fixture(),[alpha,beta]=f.clients;
+  await f.decision('start',alpha);await f.get(beta);
+  for(const client of f.clients)await f.post({action:'pose',code:client.code,pose:{x:1.7,y:1.67,z:8,yaw:0,pitch:0}},client);
+  const event={action:'prop',code:alpha.code,target:'bell',requestId:'shared-bell-00001',expectedSequence:0,decisionEpoch:alpha.state.decisionEpoch};
+  const first=await f.post(event,alpha);
+  const other=await f.get(beta);
+  assert.deepEqual(first.state.propEvents,other.propEvents);
+  assert.equal(other.propEvents.length,1);
+  assert.deepEqual(Object.keys(other.propEvents[0]).sort(),['actorId','at','id','sequence','target','x','z']);
+  assert.equal(other.propEvents[0].actorId,alpha.selfId);
+  const duplicate=await f.post(event,alpha);assert.deepEqual(duplicate.state.propEvents,first.state.propEvents);
+  const stale=await f.post({...event,requestId:'shared-bell-00002'},beta,409);
+  assert.match(stale.error,/manipul|support/i);
+  await f.decision('next',alpha);
+  const expired=await f.post(event,alpha,409);
+  assert.equal(expired.code,'STALE_DECISION_CONTEXT');
+  assert.equal(expired.state.propEvents.length,0);
+  assert.equal(f.storage.readRoom(alpha.code).propEvents.length,0);
+});

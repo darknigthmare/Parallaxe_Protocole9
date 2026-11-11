@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state']) {
+  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state', 'temporal-state', 'temporal-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|temporal-state|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -338,6 +338,24 @@ try {
     assert.equal(game.getTarget()?.id, expected, `${effect}: landmark ray missed (${JSON.stringify(game.getTarget())}); eye=${position.toArray()} point=${targetPoint.toArray()} pose=${JSON.stringify(game.getPose())}`);
   }
   function centerOf(object) { return new THREE.Box3().setFromObject(object).getCenter(new THREE.Vector3()); }
+
+  check('four temporal props remain inspectable in the complete scene, never move collisions and preserve A/B', () => {
+    const cases = [
+      ['bell_after_departure', [1.05,8.75], [1.95,1.23,7.95], 'bell'],
+      ['flower_afterimage', [-1.7,-4.1], [-3.30,1.15,-4.10], 'vase'],
+      ['door_future_shadow', [1.65,11.10], [3.39,1.20,11.10], 'witness-door'],
+      ['mannequin_turns', [1.6,-13.6], [3.20,1.5,-14.00], 'listening-mannequin'],
+    ];
+    for(const [effect,eye,point,target] of cases){
+      inspectFrom(effect,eye,point,target);
+      assert.equal(game.getPropTarget(),target);
+      assert.equal(game.activateProp(),true);
+      for(let i=0;i<30;i++)game.update(.05);
+      const after=game.getTemporalFrame();assert.ok(after.events.some(e=>e.target===target));
+      game.setView({effects:[],levelId:'hotel',phase:'reference',loop:0});
+      assert.equal(game.getTemporalFrame().events.length,0);
+    }
+  });
 
   check('all 25 clue locations are raycast-inspectable from walkable positions', () => {
     const ceiling = [[0, 5], [0, 3.45, 2], 'ceiling'];

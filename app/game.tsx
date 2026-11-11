@@ -316,7 +316,8 @@ export default function Game({portable=false}:{portable?:boolean}){
   useEffect(()=>{
     if(!ready)return;
     const view=online?.view??(run?getPersonalView(run,slot):{effects:[],variant:0,phase:"menu",loop:0,levelId:previewLevel});
-    engine.current?.setView(view);
+    engine.current?.setView({...view,contextKey:online?online.code+':'+online.selfId:run?.seed??'menu'});
+    engine.current?.setSharedInteractions?.(online?.propEvents??null,online?.serverTime);
     const resetKey=`${online?"online":"solo"}:${levelId}:${loop}:${phase==="reference"?"reference":"round"}`;
     if(playing&&resetKey!==lastPhase.current){engine.current?.setPose({x:0,y:1.67,z:9,yaw:0,pitch:0});lastPhase.current=resetKey;setNotes([]);}
     audio.current?.tension(streak/9);
@@ -403,6 +404,18 @@ export default function Game({portable=false}:{portable?:boolean}){
     const t=engine.current?.getTarget();
     if(t?.id==="exit"){if(phase==="inspect")openModal("vote");else if(phase==="reference")openModal("journal");return;}
     if(!t){notify("Visez un objet pour le signaler à votre équipe.");return;}
+    const prop=engine.current?.getPropTarget?.();
+    if(prop){
+      if(!currentDecision()||inputBlocked||networkDown)return;
+      audio.current?.start();
+      if(online){
+        const expectedSequence=online.propEvents?.find(e=>e.target===prop)?.sequence??0;
+        void request('prop',{target:prop,requestId:crypto.randomUUID(),expectedSequence,decisionEpoch:online.decisionEpoch}).then(result=>{
+          if(currentDecision())notify(result?'Geste partagé. Comparez ce support pendant la manipulation.':'Support occupé ou état changé : vérifiez le passage, puis réessayez.');
+        });
+      }else if(!engine.current?.activateProp?.())notify('Laissez le geste se terminer avant de recommencer.');
+      return;
+    }
     if(engine.current?.listen?.()) {
       audio.current?.start();
       const caption=engine.current.getAcousticFrame().caption;
@@ -509,7 +522,7 @@ export default function Game({portable=false}:{portable?:boolean}){
       {phase==="reference"&&<div className="reference-banner"><ShieldCheck size={16}/><span>Rien d’anormal ici. <b>Mémorisez les détails.</b></span><button onClick={()=>openModal("journal")}>Voir le protocole <ArrowRight size={14}/></button></div>}
       {phase==="inspect"&&<div className="inspection-hint"><span className="pulse-dot"/>{online?"Comparez vos observations avant de voter.":"Inspectez les deux perceptions avant de décider."}</div>}
       {!inputBlocked&&<div className={`reticle ${target?"has-target":""}`} aria-hidden="true"><i/><i/><i/><i/></div>}
-      {!inputBlocked&&target&&<div className="target-label"><Key>E</Key><span>{target.id==="exit"?"Terminal de diagnostic":target.label}</span><small>{target.id==="exit"?"OUVRIR":engine.current?.getInspection()?"EXAMINER":"SIGNALER"}</small></div>}
+      {!inputBlocked&&target&&<div className="target-label"><Key>E</Key><span>{target.id==="exit"?"Terminal de diagnostic":target.label}</span><small>{target.id==="exit"?"OUVRIR":engine.current?.getPropTarget?.()?"MANIPULER":engine.current?.getInspection()?"EXAMINER":"SIGNALER"}</small></div>}
       {!isTouch&&!locked&&!inputBlocked&&<button className="capture-prompt" onClick={capture}><Crosshair size={15}/> Cliquez dans le lieu pour regarder autour de vous</button>}
       <aside className="field-info"><span className="eyebrow">{online?"ÉQUIPE EN LIAISON":"ENTRAÎNEMENT SOLO"}</span>{online?<div className="team-list">{online.players.map(p=><div key={p.id} className={p.connected?"":"disconnected"}><span className={`role-dot role-${p.slot}`}/><span>{p.name}{p.id===self?.id?" (vous)":""}</span><small>{!p.connected?"ABSENT":p.talking?"PARLE":p.vote===null?"OBSERVE":p.vote?"ANOMALIE":"NORMAL"}</small></div>)}</div>:<><p>Un seul lieu. Deux observations.</p><button className="switch-perception" onClick={switchView}><Key>Tab</Key> Passer en perception {slot===0?"β":"α"}<ArrowRight size={14}/></button></>}
       <div className="strikes"><span>ERREURS</span>{Array.from({length:3},(_,i)=><i key={i} className={i<strikes?"used":""}/>)}<small>{(online?.difficulty??run?.difficulty)==="relaxed"?"SANS ÉCHEC FINAL":"3 = RUPTURE"}</small></div></aside>

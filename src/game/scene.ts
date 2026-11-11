@@ -11,13 +11,15 @@ import { createObservationWorld } from './observation-world';
 import { OBSERVATION_EFFECTS, type StarMask } from './observation-state';
 import { isLevelId, type LevelId } from './levels';
 import { createAcousticState, ACOUSTIC_EFFECTS } from './acoustic-state';
+import { createTemporalWorld } from './temporal-world';
+import { TEMPORAL_EFFECTS, PROP_ANCHORS, isPropTarget, type PropEvent } from './temporal-state';
 
 /** Original procedural environment. No downloaded models or textures are required. */
 export type SceneInput = { forward: number; strafe: number; lookX?: number; lookY?: number; sprint?: boolean };
 export type ScenePose = { x: number; y: number; z: number; yaw: number; pitch: number };
 type InspectorTarget = { kind: 'self' | 'peer' | 'double'; id: string };
 type SceneTarget = { id: string; label: string; inspector?: InspectorTarget };
-export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string; starMask?: StarMask; knockCount?: 0 | 3 | 4 };
+export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string; starMask?: StarMask; knockCount?: 0 | 3 | 4; contextKey?: string };
 export const SCENE_EFFECTS = [
   'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'coat_without_body', 'fire_extinguisher_full', 'portrait_empty', 'door_number', 'door_open',
   'plant_dead', 'plant_tall', 'trolley_missing', 'red_light', 'blackout', 'shadow_figure',
@@ -29,7 +31,7 @@ export const SCENE_EFFECTS = [
   'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
   'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
   'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
-  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS,
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...TEMPORAL_EFFECTS,
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -761,6 +763,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   tag(reflectionSeat, 'chair', 'Siège vide du contrôle des reflets');
   const inspectionProps = createInspectionProps(); world.add(inspectionProps.root); targets.push(...inspectionProps.targets); occluders.push(...inspectionProps.colliders);
   const observationWorld = createObservationWorld(); world.add(observationWorld.root); targets.push(...observationWorld.targets); occluders.push(...observationWorld.colliders);
+  const temporalWorld = createTemporalWorld(); world.add(temporalWorld.root); targets.push(...temporalWorld.targets); occluders.push(...temporalWorld.colliders);
 
   // These reference stands have identical collision bounds for every observer.
   // When nobody else is present, numbered mannequins make the reflection count
@@ -964,6 +967,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
     observationWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     acoustics.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    temporalWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
     reflectedDoor.visible = false;
@@ -1156,6 +1160,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     if (levelId === 'hotel') inspectionProps.update(elapsed);
     observationWorld.update(dt, pose, active && observationActive);
     acoustics.update(dt, pose, active && observationActive);
+    temporalWorld.update(dt, active && observationActive);
     const acousticFrame = acoustics.snapshot();
     musicLid.rotation.x = acousticFrame.musicPlaying ? -1.12 : 0;
     musicRoller.rotation.y = acousticFrame.musicAngle;
@@ -1238,6 +1243,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     if (disposed) return; disposed = true; alive = false;
     world.remove(inspectionProps.root); inspectionProps.dispose();
     world.remove(observationWorld.root); observationWorld.dispose();
+    world.remove(temporalWorld.root); temporalWorld.dispose();
     for (const model of [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)]) { scene.remove(model.root); peerGroup.remove(model.root); model.dispose(); }
     for (const location of Object.values(extraWorlds)) { scene.remove(location.root); location.dispose(); }
     const geometries = new Set<THREE.BufferGeometry>(); const materials = new Set<THREE.Material>();
@@ -1272,17 +1278,27 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     setObservationActive(next: boolean) { observationActive = next === true; },
     getTarget: () => target,
     getInspection,
-    getAcousticFrame: () => acoustics.snapshot(),
+    getAcousticFrame: () => {
+      if(isPropTarget(target?.id))temporalWorld.focus(target!.id as import('./temporal-state').PropTarget);
+      const a=acoustics.snapshot(),t=temporalWorld.snapshot(),anchor=t.focus?PROP_ANCHORS[t.focus]:null;
+      const nearby=anchor&&Math.hypot(pose.x-anchor[0],pose.z-anchor[2])<=3.6;
+      return {...a,voices:[...a.voices,...t.voices],caption:nearby&&t.caption?t.caption:a.caption};
+    },
+    setSharedInteractions: (events:readonly PropEvent[]|null,serverTime?:number) => temporalWorld.sync(events,serverTime),
+    getTemporalFrame: temporalWorld.snapshot,
+    getPropTarget: () => active&&observationActive&&levelId==='hotel'&&isPropTarget(target?.id)?target!.id as import('./temporal-state').PropTarget:null,
+    activateProp() { if(!active||!observationActive||levelId!=='hotel'||!isPropTarget(target?.id))return false;return temporalWorld.activate(target!.id as import('./temporal-state').PropTarget,pose); },
     listen() {
       if (!active || !observationActive || levelId !== 'hotel') return false;
       const t = target;
+      if(t&&['phone','music-box','door','window','stars'].includes(t.id))temporalWorld.clearFocus();
       if (t?.id === 'phone' && !effects.has('phone_float')) return acoustics.activate('phone');
       if (t?.id === 'music-box') return acoustics.activate('music-box');
       if (t?.id === 'door' && t.label.includes('903')) return acoustics.activate('door');
       if (t?.id === 'window' || t?.id === 'stars') return acoustics.activate('rain');
       return false;
     },
-    stopListening() { acoustics.stop(); },
+    stopListening() { acoustics.stop(); temporalWorld.clearFocus(); },
     dispose,
     getStats,
   };
