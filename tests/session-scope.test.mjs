@@ -20,7 +20,7 @@ function between(start,end){
   assert.ok(a>=0&&b>a,`Game callback boundaries: ${start}`);
   return game.slice(a,b);
 }
-const transport=between('  const stopCalibration=useCallback(','\n  useEffect(()=>{\n    const p=safeRead');
+const transport=between('  const stopCalibration=useCallback(','\n  useEffect(()=>{\n    const p=normalizePreferences');
 const calibration=between('  const probeRadio=','  const sendChat=');
 const decisions=between('  const beginSolo=','  const switchView=');
 const leaveAndResume=between('  const returnMenu=','  const fullscreen=');

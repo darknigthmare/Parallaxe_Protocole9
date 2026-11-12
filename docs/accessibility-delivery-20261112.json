@@ -1,0 +1,58 @@
+[
+  [
+    "ACCESS-KEYS",
+    "Gameplay / commandes",
+    "Douze actions clavier remappables, conflits explicites, flèches et Échap réservés, affichage AZERTY/QWERTY.",
+    "Tests du routeur réellement utilisé par Game ; répétition, saisie, composition, modificateurs, remap et focus.",
+    "Touches physiques et affichage de disposition ; ergonomie sur clavier utilisateur à réceptionner.",
+    "src/game/accessibility.ts ; app/accessibility-settings.tsx"
+  ],
+  [
+    "ACCESS-PTT",
+    "Sûreté radio",
+    "La touche de talkie personnalisée conserve les arrêts et ne se réarme pas sur une répétition après interruption.",
+    "Relâchement même dans un champ de saisie ; ticket de salon vérifié dans le vrai callback.",
+    "Pas de microphone ni de réseau TURN réel dans ces tests.",
+    "app/game.tsx ; tests/accessibility.test.mjs"
+  ],
+  [
+    "ACCESS-CAMERA",
+    "Caméra",
+    "FOV vertical 50–95° (origine 65°), inversion verticale commune souris/tactile/stick, vue d’accueil fixe en mode confort.",
+    "Projection réelle Three.js, pose inchangée, inversion sans modifier yaw, aucune oscillation du menu en confort.",
+    "Aucun confort humain ni pixels GPU certifiés ; hall_stretch reste exclu.",
+    "src/game/scene.ts"
+  ],
+  [
+    "ACCESS-TEXT",
+    "Lisibilité",
+    "Légendes acoustiques, relevés de calibration et documents privés agrandissables de 100 à 150 %.",
+    "CSS borné, retour à la ligne et zones défilantes ; contrôler l’interface dans le navigateur.",
+    "Aucune preuve cachée ; compatibilité et lisibilité sur appareil à vérifier.",
+    "app/globals.css"
+  ],
+  [
+    "ACCESS-SAVE",
+    "Persistance",
+    "Migration des réglages existants et rejet des valeurs corrompues, non finies, doublons ou touches réservées.",
+    "Tests JSON anciennes préférences, nouveaux défauts indépendants, consentements/jetons non conservés.",
+    "Préférences uniquement locales, pas d’envoi au serveur.",
+    "src/game/accessibility.ts"
+  ],
+  [
+    "ACCESS-REFLECTORS",
+    "Correctif performance",
+    "Un changement de volume, FOV ou touche ne recrée plus les cibles des reflets.",
+    "Exécution des vrais effets de préférence avec dépendances suivies : une seule mise à jour de qualité.",
+    "Réduction d’allocations constatée par contrat ; pas de mesure FPS GPU.",
+    "app/game.tsx"
+  ],
+  [
+    "ACCESS-TRACKER",
+    "Suivi",
+    "P04, P09, P15, P17 et P35 rapprochés de l’état actuel ; anciennes fiches conservées.",
+    "Validation des 600 clés, actions, critères, 120 A/B et historiques.",
+    "Aucune ligne de réception humaine clôturée.",
+    "docs/parallaxe-open-work-20261101.json"
+  ]
+]

@@ -1,3 +1,6 @@
+## Lot accessibilité — 12 novembre 2026
+Base `a78c651`. Catalogue inchangé : 119/120. Lire `docs/QA_ACCESSIBILITE_20261112.md`. Réglages caméra et clavier locaux dans `src/game/accessibility.ts` ; `npm run test:accessibility` protège migration, touches réservées, saisie et PTT. Le FOV ne modifie jamais positions/collisions ; ne pas confondre réglages de confort et recette humaine de hall_stretch. La caméra ne comporte toujours pas de head-bob forcé.
+
 ## État courant — 12 novembre 2026
 119 concepts au catalogue ; `hall_stretch` seul reste exclu avant validation de locomotion/confort humain. Cinq lieux sélectionnables, campagne toujours à trois secteurs. Source courante : `docs/parallaxe-open-work-20261101.json`, qui donne les chemins Excel/gap. Base du lot O9 : `4db8e6ec7b66c91463024127cbde93f09d30c442`. Lire `docs/QA_OBSERVATOIRE_20261112.md` ; consulter la CI du SHA exact, pas un succès ancien.
 

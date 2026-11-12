@@ -203,11 +203,11 @@
       "id": "W14",
       "priorite": "P1",
       "domaine": "Accessibilité",
-      "action": "Assurer résolution sans audio ni microphone",
+      "action": "Recevoir les preuves écrites privées et les nouveaux réglages FOV/inversion, touches et taille des relevés ; valider les profils de confort et le silence sur matériel.",
       "criteres": "Toute preuve radio dispose de relevé écrit ; contraste, confort et sous-titres vérifiés",
       "preuve": "Recette silencieuse + profils auditifs",
       "liens": "QA31,P15",
-      "etat": "À traiter / vérifier"
+      "etat": "Implémenté — réception humaine ouverte"
     },
     {
       "id": "W15",
@@ -3319,9 +3319,9 @@
       "priorite": "P0",
       "statut_source": "Implémenté — QA partielle",
       "nature": "Validation restante",
-      "action": "Intégrer les 104 anomalies présentes au catalogue runtime 0.4.1.",
-      "critere": "Identifiant, règles de tirage, perception, preuve et nettoyage présents pour chaque entrée.",
-      "details": "Catalogue runtime",
+      "action": "119 anomalies sont intégrées au catalogue ; poursuivre la réception des effets de leurs lieux compatibles. hall_stretch reste hors tirage avant sa recette de locomotion et de confort.",
+      "critere": "Comparer catalogue et 120 fiches, puis réaliser la réception visuelle/audio de chaque cas sans confondre comptage et certification.",
+      "details": "Actualisé le 12/11/2026 depuis le code de la branche ; les anciennes formulations restent dans workbook-v02.json et les classeurs archivés. Aucun essai humain déclaré réussi.",
       "verification": "npm test ; test utilisateur documenté",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
@@ -3399,9 +3399,9 @@
       "priorite": "P0",
       "statut_source": "À tester sur GPU",
       "nature": "Validation restante",
-      "action": "Inspecter les 84 preuves visuelles et les reflets dans les perceptions pertinentes des quatre lieux.",
-      "critere": "Captures GPU réelles et résultat concordants avec le catalogue.",
-      "details": "QA02, QA04, QA09, QA53–QA60",
+      "action": "Inspecter les preuves visuelles et les reflets des cinq lieux dans leurs perceptions pertinentes ; relever les versions et profils de qualité.",
+      "critere": "Captures normales/affectées, remise à zéro et lisibilité sur GPU identifiés ; ne pas déduire les pixels des tests CPU.",
+      "details": "Actualisé le 12/11/2026 depuis le code de la branche ; les anciennes formulations restent dans workbook-v02.json et les classeurs archivés. Aucun essai humain déclaré réussi.",
       "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
@@ -3493,12 +3493,12 @@
       "id": "P15",
       "nom": "Accessibilité",
       "priorite": "P1",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Ajouter FOV, bobbing, sous-titres et remappage.",
-      "critere": "Chaque indice demeure détectable avec les options de confort.",
-      "details": "K14–K16",
-      "verification": "npm test ; test utilisateur documenté",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "FOV vertical 50–95°, inversion verticale des trois périphériques, remappage de douze actions clavier, légendes 100–150 %, caméra d’accueil stabilisée en confort ; confirmer ergonomie sur appareils.",
+      "critere": "Préférences locales migrées et bornées, aucune touche partagée entre actions, anciens appuis invalidés, PTT arrêté au relâchement/focus ; vérifier lisibilité et confort humain.",
+      "details": "Actualisé le 12/11/2026 depuis le code de la branche ; les anciennes formulations restent dans workbook-v02.json et les classeurs archivés. Aucun essai humain déclaré réussi.",
+      "verification": "npm run test:accessibility ; npm run test:movement ; npm run test:radio-ui ; npm run test:scene ; essai clavier AZERTY/QWERTY et périphériques réels",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -3525,11 +3525,11 @@
       "id": "P17",
       "nom": "Relations",
       "priorite": "P1",
-      "statut_source": "Partiel",
+      "statut_source": "Implémenté — QA partielle",
       "nature": "Validation restante",
-      "action": "Registre, gant et météo privés ; photo d’équipe, plan, règlement et occupants. La constellation reste à produire.",
-      "critere": "Sept cas intégrés et testés en CPU ; recettes GPU et constellation PX-035 restent ouvertes.",
-      "details": "PX-028,030,031,035,069,070,071,072",
+      "action": "Registre, gant, météo, photo d’équipe, plan, règlement, occupants et constellation privée sont intégrés ; recevoir leur comparaison dans les lieux compatibles.",
+      "critere": "Perceptions A/B conformes aux fiches originales et comparables sans divulguer les autres vues ; réception visuelle humaine restante.",
+      "details": "Actualisé le 12/11/2026 depuis le code de la branche ; les anciennes formulations restent dans workbook-v02.json et les classeurs archivés. Aucun essai humain déclaré réussi.",
       "verification": "npm test ; test utilisateur documenté",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
@@ -3813,11 +3813,11 @@
       "id": "P35",
       "nom": "Export",
       "priorite": "P1",
-      "statut_source": "À vérifier",
+      "statut_source": "Implémenté — QA partielle",
       "nature": "Validation restante",
-      "action": "Fournir source, édition autonome, instructions et Excel 0.4.1 synchronisé.",
-      "critere": "Ce lot n’est pas déployé ; consulter la PR et les preuves du SHA testé.",
-      "details": "Version 0.4.1",
+      "action": "Sources, paquet PC/LAN et Excel sont synchronisés sur le commit de livraison ; lancer le paquet extrait et vérifier ses empreintes.",
+      "critere": "Manifeste propre et SHA exact ; compilation hébergée/locale et test HTTP du ZIP extrait ; lanceur Windows et installation utilisateur à réceptionner.",
+      "details": "Actualisé le 12/11/2026 depuis le code de la branche ; les anciennes formulations restent dans workbook-v02.json et les classeurs archivés. Aucun essai humain déclaré réussi.",
       "verification": "npm test ; test utilisateur documenté",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
@@ -9952,14 +9952,14 @@
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
   ],
-  "version_suivi": "119 / observatoire optionnel et skills locaux",
+  "version_suivi": "119 / accessibilité clavier, caméra et relevés",
   "snapshot_initial": {
     "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "runtime_at_creation": 96,
     "planned_at_creation": 24,
     "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
   },
-  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Observatoire.xlsx",
+  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Accessibilite.xlsx",
   "source_revision": "continuation/observations-20261110",
   "date_revision": "2026-11-12",
   "gap_json": "docs/anomalies-gap-observatory-20261112.json",
@@ -9972,7 +9972,8 @@
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx",
-    "docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx"
+    "docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx",
+    "docs/PARALLAXE_Suivi_Courant_2026-11-12_Observatoire.xlsx"
   ],
   "audit_20261110": {
     "criteria_remapped": 446,
@@ -9994,7 +9995,7 @@
     "local_observation_state_tests": 10,
     "pending": "CI géométrie, typage et builds ; GPU physique, micro et TURN non réalisés"
   },
-  "code_base_revision": "4db8e6ec7b66c91463024127cbde93f09d30c442",
+  "code_base_revision": "a78c6511112ad55b4dc5bc31c35b7e89c304cc3a",
   "skills_audit": {
     "date": "2026-11-12",
     "local_skills": 5,
@@ -10002,5 +10003,19 @@
     "manifest": ".ai-tools/project-skills.json",
     "report": "docs/SKILLS_AUDIT_20261112.md",
     "external_plugin_activation_verified": false
+  },
+  "accessibility_audit": {
+    "date": "2026-11-12",
+    "production_rows_updated": [
+      "P04",
+      "P09",
+      "P15",
+      "P17",
+      "P35"
+    ],
+    "report": "docs/QA_ACCESSIBILITE_20261112.md",
+    "catalog_unchanged": true,
+    "physical_device_tested": false,
+    "source": "src/game/accessibility.ts"
   }
 }

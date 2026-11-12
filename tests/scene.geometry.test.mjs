@@ -160,6 +160,32 @@ try {
     assert.ok(finalStats.meshes < 2_500, 'Unexpected mesh-count growth');
   });
 
+  check('FOV changes the projection without changing pose, collisions or the scene', () => {
+    game.setActive(true);game.setPose({x:0,z:8,yaw:0,pitch:0});game.setInput({forward:0,strafe:0});game.update(.02);
+    const pose=game.getPose(),count=scene.children.length,matrix=renderer.camera.projectionMatrix.clone();
+    game.setCameraPreferences({fov:95});game.update(.02);
+    assert.equal(renderer.camera.fov,95);assert.notDeepEqual(renderer.camera.projectionMatrix.elements,matrix.elements);
+    assert.deepEqual(game.getPose(),pose);assert.equal(scene.children.length,count);
+    game.setCameraPreferences({fov:500});assert.equal(renderer.camera.fov,95);
+    game.setCameraPreferences({fov:NaN});assert.equal(renderer.camera.fov,95);
+    game.setCameraPreferences({fov:-1});assert.equal(renderer.camera.fov,50);
+    game.setCameraPreferences({fov:65});game.setActive(false);
+  });
+  check('vertical inversion affects the common look path but never yaw or movement', () => {
+    game.setActive(true);game.setPose({x:0,z:8,yaw:0,pitch:0});game.setCameraPreferences({invertY:false});game.look(20,30);
+    const normal=game.getPose();game.setPose({yaw:0,pitch:0});game.setCameraPreferences({invertY:true});game.look(20,30);
+    const inverted=game.getPose();assert.equal(inverted.pitch,-normal.pitch);assert.equal(inverted.yaw,normal.yaw);assert.equal(inverted.x,normal.x);assert.equal(inverted.z,normal.z);
+    game.look(NaN,Infinity);assert.deepEqual(game.getPose(),inverted);
+    game.setCameraPreferences({invertY:false});game.setPose({x:0,z:9,yaw:0,pitch:0});game.setActive(false);
+  });
+  check('reduced motion freezes the attract camera without changing the reference scene', () => {
+    game.setActive(false);game.setCameraPreferences({reduceMotion:true});game.update(.05);
+    const position=renderer.camera.position.clone(),rotation=renderer.camera.quaternion.clone();
+    for(let i=0;i<12;i++)game.update(.05);
+    assert.ok(renderer.camera.position.equals(position));assert.ok(renderer.camera.quaternion.equals(rotation));
+    game.setCameraPreferences({reduceMotion:false});game.update(.05);assert.ok(!renderer.camera.position.equals(position));
+  });
+
   check('wall landmarks face inward; floor faces upward', () => {
     const landmarks = allObjects.filter(object => {
       const info = object.userData.inspect;

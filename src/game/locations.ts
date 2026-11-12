@@ -101,7 +101,7 @@ export function createLocation(id: ExtraLocationId) {
   box(.64, .08, .52, 0, .04, 0, mats.steel, terminal, .035); box(.13, .95, .14, 0, .53, 0, mats.enamel, terminal, .015);
   const head = new THREE.Group(); head.position.set(0, 1.07, .03); head.rotation.x = -.4; terminal.add(head);
   box(.72, .46, .05, 0, 0, 0, mats.black, head, .025); panel(.64, .36, 0, 0, .028, texture(['PROTOCOL 09', 'DIAGNOSTIC']), head, .65);
-  tag(terminal, 'exit', 'Terminal de diagnostic — E'); obstacle(0, -12.9, .42, .32);
+  tag(terminal, 'exit', 'Terminal de diagnostic'); obstacle(0, -12.9, .42, .32);
   const relay = new THREE.Group(); relay.position.set(2.72, 1.32, 7.72); relay.rotation.x = -.14; root.add(relay);
   box(.64, .43, .07, 0, 0, 0, mats.black, relay, .025);
   const relayScreen = panel(.56, .35, 0, 0, .038, texture(['RELAIS', '0909']), relay, .7); tag(relay, 'radio', 'Relais de calibration — comparez le code');

@@ -38,7 +38,8 @@
     "test:spoken": "node tests/spoken.test.mjs",
     "test:shadow": "node tests/shadow.test.mjs",
     "test:skills": "python3 .ai-tools/validate_project_skills.py && python3 -m unittest discover -s .ai-tools/tests",
-    "test:observatory": "node tests/observatory.test.mjs"
+    "test:observatory": "node tests/observatory.test.mjs",
+    "test:accessibility": "node tests/accessibility.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

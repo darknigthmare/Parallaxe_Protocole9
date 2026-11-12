@@ -44,3 +44,21 @@
 .acoustic-caption{position:fixed;left:50%;bottom:7.5rem;transform:translateX(-50%);z-index:25;width:min(36rem,88vw);padding:.7rem 1rem;background:rgba(9,24,25,.91);border:1px solid rgba(186,175,138,.32);border-radius:8px;color:#e6e5d7;pointer-events:auto;text-align:center;}
 .acoustic-caption span{font-size:.65rem;letter-spacing:.16em;color:#bac6bb;}.acoustic-caption p{font-size:.82rem;line-height:1.35;margin:.25rem 0;}.acoustic-caption button{font-size:.7rem;color:#e4cb93;border-bottom:1px solid currentColor;padding:.2rem;}.acoustic-caption button:focus-visible{outline:2px solid #e4cb93;outline-offset:3px;}
 @media(max-width:750px){.acoustic-caption{bottom:11.5rem;padding:.5rem .7rem;width:83vw;}.acoustic-caption p{font-size:.75rem;}}
+
+/* Device-local accessibility: no gameplay proof is hidden by these settings. */
+.binding-settings{border:1px solid var(--line);margin:24px 0;padding:18px;min-width:0}
+.binding-settings legend{font-size:13px;color:var(--gold);padding:0 8px}
+.binding-settings>p{font-size:12px;line-height:1.65;color:var(--muted)}
+.binding-layout{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;margin:18px 0}
+.binding-layout select{max-width:50%;background:#12201b;color:var(--ink);border:1px solid var(--line);padding:9px}
+.binding-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}
+.binding-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;min-width:0}
+.binding-row button{min-width:90px;min-height:40px;padding:8px;border:1px solid var(--line);color:var(--gold);background:#10201a;overflow-wrap:anywhere}
+.binding-row button.capturing{border-color:var(--gold);background:#334334}
+.binding-row button:focus-visible,.binding-settings button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.binding-status{min-height:3.4em;margin:14px 0}
+.acoustic-caption p{font-size:calc(.82rem * var(--caption-scale,1))}
+.acoustic-caption{max-height:40vh;overflow-y:auto}
+.observation-reading p{font-size:clamp(calc(15px * var(--caption-scale,1)),calc(2.5vw * var(--caption-scale,1)),calc(21px * var(--caption-scale,1)))}
+.calibration-caption p,.calibration-reference{font-size:calc(11px * var(--caption-scale,1))}
+@media(max-width:600px){.binding-grid{grid-template-columns:1fr}.accessibility-settings .setting-row{flex-wrap:wrap}.binding-row button{min-width:110px}.acoustic-caption p{font-size:calc(.75rem * var(--caption-scale,1))}}

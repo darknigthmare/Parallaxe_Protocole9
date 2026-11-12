@@ -24,7 +24,7 @@ export function createLiftWorld() {
   const light=new THREE.PointLight(0xffdda8,7,3.2,2);light.position.set(0,2.40,-.9);root.add(light);
   const doors=[-1,1].map(side=>{const g=new THREE.Group();g.name=side<0?'Ascenseur — porte gauche':'Ascenseur — porte droite';root.add(g);box(.88,2.48,.06,0,1.28,-.35,steel,g);box(.025,2.40,.012,-side*.41,1.28,-.312,brass,g);return g;});
   sign('ÉTAGE 09',1.10,.21,0,2.87,.14).name='Ascenseur — étage fixe 09';
-  sign('E · APPELER',.80,.13,0,3.12,.14);
+  sign('APPELER',.80,.13,0,3.12,.14);
   const call=box(.14,.25,.07,1.10,1.20,.12,brass);call.name='Ascenseur — bouton d’appel';
   const visitor=new THREE.Group();visitor.name='Ascenseur — passager persistant';root.add(visitor);
   const coat=mat({color:0x53605c,roughness:.9}),skin=mat({color:0xc2b9a0,roughness:.8}),shoes=mat({color:0x11211e,roughness:.9});

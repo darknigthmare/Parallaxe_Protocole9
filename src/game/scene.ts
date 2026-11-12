@@ -74,6 +74,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const pose: ScenePose = { x: 0, y: 1.67, z: 9, yaw: 0, pitch: 0 };
   let input: SceneInput = { forward: 0, strafe: 0 };
   let active = false;
+  let cameraInvertY = false;
+  let cameraReduceMotion = false;
   let observationActive = true;
   const acoustics = createAcousticState();
   const footsteps = createFootstepState();
@@ -452,7 +454,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const terminalHead = new THREE.Group(); terminalHead.position.set(0, 1.07, .04); terminalHead.rotation.x = -.40; terminal.add(terminalHead);
   box(.72, .46, .055, 0, 0, 0, mats.darkMetal, terminalHead, .025);
   panel(.64, .37, 0, 0, .029, labelTexture('PROTOCOL 09\nDIAGNOSTIC', '#a6d9c2', '#112922'), terminalHead, .8);
-  tag(terminal, 'exit', 'Terminal de diagnostic — E'); obstacle(0, -12.9, .42, .32);
+  tag(terminal, 'exit', 'Terminal de diagnostic'); obstacle(0, -12.9, .42, .32);
 
   // Reception counter with fluted walnut, paperwork and a proper handset.
   const desk = new THREE.Group(); desk.position.set(2.52, 0, 7.72); world.add(desk);
@@ -533,8 +535,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     const pin = sphere(.007, 0, -.13 + i * .023, .047, mats.darkMetal, musicRoller, 8); pin.castShadow = false;
   }
   cylinder(.015, .09, .275, 1.16, .24, mats.brass, musicBox, .015, 12).rotation.z = Math.PI / 2;
-  panel(.43, .075, 0, 1.07, .445, labelTexture('BOÎTE · E : ÉCOUTER'), musicBox);
-  tag(musicBox, 'music-box', 'Boîte à musique du salon — E pour remonter');
+  panel(.43, .075, 0, 1.07, .445, labelTexture('BOÎTE · ÉCOUTER'), musicBox);
+  tag(musicBox, 'music-box', 'Boîte à musique du salon — remonter');
   obstacle(-3.38, -10.10, .22, .34);
 
   // Plant geometry uses bent leaves, lathed planters, stems, soil and stone grains.
@@ -953,6 +955,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   tag(doubleAvatar.root, 'player', 'Un inspecteur en trop', { kind: 'double', id: selfIdentity.id });
 
   function look(dx: number, dy: number) {
+    if(!Number.isFinite(dx)||!Number.isFinite(dy))return;
+    if(cameraInvertY)dy=-dy;
     if (!active) return;
     pose.yaw -= dx * .0022; pose.pitch = THREE.MathUtils.clamp(pose.pitch - dy * .0022, -1.35, 1.35);
   }
@@ -1143,8 +1147,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       // No involuntary head bob: landmarks remain stable and camera sickness is reduced.
       camera.position.set(pose.x, pose.y, pose.z); camera.rotation.set(pose.pitch, pose.yaw, 0, 'YXZ');
     } else {
-      camera.position.set(-1.64 + Math.sin(elapsed * .055) * .12, 1.67, 9.55);
-      camera.lookAt(.30 + Math.sin(elapsed * .05) * .16, 1.70, -7.2);
+      camera.position.set(-1.64 + (cameraReduceMotion ? 0 : Math.sin(elapsed * .055) * .12), 1.67, 9.55);
+      camera.lookAt(.30 + (cameraReduceMotion ? 0 : Math.sin(elapsed * .05) * .16), 1.70, -7.2);
     }
     clockBody.getWorldPosition(clockWorldPoint);
     const clockDistance = clockWorldPoint.sub(camera.position);
@@ -1309,6 +1313,14 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     setInspectionRoster(members: InspectionMember[] | null) { inspectionRoster = members?.map(member => ({ ...member })) ?? null; updateInspectionRoster(); },
     setTalking(next: boolean) { talking = !!next; },
     setQuality,
+    setCameraPreferences(next: {fov?:number;invertY?:boolean;reduceMotion?:boolean}) {
+      if(Number.isFinite(next.fov)) {
+        const fov=THREE.MathUtils.clamp(next.fov!,50,95);
+        if(camera.fov!==fov){camera.fov=fov;camera.updateProjectionMatrix();}
+      }
+      if(typeof next.invertY==='boolean')cameraInvertY=next.invertY;
+      if(typeof next.reduceMotion==='boolean')cameraReduceMotion=next.reduceMotion;
+    },
     setFlashlight(on: boolean) { flashlightOn = on; },
     setActive(next: boolean) { if(!next)shadowWorld.interrupt();active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); updateWitnessVisibility(); },
     setObservationActive(next: boolean) { observationActive = next === true;if(!observationActive)shadowWorld.interrupt(); },

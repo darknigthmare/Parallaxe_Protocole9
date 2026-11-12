@@ -94,9 +94,9 @@ export function createTemporalState() {
     const shutterOpening=!shutterEvent?0:shutterEvent.sequence%2?smooth(shutterAge/1.5):1-smooth(shutterAge/1.5);
     let caption = '';
     if (focus === 'bell') caption = bellAge < 0 ? 'Cloche — contact partagé en préparation.' : audibleAge < 0 ? `Cloche — contact effectué ; silence depuis ${Math.floor(bellAge)} s.` : `Cloche — sonnerie ${bellDelay === 0 ? 'au contact' : '5 s après le contact'}.`;
-    if (focus === 'vase') caption = `Vase — repère ${Math.round(vaseYaw*180/Math.PI)%360}° ; fleur ${Math.round(flowerYaw*180/Math.PI)%360}°. E tourne d’un quart de tour.`;
+    if (focus === 'vase') caption = `Vase — repère ${Math.round(vaseYaw*180/Math.PI)%360}° ; fleur ${Math.round(flowerYaw*180/Math.PI)%360}°. Manipulez le support pour un quart de tour.`;
     if (focus === 'witness-door') caption = `Porte témoin — battant ${Math.round(door*90)}° ; ombre ${Math.round(shadow*90)}°. Ouverture volontaire temporisée.`;
-    if (focus === 'listening-mannequin') caption = `Vitrine — tête ${Math.abs(headYaw)<.02?'orientée vers la fenêtre':`tournée de ${Math.round(Math.abs(headYaw)*180/Math.PI)}° vers le dernier signal`}. Message texte ou E pour appeler.`;
+    if (focus === 'listening-mannequin') caption = `Vitrine — tête ${Math.abs(headYaw)<.02?'orientée vers la fenêtre':`tournée de ${Math.round(Math.abs(headYaw)*180/Math.PI)}° vers le dernier signal`}. Message texte ou manipulation du support pour appeler.`;
     if (focus === 'lift') caption = `Ascenseur — ÉTAGE 09 fixe ; ${liftCount} sonnerie${liftCount>1?'s':''} depuis l’appel ; portes ${liftOpening>=.999?'ouvertes':liftOpening>0?'en ouverture':'fermées'}${liftOpening>=.45 ? liftVisitor?' ; une silhouette dans l’encadrement.':' ; cabine vide.':'.'}`;
     if(focus==='observatory-shutters')caption=`Baie O9 — volets ${Math.round(shutterOpening*100)} % ouverts. Examinez la baie pour comparer votre horizon.`;
     return {shutterOpening,key,active,now:seconds,voices,caption:['hotel','observatory'].includes(level)&&['reference','inspect'].includes(phase)?caption:'',

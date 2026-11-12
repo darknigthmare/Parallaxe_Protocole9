@@ -1,3 +1,8 @@
+## Commandes et lisibilité — 12 novembre 2026
+Dans **Paramètres** : douze actions clavier remappables (conflits refusés), disposition AZERTY/QWERTY affichée, FOV vertical 50–95°, inversion verticale souris/tactile/stick et relevés écrits 100–150 %. Les flèches et Échap restent réservés. Une affectation réinitialise les appuis et le talkie ; refaire un appui volontaire après un menu ou une perte de focus. Les réglages existants sont migrés localement.
+
+Le mode confort stabilise aussi la caméra d’accueil ; le déplacement conserve une caméra sans balancement forcé. Les animations qui servent de preuve sont conservées. **119/120 concepts au catalogue : hall_stretch reste hors tirage**. Voir `docs/QA_ACCESSIBILITE_20261112.md`.
+
 ## Reprise courante — 12 novembre 2026 / 119 sur 120 concepts
 
 **Observatoire 09** est le cinquième lieu optionnel. Dans « Lieu au choix », rejoignez la galerie, pressez E sur la commande de volets O9, puis examinez la baie pour comparer l’horizon. Le relief terrestre nocturne est la référence ; une planète privée peut apparaître après ouverture. La campagne garde ses trois secteurs et ses sauvegardes ; les neuf validations du lieu unique restent inchangées. Le nouveau lieu contient huit cas compatibles, pas les 119.

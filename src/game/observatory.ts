@@ -58,7 +58,7 @@ export function createObservatoryWorld(reflection:ReflectionFactory) {
   const shutters=[-1,1].map(side=>{const g=new THREE.Group();g.name=`O9 — volet ${side}`;bay.add(g);box(2.66,2.36,.09,0,2.04,.14,shutterMat,g);for(let y=1.04;y<3.2;y+=.25)box(2.5,.035,.05,0,y,.20,steel,g);return g;});
   // Public control is separated from the reading zone: E opens/closes; E on glass reads the horizon.
   const control=wallGroup(-1,-4.45);control.name='O9 — commande des volets';
-  box(.46,.42,.18,0,1.23,.14,dark,control);box(.11,.11,.07,0,1.23,.28,glow,control);panel(.60,.20,0,1.60,.12,['E · VOLETS'],control);
+  box(.46,.42,.18,0,1.23,.14,dark,control);box(.11,.11,.07,0,1.23,.28,glow,control);panel(.60,.20,0,1.60,.12,['COMMANDE VOLETS'],control);
   tag(control,'observatory-shutters','O9 — ouvrir / fermer les volets');
   const windowTarget=box(4.98,2.28,.012,0,2.03,.23,invisible,bay);windowTarget.castShadow=false;
   tag(windowTarget,'observatory-window','O9 — horizon à comparer');
@@ -72,7 +72,7 @@ export function createObservatoryWorld(reflection:ReflectionFactory) {
   for(const z of [-1.7,8.7]){box(.55,1.25,1.7,3.27,.625,z,dark);colliders.push({x:3.27,z,rx:.31,rz:.9});}
   const terminal=new THREE.Group();terminal.position.set(0,0,-12.9);root.add(terminal);
   box(.64,.08,.52,0,.04,0,steel,terminal);box(.14,.95,.14,0,.53,0,steel,terminal);
-  panel(.72,.42,0,1.1,.08,['PROTOCOL 09','DIAGNOSTIC'],terminal);tag(terminal,'exit','Terminal de diagnostic — E');colliders.push({x:0,z:-12.9,rx:.42,rz:.32});
+  panel(.72,.42,0,1.1,.08,['PROTOCOL 09','DIAGNOSTIC'],terminal);tag(terminal,'exit','Terminal de diagnostic');colliders.push({x:0,z:-12.9,rx:.42,rz:.32});
   const exit=panel(1.4,.35,0,3.15,-15.84,['SORTIE','09']);tag(exit,'exit','Sas de diagnostic');box(2.0,2.8,.12,0,1.4,-15.8,steel);
   const relayBody=new THREE.Group();relayBody.position.set(2.72,1.42,7.3);root.add(relayBody);box(.67,.43,.08,0,0,0,dark,relayBody);
   const screen=panel(.58,.35,0,0,.045,['RELAIS',relay],relayBody);tag(relayBody,'radio','Relais O9 — comparez le code');

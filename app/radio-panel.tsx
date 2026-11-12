@@ -3,8 +3,8 @@
 import { AudioLines, Mic, MicOff, Radio, ShieldCheck, Signal, Square, Volume2 } from "lucide-react";
 import type { RadioStatus } from "@/src/game/radio";
 
-export function TalkButton({ enabled, talking, onTalk, compact = false }: {
-  enabled: boolean; talking: boolean; onTalk: (talking: boolean) => void; compact?: boolean;
+export function TalkButton({ enabled, talking, onTalk, keyHint = "T", compact = false }: {
+  enabled: boolean; talking: boolean; onTalk: (talking: boolean) => void; compact?: boolean; keyHint?: string;
 }) {
   return <button type="button" className={`talk-button ${talking ? "transmitting" : ""} ${compact ? "compact" : ""}`} disabled={!enabled}
     aria-label="Maintenir pour parler au talkie" aria-pressed={talking}
@@ -12,14 +12,14 @@ export function TalkButton({ enabled, talking, onTalk, compact = false }: {
     onPointerUp={() => onTalk(false)} onPointerCancel={() => onTalk(false)} onLostPointerCapture={() => onTalk(false)}
     onKeyDown={event => { if (["Space", "Enter"].includes(event.code)) { event.preventDefault(); if (!event.repeat) onTalk(true); } }}
     onKeyUp={event => { if (["Space", "Enter"].includes(event.code)) { event.preventDefault(); onTalk(false); } }} onBlur={() => onTalk(false)}>
-    {talking ? <AudioLines size={18}/> : <Radio size={18}/>}<span>{talking ? "TRANSMISSION" : "MAINTENIR POUR PARLER"}</span><kbd>T</kbd>
+    {talking ? <AudioLines size={18}/> : <Radio size={18}/>}<span>{talking ? "TRANSMISSION" : "MAINTENIR POUR PARLER"}</span><kbd>{keyHint}</kbd>
   </button>;
 }
 
-export function RadioPanel({ status, isOnline, pending, probePending, caption, reference, peerNames, onEnable, onListen, onDisable, onReconnect, onStop, onTalk, onProbe, onStopProbe }: {
+export function RadioPanel({ status, isOnline, pending, probePending, caption, reference, peerNames, onEnable, onListen, onDisable, onReconnect, onStop, onTalk, onProbe, onStopProbe, keyHint = "T" }: {
   status: RadioStatus | null; isOnline: boolean; pending: boolean; caption: string;
   probePending: boolean; reference: string; onStopProbe: () => void;
-  peerNames?: Record<string,string>;
+  peerNames?: Record<string,string>; keyHint?: string;
   onEnable: () => void; onListen: () => void; onDisable: () => void; onReconnect: () => void; onStop: () => void; onTalk: (talking: boolean) => void; onProbe: () => void;
 }) {
   const enabled = status?.microphone ?? false;
@@ -31,9 +31,9 @@ export function RadioPanel({ status, isOnline, pending, probePending, caption, r
     {status?.enabled&&isOnline&&<div className="radio-connections">{status.peers.length?status.peers.map((peer,index)=><p key={peer.id}><span>{peerNames?.[peer.id]??`Inspecteur ${index+1}`}</span><b className={peer.state==="connected"?"linked":""}>{connectionLabels[peer.state]??"État inconnu"}</b></p>):<p>En attente d’un autre inspecteur ayant activé son talkie.</p>}</div>}
     <div className="radio-buttons">{isOnline && (enabled ? <button className="outline-button" type="button" onClick={onDisable}><MicOff size={16}/> Couper le microphone</button> : <button className="solid-button" type="button" disabled={pending || status?.supported === false || status?.secure === false} onClick={onEnable}><Mic size={16}/>{pending ? "Activation en cours…" : "Activer mon microphone"}</button>)}{isOnline && !status?.enabled && <button className="outline-button" type="button" disabled={pending} onClick={onListen}>Écouter sans microphone</button>}<button className="outline-button" type="button" disabled={pending || probePending} onClick={onProbe}><Volume2 size={16}/>{probePending ? "Préparation…" : status?.probeActive ? "Relancer le test" : "Test de calibration"}</button><button className="outline-button" type="button" onClick={onStopProbe}><Square size={15}/> Arrêter le test</button></div>
     <p className="calibration-reference"><strong>RÉFÉRENCE DU CONTRÔLE</strong>{reference}</p>
-    {isOnline && <TalkButton enabled={enabled} talking={status?.talking ?? false} onTalk={onTalk}/>}
+    {isOnline && <TalkButton keyHint={keyHint} enabled={enabled} talking={status?.talking ?? false} onTalk={onTalk}/>}
     {caption && <div className="calibration-caption" role="status"><AudioLines size={17}/><div><strong>RELEVÉ DE CALIBRATION</strong><p>{caption}</p></div></div>}
-    <p className="radio-instructions">{isOnline ? "Activez le microphone une fois, puis maintenez T ou le bouton pour parler. Votre voix est filtrée comme celle d’un talkie ; relâchez pour écouter." : "Le test fonctionne sans microphone. Comparez le relevé et le son dans vos deux perceptions, comme vous le feriez avec un partenaire."}</p>
+    <p className="radio-instructions">{isOnline ? `Activez le microphone une fois, puis maintenez ${keyHint} ou le bouton pour parler. Votre voix est filtrée comme celle d’un talkie ; relâchez pour écouter.` : "Le test fonctionne sans microphone. Comparez le relevé et le son dans vos deux perceptions, comme vous le feriez avec un partenaire."}</p>
     {status?.secure === false && isOnline && <p className="error-line">Le navigateur exige HTTPS pour le microphone sur le réseau local. Le chat écrit reste disponible.</p>}
     {status?.supported === false && isOnline && <p className="error-line">Ce navigateur ne fournit pas la liaison vocale nécessaire. Utilisez le chat écrit ou un navigateur compatible.</p>}
     {status?.error && <p className="error-line" role="status">{status.error}</p>}
