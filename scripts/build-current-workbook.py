@@ -47,7 +47,7 @@ summary = wb.worksheets.add("Synthèse"); sheets["Synthèse"] = summary
 summary.get_range("A1:H30").format.font={"name":"Arial","size":10,"color":"#162733"}
 summary.merge_cells("A1:H2");summary.get_range("A1").values=[["PARALLAXE — PROTOCOLE 9"]]
 summary.get_range("A1:H2").format={"fill":navy,"font":{"name":"Arial","size":21,"bold":True,"color":"#FFFFFF"},"row_height":24,"vertical_alignment":"center"}
-summary.merge_cells("A3:H3");summary.get_range("A3").values=[["12 novembre 2026 · projection du corps C9 · état courant 118 / 120"]]
+summary.merge_cells("A3:H3");summary.get_range("A3").values=[["12 novembre 2026 · observatoire O9 et skills locaux · état courant 119 / 120"]]
 for c,w in zip("ABCDEFGH",[34,17,4,19,19,19,17,17]):summary.get_range(f"{c}1:{c}30").format.column_width=w
 summary.get_range("A6:B6").values=[["CATALOGUE","TOTAL"]]
 summary.get_range("A7:A13").values=[["Concepts originaux"],["Présents dans le code"],["Encore non intégrés"],["Part implémentée"],["Entrées de suivi"],["Lots prioritaires"],["Recettes QA encore ouvertes"]]
@@ -82,6 +82,7 @@ changes.extend(json.loads((root/"docs/temporal-delivery-20261111.json").read_tex
 changes.extend(json.loads((root/"docs/lift-delivery-20261111.json").read_text()))
 changes.extend(json.loads((root/"docs/spoken-delivery-20261111.json").read_text()))
 changes.extend(json.loads((root/"docs/shadow-delivery-20261112.json").read_text()))
+changes.extend(json.loads((root/"docs/observatory-delivery-20261112.json").read_text()))
 add_table("Livraison",["ID","Type","Modification appliquée","Vérification prévue ou exécutée","Limites","Source"],changes,[29,21,40,40,40,38])
 sources=[["Base de développement","https://github.com/darknigthmare/Parallaxe_Protocole9/commit/a1774830149d485af800133f688e94b208940883","Branche main examinée ; code de jeu identique à l’archive edbeab61."],
 ["Fiches originales","https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json","120 fiches originales conservées sans réécriture de leurs A/B."],
@@ -89,6 +90,7 @@ sources=[["Base de développement","https://github.com/darknigthmare/Parallaxe_P
 ["Contrôles CPU","tests/observation-state.test.mjs ; tests/observation-world.test.mjs","Chronométrie/logique ne certifient pas un rendu GPU."],
 ["Registre de travail","docs/parallaxe-open-work-20261101.json","600 clés maintenues, 446 critères remappés."],
 ["Liste restante",track["gap_json"],f"{len(gap['remaining_anomalies'])} cas non intégrés ; CSV synchronisé."],
+["Audit des skills","docs/SKILLS_AUDIT_20261112.md","Trois dépôts comparés ; cinq workflows locaux, plugins externes non activés."],
 ]+[[p,"Archive conservée","Ne pas utiliser son ancien compteur pour la version actuelle."] for p in track["historical_workbooks"]]+[[f"docs/{p}","Classeur historique conservé","Son état antérieur n’est pas une recette du nouveau lot."] for p in ["PARALLAXE_Design_Complet.xlsx","PARALLAXE_Suivi_Reprise_2026-10-28.xlsx","PARALLAXE_Suivi_Sessions_2026-10-29.xlsx"]]
 add_table("Sources",["Référence","Lien / chemin","Portée"],sources,[36,40,40])
 summary.get_range("B7:B13").formulas=[
@@ -99,15 +101,15 @@ summary.get_range("B7:B13").formulas=[
 ["=COUNTA('Lots prioritaires'!$A$6:$A$33)"],
 ["=COUNTA('Recette QA'!$A$6:$A$129)"]]
 summary.get_range("B10").format.number_format="0.0%"
-summary.merge_cells("A16:H16");summary.get_range("A16").values=[["REPRISE : OMBRE ARTICULÉE ET POSES SYNCHRONISÉES"]]
+summary.merge_cells("A16:H16");summary.get_range("A16").values=[["REPRISE : OBSERVATOIRE VISITABLE ET SKILLS LOCAUX"]]
 summary.get_range("A16:H16").format={"fill":navy,"font":{"bold":True,"color":"#FFFFFF"},"row_height":27}
 notes=[
-"Les 117 cas précédents sont conservés ; la projection autonome du corps est ajoutée.",
-"C9 : regroupez-vous, bras au repos. Comparez corps et ombre ; aucun joueur n’est désigné fautif.",
+"Les 118 cas précédents sont conservés ; O9 ajoute une baie à volets et un ciel privé.",
+"Cinq skills locaux Codex/Claude sont versionnés ; activation des plugins externes non vérifiée.",
 "446 lignes ont retrouvé leur vrai critère de fin ; les 600 clés de suivi restent conservées.",
-f"{len(runtime)} cas sont intégrés au code ; {len(gap['remaining_anomalies'])} concepts restent à développer. La réception humaine n’est pas clôturée.",
+f"{len(runtime)} cas sont intégrés au code ; {len(gap['remaining_anomalies'])} concept reste à développer. La réception humaine n’est pas clôturée.",
 "Les recettes GPU, microphones, TURN et 2–4 appareils physiques restent à effectuer.",
-"La campagne reste Saint-Clair → Terminus 09 → Aile blanche ; le Chalet reste un lieu autonome.",
+"La campagne reste Saint-Clair → Terminus 09 → Aile blanche ; Chalet et Observatoire sont optionnels.",
 "Les anciens Excel sont des archives. Ce classeur et son fichier source JSON portent l’état courant."
 ]
 for i,text in enumerate(notes,18):

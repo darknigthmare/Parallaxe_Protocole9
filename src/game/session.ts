@@ -3,11 +3,11 @@ import {isLevelId,type LevelId,type GameMode} from './levels';
 
 export const PRESENCE_TIMEOUT=45_000;
 export const SESSION_TTL=12*60*60*1000;
-export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace','coat','extinguisher','stars','aged-photo','landing','music-box','bell','vase','witness-door','listening-mannequin','lift','service-radio','vent','body-shadow'];
-export type PropTarget='bell'|'vase'|'witness-door'|'listening-mannequin'|'lift'|'service-radio';
+export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace','coat','extinguisher','stars','aged-photo','landing','music-box','bell','vase','witness-door','listening-mannequin','lift','service-radio','vent','body-shadow','observatory-window','observatory-shutters'];
+export type PropTarget='bell'|'vase'|'witness-door'|'listening-mannequin'|'lift'|'service-radio'|'observatory-shutters';
 export type PropEvent={id:string;target:PropTarget;at:number;sequence:number;actorId:string;x:number;z:number};
-export const PROP_ANCHORS:Record<PropTarget,readonly [number,number]>={bell:[1.95,7.95],vase:[-3.30,-4.10],'witness-door':[3.22,11.10],'listening-mannequin':[3.20,-14.00],lift:[-2.45,-15.65],'service-radio':[-3.20,7.35]};
-const PROP_WAIT:Record<PropTarget,number>={bell:8000,vase:4000,'witness-door':8000,'listening-mannequin':2000,lift:14000,'service-radio':12000};
+export const PROP_ANCHORS:Record<PropTarget,readonly [number,number]>={bell:[1.95,7.95],vase:[-3.30,-4.10],'witness-door':[3.22,11.10],'listening-mannequin':[3.20,-14.00],lift:[-2.45,-15.65],'service-radio':[-3.20,7.35],'observatory-shutters':[-3.35,-4.45]};
+const PROP_WAIT:Record<PropTarget,number>={bell:8000,vase:4000,'witness-door':8000,'listening-mannequin':2000,lift:14000,'service-radio':12000,'observatory-shutters':3000};
 export const SIGNAL_TTL=60_000;
 export type RadioSignal={id:string;from:string;to:string;fromEpoch:string;toEpoch:string;at:number;description?:{type:'offer'|'answer';sdp:string};candidate?:{candidate:string;sdpMid:string|null;sdpMLineIndex:number|null;usernameFragment?:string|null}|null;reset?:boolean};
 export type Pose={x:number;y:number;z:number;yaw:number;pitch:number};
@@ -202,10 +202,11 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
     if(active.length<2||active.length!==next.players.filter(p=>!p.left).length)return next;
     actor.vote=payload.vote;
   }else if(action==='prop'){
-    if(!next.started||next.run.levelId!=='hotel'||!['reference','inspect'].includes(next.run.phase))throw new SessionError('Ce support est indisponible dans ce passage.',409);
+    if(!next.started||!['hotel','observatory'].includes(next.run.levelId)||!['reference','inspect'].includes(next.run.phase))throw new SessionError('Ce support est indisponible dans ce passage.',409);
     if(typeof payload.target!=='string'||!Object.hasOwn(PROP_ANCHORS,payload.target))throw new SessionError('Support inconnu.');
     if(typeof payload.requestId!=='string'||!/^[a-zA-Z0-9_-]{16,64}$/.test(payload.requestId))throw new SessionError('Identifiant du geste invalide.');
     const target=payload.target as PropTarget,anchor=PROP_ANCHORS[target];
+    if((target==='observatory-shutters')!==(next.run.levelId==='observatory'))throw new SessionError('Support incompatible avec ce lieu.',409);
     if(Math.hypot(actor.pose.x-anchor[0],actor.pose.z-anchor[1])>3.6)throw new SessionError('Approchez-vous du support avant de le manipuler.',403);
     if(next.decisionPaused||activePlayers(next,now).length<2)throw new SessionError('Attendez le retour de votre équipe.',409);
     const previous=next.propEvents?.find(e=>e.target===target),id=actor.id+':'+payload.requestId;
@@ -306,7 +307,7 @@ export function projectRoom(room:Room,playerId:string,now:number){
     messages:room.messages,
     pings:room.pings.filter(p=>now-p.at<15_000),
     reveal:last?{correct:last.correct,hasAnomaly:last.hasAnomaly,title:last.title,description:last.description,anomalyId:last.anomalyId,observerNames:room.players.filter(p=>last.observerSlots.includes(p.slot)).map(p=>p.name)}:null,
-    propEvents:room.started&&room.run.levelId==='hotel'&&['reference','inspect'].includes(phase)?(room.propEvents??[]).map(e=>({id:e.id,target:e.target,at:e.at,sequence:e.sequence,actorId:e.actorId,x:e.x,z:e.z})):[],
+    propEvents:room.started&&['hotel','observatory'].includes(room.run.levelId)&&['reference','inspect'].includes(phase)?(room.propEvents??[]).filter(e=>(e.target==='observatory-shutters')===(room.run.levelId==='observatory')).map(e=>({id:e.id,target:e.target,at:e.at,sequence:e.sequence,actorId:e.actorId,x:e.x,z:e.z})):[],
     serverTime:now,
   };
 }

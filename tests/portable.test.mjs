@@ -116,6 +116,25 @@ try{
   assert.ok(stale.state.players.every(player=>player.vote===null));
   assert.equal((await action({action:'leave',code:host.code},beta.token)).left,true);
   assert.equal((await action({action:'leave',code:host.code},host.token)).left,true);
+  // Fifth optional location: same shared actuation, no private sky value over HTTP.
+  const observatory=await action({action:'create',name:'O9 Alpha',mode:'single',levelId:'observatory'});
+  const o9peer=await action({action:'join',name:'O9 Beta',code:observatory.code});
+  const o9start=await action({action:'start',code:observatory.code,decisionEpoch:observatory.state.decisionEpoch},observatory.token);
+  assert.equal(o9start.state.levelId,'observatory');assert.equal(o9start.state.mode,'single');
+  for(const client of [observatory,o9peer])await action({action:'pose',code:observatory.code,pose:{x:-2,y:1.67,z:-4.45,yaw:Math.PI/2,pitch:0}},client.token);
+  const shutters={action:'prop',code:observatory.code,target:'observatory-shutters',requestId:'http-shutters-0001',expectedSequence:0,decisionEpoch:o9start.state.decisionEpoch};
+  await action(shutters,undefined,401);
+  const common=await action(shutters,observatory.token);
+  const other=(await fetch(`${origin}/api/session?code=${observatory.code}`,{headers:{Authorization:`Bearer ${o9peer.token}`}}).then(r=>r.json())).state;
+  assert.deepEqual(common.state.propEvents,other.propEvents);
+  assert.equal(common.state.propEvents[0].target,'observatory-shutters');
+  assert.deepEqual(Object.keys(other.propEvents[0]).sort(),['actorId','at','id','sequence','target','x','z']);
+  assert.deepEqual((await action(shutters,observatory.token)).state.propEvents,other.propEvents);
+  await action({...shutters,target:'bell',requestId:'http-wrong-hotel-0001'},observatory.token,409);
+  const obsnext=await action({action:'next',code:observatory.code,decisionEpoch:o9start.state.decisionEpoch},observatory.token);
+  assert.equal(obsnext.state.propEvents.length,0);
+  assert.equal((await action(shutters,observatory.token,409)).code,'STALE_DECISION_CONTEXT');
+  for(const client of [observatory,o9peer])await action({action:'leave',code:observatory.code},client.token);
   // The fourth location uses the same authoritative protocol with a full roster.
   const cabin=await action({action:'create',name:'Chalet QA Alpha',mode:'single',levelId:'cabin'});
   const cabinClients=[cabin];

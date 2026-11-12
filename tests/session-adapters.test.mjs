@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {isDeepStrictEqual} from 'node:util';
 import {mkdtemp,mkdir,readFile,writeFile,cp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
@@ -75,7 +76,7 @@ class CasStorageDouble{
 }
 
 let fixtureNumber=0;
-async function d1Fixture(count=2,namedVoiceConsent=false){
+async function d1Fixture(count=2,namedVoiceConsent=false,levelId=null){
   const folder=join(temporary,`d1-${++fixtureNumber}`);
   await mkdir(folder);
   await writeFile(join(folder,'env.mjs'),'export const env = {DB:null};\n');
@@ -101,14 +102,14 @@ async function d1Fixture(count=2,namedVoiceConsent=false){
   function decision(action,client,extra={}){
     return post({action,code:client.code,...extra,decisionEpoch:client.state.decisionEpoch},client);
   }
-  const host=await post({action:'create',name:'Handler Alpha',mode:'campaign',namedVoiceConsent},null,201);
+  const host=await post({action:'create',name:'Handler Alpha',mode:levelId?'single':'campaign',...(levelId?{levelId}:{}),namedVoiceConsent},null,201);
   const clients=[host];
   for(let i=1;i<count;i++)clients.push(await post({action:'join',code:host.code,name:`Handler ${i}`,namedVoiceConsent}));
   await get(host);
   return {storage,post,get,decision,host,clients};
 }
-const answerFor=states=>states.some(state=>state.view.effects.length>0)
-  ||['relayCode','arrowDirection','syncTime','starMask'].some(key=>new Set(states.map(state=>state.view[key])).size>1);
+// Compare the complete private projection, including new relational fields such as knockCount.
+const answerFor=states=>states.some(s=>s.view.effects.length>0)||states.slice(1).some(s=>!isDeepStrictEqual(s.view,states[0].view));
 async function finishRound(fixture){
   const states=await Promise.all(fixture.clients.map(fixture.get));
   const answer=answerFor(states);
@@ -294,4 +295,27 @@ test('D1 handlers persist explicit grants and irreversible name revocation witho
  await f.post({action:'grant-named-voice',code:a.code,namedVoiceConsent:true},a,400);
  assert.equal(f.storage.readRoom(a.code).players.find(p=>p.id===a.selfId).namedVoiceConsent,false);
  const stale=await f.post({action:'vote',code:a.code,vote:true,decisionEpoch:oldEpoch},a,409);assert.equal(stale.code,'STALE_DECISION_CONTEXT');
+});
+
+
+test('D1 handlers preserve optional observatory identity and publish shutters without the private horizon',async()=>{
+  const f=await d1Fixture(2,false,'observatory'),[a,b]=f.clients;
+  await f.decision('start',a);await f.get(b);assert.equal(a.state.levelId,'observatory');
+  assert.equal(a.state.mode,'single');
+  for(const c of f.clients)await f.post({action:'pose',code:c.code,pose:{x:-2,y:1.67,z:-4.45,yaw:Math.PI/2,pitch:0}},c);
+  const gesture={action:'prop',code:a.code,target:'observatory-shutters',requestId:'d1-shutters-0001',expectedSequence:0,decisionEpoch:a.state.decisionEpoch};
+  const opened=await f.post(gesture,a);const peer=await f.get(b);
+  assert.deepEqual(opened.state.propEvents,peer.propEvents);assert.equal(peer.propEvents[0].target,'observatory-shutters');
+  assert.deepEqual(Object.keys(peer.propEvents[0]).sort(),['actorId','at','id','sequence','target','x','z']);
+  assert.deepEqual((await f.post(gesture,a)).state.propEvents,peer.propEvents);
+  await f.post({...gesture,target:'bell',requestId:'d1-wrong-prop-0001'},a,409);
+  await f.decision('next',a);const expired=await f.post(gesture,a,409);
+  assert.equal(expired.code,'STALE_DECISION_CONTEXT');assert.equal(expired.state.propEvents.length,0);
+  assert.equal(expired.state.levelId,'observatory');
+});
+
+test('automated observer detects the three/four knock clue without treating equal references as anomalies',()=>{
+ const common={effects:[],relayCode:'0909',arrowDirection:'left',syncTime:'03:09',starMask:'all',knockCount:0};
+ assert.equal(answerFor([{view:common},{view:structuredClone(common)}]),false);
+ assert.equal(answerFor([{view:{...common,knockCount:3}},{view:{...common,knockCount:4}}]),true);
 });

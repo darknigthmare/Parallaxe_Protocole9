@@ -383,7 +383,8 @@
       "hotel",
       "metro",
       "clinic",
-      "cabin"
+      "cabin",
+      "observatory"
     ]
   },
   {
@@ -400,7 +401,8 @@
       "hotel",
       "metro",
       "clinic",
-      "cabin"
+      "cabin",
+      "observatory"
     ]
   },
   {
@@ -417,7 +419,8 @@
       "hotel",
       "metro",
       "clinic",
-      "cabin"
+      "cabin",
+      "observatory"
     ]
   },
   {
@@ -648,7 +651,8 @@
       "hotel",
       "metro",
       "clinic",
-      "cabin"
+      "cabin",
+      "observatory"
     ]
   },
   {
@@ -834,7 +838,8 @@
       "hotel",
       "metro",
       "clinic",
-      "cabin"
+      "cabin",
+      "observatory"
     ],
     "baseline": "Un clic d’ouverture et un clic de fermeture encadrent l’identifiant RELAIS puis la séquence principale 1, 2, 3.",
     "description": "Le clic final manque après la séquence principale.",
@@ -1038,7 +1043,8 @@
       "hotel",
       "metro",
       "clinic",
-      "cabin"
+      "cabin",
+      "observatory"
     ],
     "baseline": "Le numéro du badge réfléchi correspond au badge de la personne réelle.",
     "description": "Le reflet porte un autre numéro de badge, alors que le badge réel reste inchangé.",
@@ -1293,7 +1299,8 @@
       "hotel",
       "metro",
       "clinic",
-      "cabin"
+      "cabin",
+      "observatory"
     ],
     "baseline": "Le miroir montre votre corps et ceux des collègues présents. En solo, deux mannequins témoins numérotés permettent le même comptage.",
     "description": "Votre corps reste réfléchi, mais les collègues ou les mannequins témoins disparaissent uniquement du miroir.",
@@ -1761,5 +1768,19 @@
     "description": "Après regroupement et immobilité au repère, votre ombre seule étend son bras vers un équipier, tandis que votre corps reste neutre.",
     "cooperation": "Immobilisez-vous tous dans C9, bras au repos. Comparez le bras réel et celui de la projection ; la direction ne désigne aucun responsable.",
     "hint": "Un bras projeté autonome, avec des positions reçues à jour, est une différence observable."
+  },
+  {
+    "id": "observatory_earth",
+    "title": "La fenêtre sur ailleurs",
+    "target": "observatory-window",
+    "intensity": 4,
+    "difficulty": 2,
+    "levels": [
+      "observatory"
+    ],
+    "baseline": "Les volets de la baie O9 ouverts montrent le relief terrestre nocturne et un ciel étoilé.",
+    "description": "Une immense planète domine le ciel au-dessus du même relief, derrière le cadre de la fenêtre.",
+    "cooperation": "Ouvrez ensemble les volets, puis décrivez le même horizon depuis la galerie. La lecture agrandie reste personnelle.",
+    "hint": "Un grand disque absent de l’horizon normal confirme la différence."
   }
 ]

@@ -1,12 +1,22 @@
-## Reprise du 12 novembre 2026 — 118/120 concepts dans le code
+## Reprise courante — 12 novembre 2026 / 119 sur 120 concepts
+
+**Observatoire 09** est le cinquième lieu optionnel. Dans « Lieu au choix », rejoignez la galerie, pressez E sur la commande de volets O9, puis examinez la baie pour comparer l’horizon. Le relief terrestre nocturne est la référence ; une planète privée peut apparaître après ouverture. La campagne garde ses trois secteurs et ses sauvegardes ; les neuf validations du lieu unique restent inchangées. Le nouveau lieu contient huit cas compatibles, pas les 119.
+
+Classeur courant : `docs/PARALLAXE_Suivi_Courant_2026-11-12_Observatoire.xlsx`. Les textes A/B d’origine, les 600 clés et les anciens Excel sont conservés. `hall_stretch` reste hors catalogue dans l’attente de sa recette de confort. Lire `docs/QA_OBSERVATOIRE_20261112.md` pour les contrôles et limites ; les tests CPU ne certifient ni pixels ni FPS. Cette reprise ne déploie pas le site.
+
+**Skills réellement ajoutés au dépôt** : cinq workflows adaptés, sous `.agents/skills/p9-*` et `.claude/skills/p9-*`. `npm run test:skills` vérifie les copies et leurs empreintes. `docs/SKILLS_AUDIT_20261112.md` compare Yautja, Moustique et Multiverse Breach et distingue fichiers locaux, références externes et activation des plugins. Pas d’installation globale implicite.
+
+Les sections suivantes décrivent les livraisons antérieures. Pour une archive jouable courante, utiliser l’artefact CI de la dernière révision de PR, pas les anciens ZIP 0.4.1 dans `public/downloads`.
+
+## Archive de reprise C9 — 118/120 concepts
 
 Le classeur courant est `docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx` (source JSON de suivi inchangée). Nouveau cas : `shadow_points`, projection des vrais maillages articulés de l’inspecteur au repère **C9**. Réunissez toute l’équipe dans le marquage au sol, immobilisez corps et bras une seconde, puis comparez le bras réel et sa projection. En entraînement, le support **T1** du miroir est explicitement le témoin ; ce n’est pas un joueur connecté. La direction du bras n’est liée ni à une faute ni au vote.
 
 Les ombres restent lisibles avec les shadow maps désactivées et ne changent aucune collision. Les mouvements, poses périmées, départs et interruptions annulent la preuve. Les 117 cas précédents et les archives Excel sont conservés. Voir `docs/QA_OMBRE_20261112.md` pour les tests, coûts géométriques et limites. **Deux concepts restent non intégrés** : `hall_stretch` et `observatory_earth`. 118/120 n’est pas le taux d’achèvement du jeu. Pas de publication automatique.
 
-> **Reprise voix — 11/11/2026** : 117/120 concepts intégrés sur la branche de travail (pas de déploiement). Le poste R9 annonce une extinction programmée de sa lampe ; V9 épelle le seul indicatif propre consenti. L’option nominative est facultative, désactivée par défaut et retirable dans Paramètres. Voir `docs/QA_VOIX_20261111.md` et le classeur courant `docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx`. Les anciens rapports ci-dessous gardent leur portée historique.
+> **Reprise voix — 11/11/2026** : 117/120 concepts intégrés sur la branche de travail (pas de déploiement). Le poste R9 annonce une extinction programmée de sa lampe ; V9 épelle le seul indicatif propre consenti. L’option nominative est facultative, désactivée par défaut et retirable dans Paramètres. Voir `docs/QA_VOIX_20261111.md` et le classeur historique `docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx`. Les anciens rapports ci-dessous gardent leur portée historique.
 
-> **État courant — 11/11/2026 : 115/120 anomalies dans la branche, 5 concepts encore absents.** Ascenseur réel, appel coopératif, neuf carillons privés, passager persistant et pas résiduels après immobilité. Excel courant : `docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx`. Voir `docs/QA_ASCENSEUR_20261111.md`. Les livraisons ci-dessous sont historiques ; aucune publication du site par ce lot.
+> **Archive — 11/11/2026 : 115/120 anomalies dans la branche, 5 concepts encore absents.** Ascenseur réel, appel coopératif, neuf carillons privés, passager persistant et pas résiduels après immobilité. Excel courant : `docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx`. Voir `docs/QA_ASCENSEUR_20261111.md`. Les livraisons ci-dessous sont historiques ; aucune publication du site par ce lot.
 
 # PARALLAXE — Protocole 9
 

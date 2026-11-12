@@ -4,8 +4,9 @@ import { Reflector } from 'three/addons/objects/Reflector.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createLocationClues } from './location-clues';
 import { createCabinWorld } from './cabin';
+import { createObservatoryWorld } from './observatory';
 
-export type ExtraLocationId = 'metro' | 'clinic' | 'cabin';
+export type ExtraLocationId = 'metro' | 'clinic' | 'cabin' | 'observatory';
 export type WorldObstacle = { x: number; z: number; rx: number; rz: number; effect?: string };
 
 export function reflectiveGlass(width: number, height: number, tint = 0x87999b, opacity = .38) {
@@ -19,6 +20,7 @@ export function reflectiveGlass(width: number, height: number, tint = 0x87999b, 
 
 /** Separate original level meshes; these are not recolours of the hotel. */
 export function createLocation(id: ExtraLocationId) {
+  if (id === 'observatory') return createObservatoryWorld(reflectiveGlass);
   if (id === 'cabin') return createCabinWorld(reflectiveGlass);
   const root = new THREE.Group(); root.name = id === 'metro' ? 'Terminus 09 — métro désaffecté' : 'Aile blanche — clinique de nuit';
   const targets: THREE.Object3D[] = [];

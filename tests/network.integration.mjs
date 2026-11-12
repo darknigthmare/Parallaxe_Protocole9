@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {isDeepStrictEqual} from 'node:util';
 import {mkdir,writeFile} from 'node:fs/promises';
 
 // Run only against an authorized local/QA origin, e.g. PARALLAXE_TEST_URL=http://127.0.0.1:4173.
@@ -23,7 +24,8 @@ async function state(client){
   const response=await fetch(`${endpoint}?code=${client.code}`,{headers:{Authorization:`Bearer ${client.token}`}});
   const value=await response.json();assert.equal(response.status,200,JSON.stringify(value));client.state=value.state;return value.state;
 }
-const answerFor=states=>states.some(s=>s.view.effects.length>0)||['relayCode','arrowDirection','syncTime','starMask'].some(key=>new Set(states.map(s=>s.view[key])).size>1);
+// Compare the complete private projection, including new relational fields such as knockCount.
+const answerFor=states=>states.some(s=>s.view.effects.length>0)||states.slice(1).some(s=>!isDeepStrictEqual(s.view,states[0].view));
 try{
   const host=await call({action:'create',name:'QA Alpha',difficulty:'standard',mode:'campaign'},null,201);clients.push(host);
   const arrivals=await Promise.allSettled(['Bravo','Charlie','Delta'].map(async name=>{

@@ -1,10 +1,16 @@
-## État courant C9 — 12 novembre 2026
-118 anomalies dans le catalogue, 2 absentes. `shadow_points` projette les maillages réellement utilisés par l’inspecteur : ne pas remplacer par une silhouette générique, ne pas modifier les joints du vrai corps, ne pas partager la direction privée sur le réseau. Groupe entier immobile au marquage C9 ; poses valides et récentes requises. La cible n’indique jamais une faute. Solo : support T1 explicite. Exécuter `npm run test:shadow` et les suites précédentes. `hall_stretch` reste exclu avant sa recette locomotion/confort. Le contexte WebGL local étant indisponible, ne pas annoncer de vérification de pixels sur la seule géométrie.
+## État courant — 12 novembre 2026
+119 concepts au catalogue ; `hall_stretch` seul reste exclu avant validation de locomotion/confort humain. Cinq lieux sélectionnables, campagne toujours à trois secteurs. Source courante : `docs/parallaxe-open-work-20261101.json`, qui donne les chemins Excel/gap. Base du lot O9 : `4db8e6ec7b66c91463024127cbde93f09d30c442`. Lire `docs/QA_OBSERVATOIRE_20261112.md` ; consulter la CI du SHA exact, pas un succès ancien.
 
-## État courant voix — 11 novembre 2026
-117 anomalies dans le catalogue ; 3 concepts absents. L’autorité courante de suivi est `docs/parallaxe-open-work-20261101.json`. Ne pas modifier les références originales A/B. `vent_whisper` est exclu par défaut ; requiert le consentement explicite de chaque membre et utilise uniquement le nom propre local. Ne jamais remplacer le générateur embarqué par une capture ou du TTS réseau. `radio_future` annonce un événement normal du relais à +6 s, pas une action future de l’utilisateur. Exécuter `npm run test:spoken` et les suites précédentes ; audio humain et GPU restent non validés.
+Conserver les garde-fous précédents : voix nominative uniquement consentie et révocable, aucune capture/TTS externe pour les anomalies ; C9 projette les vraies géométries du corps et ne modifie pas ses articulations ; fraîcheur des poses en temps monotone. O9 ouvre des volets publics mais garde son horizon privé. L’observatoire reste optionnel, pas un quatrième secteur de campagne.
 
-> **Reprise courante :** 115 cas dans la branche, sources normales/A/B conservées (120). Le maître historique 0.4.1 reste inchangé ; consulter `docs/parallaxe-open-work-20261101.json` et `docs/QA_ASCENSEUR_20261111.md`.
+## Skills locaux à charger selon la tâche
+Cinq workflows originaux sont présents dans `.agents/skills` (Codex) et `.claude/skills` (Claude), avec copies identiques et manifeste `.ai-tools/project-skills.json` :
+- `p9-reprise` : branche, état courant et sélection du lot ;
+- `p9-anomalies` : fidélité aux fiches A/B et preuve jouable ;
+- `p9-scene` : rendu, géométrie, ressources et recette GPU ;
+- `p9-coop-radio` : états publics/privés, commandes et voix ;
+- `p9-livraison` : tests, Excel, archives et SHA.
+Lire le SKILL.md utile avant d’agir. Exécuter `npm run test:skills` après modification de ces fichiers. Les références Spec Kit/Superpowers/Game Studios restent distinctes : ne pas annoncer un plugin chargé sans preuve d’activation du client. Voir `docs/SKILLS_AUDIT_20261112.md`.
 
 # Consignes de développement — PARALLAXE
 
@@ -12,7 +18,7 @@
 
 Lire `README.md`, `package.json`, `package-lock.json` et [le guide du projet](docs/GAMEDEV_GUIDANCE.md). Vérifier la branche, le commit de départ et les changements déjà en cours avant toute modification.
 
-L'examen initial des guides portait sur la base GitHub 0.2.1. Les sources du Site 0.4.0 ont maintenant été récupérées au commit `6c8784e0cf5d64f6386f3448434b0bc659d3fc15`, puis comparées à la PR #2 après `2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65`. La version consolidée **0.4.1** conserve les quatre lieux et 96 anomalies ainsi que les corrections de sessions, radio et commandes. Lire le [relevé des sources](docs/SOURCE_RECONCILIATION_2026-10-29.md) et les [preuves actuelles](docs/qa-final-v0.4.1.json). Ne pas remplacer ce contenu par les archives historiques 0.2.1.
+L'examen initial des guides portait sur la base GitHub 0.2.1. Les sources du Site 0.4.0 ont maintenant été récupérées au commit `6c8784e0cf5d64f6386f3448434b0bc659d3fc15`, puis comparées à la PR #2 après `2ec5d3a343f3cdd0e86f729d7b0cb1c6c622bd65`. La version historique consolidée **0.4.1 du 29 octobre** conservait les quatre lieux et 96 anomalies ainsi que les corrections de sessions, radio et commandes. Lire le [relevé des sources](docs/SOURCE_RECONCILIATION_2026-10-29.md) et les [preuves historiques 0.4.1](docs/qa-final-v0.4.1.json). Ne pas remplacer ce contenu par les archives historiques 0.2.1.
 
 ## Moteur et sélection des guides
 

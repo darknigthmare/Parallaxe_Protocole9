@@ -1,0 +1,50 @@
+[
+  [
+    "observatory_earth",
+    "Nouveau cas",
+    "Observatoire O9 visitable en mode lieu unique. Après ouverture, le témoin affecté voit une planète derrière la baie ; le témoin normal garde le relief terrestre nocturne.",
+    "13 tests dédiés état/géométrie/domaine ; 2 tests de scène complète ; handlers D1 et archive HTTP.",
+    "Rendu GPU, contraste et coût non certifiés. Relief et planète originaux procéduraux.",
+    "src/game/observatory.ts ; tests/observatory.test.mjs"
+  ],
+  [
+    "O9-SHUTTERS",
+    "Coopération",
+    "Septième support public authentifié, volets progressifs sur 1,5 s, début commun. Pas de ciel ni verdict privé dans le paquet réseau.",
+    "Cadence, proximité, incompatibilité lieu/support, répétition identique, ancien passage, client tardif et pause solo.",
+    "Le délai commun ne garantit pas la simultanéité humaine sur tout réseau.",
+    "src/game/session.ts ; src/game/temporal-state.ts"
+  ],
+  [
+    "O9-SEAM",
+    "Correctif",
+    "Recouvrement des volets fermés ; une fente centrale trouvée par le rayon de géométrie a été supprimée.",
+    "Test du rayon au milieu de la baie : obstruction par volet fermé, aucune paroi pleine une fois ouvert.",
+    "La géométrie ne remplace pas une capture de pixels du rendu.",
+    "src/game/observatory.ts"
+  ],
+  [
+    "QA-RELATIONAL",
+    "Correctif QA",
+    "Le témoin automatisé réseau comparait une liste incomplète et oubliait knockCount : trois/quatre coups parfois classés conformes. Comparaison complète de PersonalView.",
+    "Régression knockCount, références identiques et parcours campagne via vrai serveur HTTP.",
+    "Correction du harnais de test, pas changement des règles de diagnostic des joueurs.",
+    "tests/network.integration.mjs ; tests/session-adapters.test.mjs"
+  ],
+  [
+    "SKILLS-P9",
+    "Outillage",
+    "Cinq workflows locaux originaux, avec miroirs Codex/Claude, manifeste SHA256, diagnostic et entrée AGENTS/CLAUDE.",
+    "18 tests du préparateur/validateur ; copies identiques, noms, métadonnées et chemins.",
+    "Ne prétend pas installer les plugins Spec Kit, Superpowers ou Game Studios ni activer un client absent.",
+    "docs/SKILLS_AUDIT_20261112.md ; .ai-tools/project-skills.json"
+  ],
+  [
+    "SKILLS-GIT",
+    "Correctif",
+    "Exception Git étroite pour .agents/skills/p9-* : ces instructions étaient sinon ignorées par la règle /.agents/.",
+    "git check-ignore et manifeste de livraison : dix SKILL.md suivis.",
+    "Les autres fichiers agent générés restent ignorés ; aucune modification des permissions ou hooks.",
+    ".gitignore"
+  ]
+]

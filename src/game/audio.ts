@@ -18,6 +18,7 @@ export class Atmosphere {
     hotel: { frequencies: [47, 94.07, 141.03], air: 290, step: [65, 28, .09, .10] },
     metro: { frequencies: [41.2, 82.45, 247.15], air: 720, step: [112, 44, .12, .085] },
     clinic: { frequencies: [52, 104.03, 208.05], air: 440, step: [88, 36, .075, .075] },
+    observatory: { frequencies: [32.7, 65.43, 130.81], air: 360, step: [96, 35, .085, .075] },
     cabin: { frequencies: [36.7, 73.45, 146.83], air: 185, step: [79, 31, .13, .085] },
   };
 

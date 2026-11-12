@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'shadow-state','body-shadow','shadow-world','footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
+  for (const name of ['levels', 'avatar', 'observatory', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'shadow-state','body-shadow','shadow-world','footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|shadow-state|body-shadow|shadow-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|observatory|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|shadow-state|body-shadow|shadow-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -896,6 +896,39 @@ try {
     game.setView({effects:[],phase:'inspect',levelId:'cabin'});game.update(0);
     assert.equal(game.getAcousticFrame().voices.length,0);
     game.setView({effects:[],phase:'inspect',levelId:'hotel'});
+  });
+
+  check('optional observatory control and horizon are inspectable through the complete scene', () => {
+    game.setView({levelId:'observatory',phase:'inspect',loop:191,contextKey:'obs-local',effects:['observatory_earth']});
+    game.setActive(true);game.setObservationActive(true);game.setInput({forward:0,strafe:0});
+    const aim=(x,z,tx,ty,tz)=>{game.setPose({x,z,yaw:Math.atan2(-(tx-x),-(tz-z)),pitch:Math.atan2(ty-1.67,Math.hypot(tx-x,tz-z))});for(let i=0;i<5;i++)game.update(.016);};
+    aim(-1.9,-4.45,-3.28,1.23,-4.45);
+    assert.equal(game.getTarget()?.id,'observatory-shutters');
+    assert.equal(game.getPropTarget(),'observatory-shutters');assert.equal(game.activateProp(),true);
+    const planet=scene.getObjectByName('O9 — planète privée');
+    for(let i=0;i<32;i++)game.update(.05);
+    aim(-1.9,-7.6,-3.38,1.67,-7.6);
+    assert.equal(game.getTarget()?.id,'observatory-window');assert.equal(game.getPropTarget(),null);
+    assert.equal(planet.visible,true);assert.match(game.getInspection().lines.join(' '),/UN GRAND DISQUE/);
+    game.setQuality('low');assert.equal(planet.visible,true);
+    game.setView({levelId:'observatory',phase:'inspect',loop:191,contextKey:'obs-local',effects:[]});
+    for(let i=0;i<5;i++)game.update(.016);
+    assert.equal(planet.visible,false);assert.match(game.getInspection().lines.join(' '),/SANS GRAND DISQUE/);
+    game.setView({levelId:'observatory',phase:'reference',loop:192,contextKey:'obs-local',effects:['observatory_earth']});
+    assert.equal(planet.visible,false);for(let i=0;i<5;i++)game.update(.016);
+    assert.match(game.getInspection().lines.join(' '),/0 %/);
+    game.setView({levelId:'hotel',phase:'reference',effects:[]});game.setQuality('high');game.setActive(false);
+  });
+
+  check('observatory gallery preserves the walking route and hides its exterior outside the optional location', () => {
+    game.setView({levelId:'observatory',phase:'reference',loop:193,effects:[]});
+    game.setActive(true);game.setObservationActive(true);game.setPose({x:0,z:9,yaw:0,pitch:0});game.setInput({forward:1,strafe:0});
+    for(let i=0;i<200;i++)game.update(.05);
+    assert.ok(game.getPose().z< -10,'Entry-to-diagnostic route must remain walkable');
+    game.setInput({forward:0,strafe:0});
+    const root=scene.getObjectByName('Observatoire 09 — galerie terrestre');assert.equal(root.visible,true);
+    for(const levelId of ['hotel','metro','clinic','cabin']) {game.setView({levelId,phase:'reference',effects:[]});assert.equal(root.visible,false);}
+    game.setView({levelId:'hotel',phase:'reference',effects:[]});game.setActive(false);
   });
 
   check('lift button remains reachable in the complete scene and cannot trap the player behind its doors', () => {

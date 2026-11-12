@@ -49,8 +49,8 @@
   "compteurs": {
     "conception_ouverts": 446,
     "anomalies_concues": 120,
-    "anomalies_runtime": 118,
-    "anomalies_non_implantees": 2,
+    "anomalies_runtime": 119,
+    "anomalies_non_implantees": 1,
     "session_ouverts": 9,
     "radio_ouverts": 8,
     "items_total": 600,
@@ -61,11 +61,12 @@
     "Conserver les classeurs historiques tant que leur édition correcte n'est pas régénérée.",
     "Tests CPU / CI ne remplacent ni preuve GPU ni essai audio/voix physique.",
     "Ne pas modifier le catalogue runtime en mettant à jour le seul registre.",
-    "Le classeur initial (96/24) est un instantané historique ; le classeur _v2 (100/20) est la version actualisée du registre. Les deux restent conservés.",
+    "Le classeur initial (96/24) est un instantané historique ; le classeur _v2 (100/20) est une révision historique du registre. Les deux restent conservés.",
     "Pour les nouvelles anomalies, « Implémenté — QA partielle » exige toujours une réception GPU et multijoueur réel avant clôture.",
     "Les gestes du lot temporel sont publics, les résultats de perception restent privés. Leurs tests automatiques ne remplacent pas la réception réseau humain/GPU.",
     "Les voix synthétiques nominatives requièrent un accord explicite de chaque membre de l’équipe ; elles ne sont pas une captation ni une imitation vocale.",
-    "Ombres C9 : géométrie réelle partagée avec le modèle, pas une silhouette générique. Les tests de matrices/ressources ne certifient pas les pixels. Les poses reçues périmées en temps monotone suspendent toute preuve de mouvement."
+    "Ombres C9 : géométrie réelle partagée avec le modèle, pas une silhouette générique. Les tests de matrices/ressources ne certifient pas les pixels. Les poses reçues périmées en temps monotone suspendent toute preuve de mouvement.",
+    "O9 est le cinquième lieu optionnel. Sa planète reste une perception privée derrière les volets partagés ; aucune extension implicite de la campagne à trois secteurs."
   ],
   "lots": [
     {
@@ -141,11 +142,11 @@
     {
       "id": "W08",
       "priorite": "P1",
-      "domaine": "2 anomalies restant à intégrer",
-      "action": "Terminer hall_stretch seulement après tests de locomotion/confort, puis créer un observatoire visitable avec volets, horizon normal et planète privée.",
+      "domaine": "1 anomalie restant à intégrer",
+      "action": "Produire hall_stretch uniquement après protocole de locomotion et confort humain validé ; garder les ancrages réseau et collisions communs.",
       "criteres": "Chaque case nouvellement jouable seulement après ajout moteur + lieux + tests de comparaison, sans marketing fictif",
       "preuve": "PR code par lot, baseline/QA, table d'identifiants",
-      "liens": "P51 ; 2 concepts absents du runtime ; shadow_points intégré dans ce lot",
+      "liens": "P51 ; hall_stretch encore hors catalogue ; observatory_earth intégré dans le lot O9",
       "etat": "À traiter / vérifier"
     },
     {
@@ -262,11 +263,11 @@
       "id": "W20",
       "priorite": "P2",
       "domaine": "Niveaux futurs",
-      "action": "Concevoir annexes, archives et dénouements sans fausse jouabilité",
+      "action": "Réceptionner le nouvel observatoire O9 optionnel ; poursuivre les autres annexes/archives/dénouements prévus sans les annoncer jouables.",
       "criteres": "Zonage, références normales, preuve, navigation, collisions et assets par lieu",
       "preuve": "Fiches level design et plan de recette, puis PR runtime séparée",
       "liens": "P28-P30",
-      "etat": "À traiter / vérifier"
+      "etat": "Partiel — O9 intégré, réception et autres lieux ouverts"
     },
     {
       "id": "W21",
@@ -8755,13 +8756,13 @@
       "domaine": "Anomalies",
       "id": "observatory_earth",
       "nom": "La fenêtre sur ailleurs",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet observatory_earth dans le moteur et son lieu compatible (Observatoire futur) ; prévoir Ciel planétaire original, éclairage local.",
-      "critere": "Référence : La fenêtre montre le relief terrestre nocturne. | A : Une immense planète occupe le ciel. | B : Le relief normal demeure visible. | comparaison : Décrire l’horizon et la relation au cadre de la fenêtre. | réussite : Une vue extérieure incompatible confirme.",
-      "details": "Famille Atmosphère ; intensité 4 ; déclenchement Ouverture des volets. ; équité Aucun objet spatial n’apparaît dans le HUD réel ni dans la logique réseau.",
-      "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter sur GPU la galerie O9, le relief terrestre, les volets partagés et la planète privée. Tester deux appareils, changement A/B, qualité basse, trajet au terminal et retour référence.",
+      "critere": "Référence : relief terrestre nocturne. Ouverture des volets : immense planète dans la perception affectée ; relief normal chez le témoin normal. Même cadre, même ouverture, collisions et coordonnées partagées. Aucun élément privé dans propEvents.",
+      "details": "Cinquième lieu disponible en mode lieu unique, neuf validations. Campagne inchangée. Planète/silhouettes de montagnes procédurales originales ; contraste, éclairage, FPS et confort à réceptionner.",
+      "verification": "npm run test:observatory ; npm run test:scene ; npm run test:session-adapters ; python3 tests/package-archive.test.py ; recette humaine GPU et coop",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -9951,18 +9952,18 @@
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
   ],
-  "version_suivi": "118 / projection du corps C9",
+  "version_suivi": "119 / observatoire optionnel et skills locaux",
   "snapshot_initial": {
     "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "runtime_at_creation": 96,
     "planned_at_creation": 24,
     "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
   },
-  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx",
+  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Observatoire.xlsx",
   "source_revision": "continuation/observations-20261110",
   "date_revision": "2026-11-12",
-  "gap_json": "docs/anomalies-gap-shadow-20261112.json",
-  "gap_csv": "docs/ANOMALIES_RESTANTES_OMBRE_20261112.csv",
+  "gap_json": "docs/anomalies-gap-observatory-20261112.json",
+  "gap_csv": "docs/ANOMALIES_RESTANTES_OBSERVATOIRE_20261112.csv",
   "historical_workbooks": [
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx",
@@ -9970,7 +9971,8 @@
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Acoustique.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx",
-    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx"
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx",
+    "docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx"
   ],
   "audit_20261110": {
     "criteria_remapped": 446,
@@ -9992,5 +9994,13 @@
     "local_observation_state_tests": 10,
     "pending": "CI géométrie, typage et builds ; GPU physique, micro et TURN non réalisés"
   },
-  "code_base_revision": "66a89d0d5cf9195f9ecdf0a13819b17ce1732a5a"
+  "code_base_revision": "4db8e6ec7b66c91463024127cbde93f09d30c442",
+  "skills_audit": {
+    "date": "2026-11-12",
+    "local_skills": 5,
+    "mirrored_files": 10,
+    "manifest": ".ai-tools/project-skills.json",
+    "report": "docs/SKILLS_AUDIT_20261112.md",
+    "external_plugin_activation_verified": false
+  }
 }

@@ -31,8 +31,8 @@ function roomWithTwo(){
   return room;
 }
 
-test('118 unique catalog entries have valid location scopes and include relational clues',()=>{
-  assert.equal(ANOMALIES.length,118);
+test('119 unique catalog entries have valid location scopes and include relational clues',()=>{
+  assert.equal(ANOMALIES.length,119);
   assert.equal(new Set(ANOMALIES.map(a=>a.id)).size,ANOMALIES.length);
   assert.ok(ANOMALIES.find(a=>a.id==='relay_mismatch'));
   assert.ok(ANOMALIES.every(a=>a.title&&a.baseline&&a.description&&a.cooperation&&a.levels.length>0));
@@ -61,7 +61,7 @@ test('runtime catalogue, 120 original concepts and 600-entry Excel tracker agree
       : status.get(id)==='Conçu — non implémenté',
       `Excel implementation status disagrees with code for ${id}`);
   }
-  assert.equal(tracker.lots.find(l=>l.id==='W08')?.domaine,`${concepts.length-ids.length} anomalies restant à intégrer`);
+  assert.equal(tracker.lots.find(l=>l.id==='W08')?.domaine,`${concepts.length-ids.length} anomalie${concepts.length-ids.length===1?'':'s'} restant à intégrer`);
 });
 
 test('reference is clean, identical and not scored',()=>{

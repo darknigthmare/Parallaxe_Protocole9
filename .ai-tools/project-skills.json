@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "date": "2026-11-12",
+  "scope": "project_local",
+  "runtime_verified": false,
+  "upstream_plugins_installed": false,
+  "skills": [
+    {
+      "name": "p9-reprise",
+      "paths": [
+        ".agents/skills/p9-reprise/SKILL.md",
+        ".claude/skills/p9-reprise/SKILL.md"
+      ],
+      "sha256": "fef2c8e7c4960d3e33bdd2217170882792e0a90fe3bcf0d92f85a132fab9f4f7",
+      "source": "Parallaxe — adaptation originale du workflow du dépôt"
+    },
+    {
+      "name": "p9-anomalies",
+      "paths": [
+        ".agents/skills/p9-anomalies/SKILL.md",
+        ".claude/skills/p9-anomalies/SKILL.md"
+      ],
+      "sha256": "087fbc537143e99081816f301dbe5d274dee6bb0e01ec208d0d8b2fcc6d813d8",
+      "source": "Parallaxe — adaptation originale du workflow du dépôt"
+    },
+    {
+      "name": "p9-scene",
+      "paths": [
+        ".agents/skills/p9-scene/SKILL.md",
+        ".claude/skills/p9-scene/SKILL.md"
+      ],
+      "sha256": "345d962379187f61df1a64deead2551e49bb09c346971b316b068107ed7664ba",
+      "source": "Parallaxe — adaptation originale du workflow du dépôt"
+    },
+    {
+      "name": "p9-coop-radio",
+      "paths": [
+        ".agents/skills/p9-coop-radio/SKILL.md",
+        ".claude/skills/p9-coop-radio/SKILL.md"
+      ],
+      "sha256": "19f41b540dd8629fa05be145266a68afdf72d967acc81a9e27d9304e1d335253",
+      "source": "Parallaxe — adaptation originale du workflow du dépôt"
+    },
+    {
+      "name": "p9-livraison",
+      "paths": [
+        ".agents/skills/p9-livraison/SKILL.md",
+        ".claude/skills/p9-livraison/SKILL.md"
+      ],
+      "sha256": "91f4ada4e5982a94ff6747eceb1bdaa28f8ffa3c375065db54c091ba338736a4",
+      "source": "Parallaxe — adaptation originale du workflow du dépôt"
+    }
+  ],
+  "pinned_guidance": "docs/gamedev-sources.json",
+  "external_tools": ".ai-tools/sources.json",
+  "official_references": [
+    "https://developers.openai.com/blog/skills-agents-sdk",
+    "https://developers.openai.com/api/reference/cli",
+    "https://code.claude.com/docs/en/skills"
+  ]
+}
