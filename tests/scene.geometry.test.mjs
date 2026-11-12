@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
+  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'shadow-state','body-shadow','shadow-world','footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|shadow-state|body-shadow|shadow-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -940,6 +940,47 @@ try {
     assert.ok(portrait.userData.age > .99, 'The visible inspection resumes normally');
     game.setView({ effects: [], phase: 'reference', levelId: 'hotel', loop: 812 });
     assert.equal(portrait.userData.age, 0);
+  });
+
+  check('C9 projects the real body without moving it and preserves neutral low-quality comparison', () => {
+    game.setIdentity({id:'shadow-self',name:'Alpha',slot:0});game.setPeers([]);game.setSharedInteractions(null);
+    game.setView({phase:'inspect',levelId:'hotel',loop:941,effects:['shadow_points']});game.setActive(true);game.setObservationActive(true);
+    game.setPose({x:-.5,z:-3.05,yaw:0,pitch:-1});game.setInput({forward:0,strafe:0});
+    for(let i=0;i<80;i++)game.update(1/60);
+    assert.equal(game.getShadowFrame().pointing,true);assert.equal(game.getShadowFrame().target.id,'training-witness-T1');
+    const body=scene.children.find(o=>o.userData.localInspector);const q=body.getObjectByName('Right shoulder').quaternion.toArray();
+    const shadow=scene.getObjectByName('C9 — projection du corps shadow-self');assert.ok(shadow.visible);
+    assert.notDeepEqual(shadow.getObjectByName('Right shoulder').quaternion.toArray(),q);
+    for(const quality of ['low','medium','high']){game.setQuality(quality);game.update(.02);assert.equal(shadow.visible,true);}
+    assert.deepEqual(body.getObjectByName('Right shoulder').quaternion.toArray(),q);
+    const before=game.getPose();game.setView({phase:'inspect',levelId:'hotel',loop:941,effects:[]});game.update(.02);
+    assert.deepEqual(game.getPose(),before);assert.deepEqual(shadow.getObjectByName('Right shoulder').quaternion.toArray(),q);
+    game.setView({phase:'reference',levelId:'hotel',loop:942,effects:['shadow_points']});game.update(.02);assert.equal(game.getShadowFrame().pointing,false);
+    game.setObservationActive(false);assert.equal(shadow.visible,false);assert.equal(body.getObjectByName('Foot contact shadow').visible,true);game.setObservationActive(true);
+  });
+
+  check('C9 sign is physically inspectable; all movement bounds survive the new station',()=>{
+    game.setView({phase:'reference',loop:943,levelId:'hotel',effects:[]});game.setActive(true);game.setObservationActive(true);game.setPeers([]);game.setSharedInteractions(null);
+    game.setPose({x:0,z:1.4,yaw:0,pitch:Math.atan2(.014-1.67,2.7)});game.setInput({forward:0,strafe:0});
+    for(let i=0;i<5;i++)game.update(.016);assert.equal(game.getTarget()?.id,'body-shadow');assert.ok(game.getInspection()?.title.includes('C9'));
+    game.setPose({x:0,z:-.9,yaw:0,pitch:0});game.setInput({forward:1,strafe:0});for(let i=0;i<60;i++)game.update(1/60);
+    assert.ok(game.getPose().z<-3,'Paint does not create a new collision');game.setInput({forward:0,strafe:0});
+  });
+
+  check('real elapsed polling age suppresses shadows and residual proof after an animation-frame stall',()=>{
+    const descriptor=Object.getOwnPropertyDescriptor(performance,'now');let now=10000;
+    Object.defineProperty(performance,'now',{value:()=>now,configurable:true});
+    try{
+      game.setView({phase:'inspect',levelId:'hotel',loop:944,effects:['shadow_points','footsteps_unowned'],contextKey:'shadow-network'});
+      game.setPose({x:-.5,z:-3.05,yaw:0,pitch:0});game.setPeers([{id:'shadow-peer',name:'Bravo',slot:1,connected:true,pose:{x:1.2,z:-3.05,yaw:0}}]);
+      game.setSharedInteractions([],100000);for(let i=0;i<70;i++){now+=16;game.update(1/60);}
+      assert.equal(game.getShadowFrame().pointing,true);
+      now+=5000;game.update(.001);assert.equal(game.getShadowFrame().pointing,false);assert.equal(game.getFootstepFrame().networkFresh,false);
+      game.setSharedInteractions([],99999);game.update(.001);assert.equal(game.getShadowFrame().reason,'synchronizing');
+      game.setSharedInteractions([],100001);for(let i=0;i<70;i++){now+=16;game.update(1/60);}
+      assert.equal(game.getShadowFrame().pointing,true);
+      game.setPeers([{id:'shadow-peer',name:'Bravo',slot:1,connected:false,pose:{x:1.2,z:-3.05}}]);game.update(.02);assert.equal(game.getShadowFrame().pointing,false);
+    }finally{if(descriptor)Object.defineProperty(performance,'now',descriptor);else delete performance.now;game.setPeers([]);game.setSharedInteractions(null);}
   });
 
   check('quality caps, peer cleanup and ready callback are consistent', () => {

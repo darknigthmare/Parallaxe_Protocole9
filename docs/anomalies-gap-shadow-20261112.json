@@ -1,0 +1,59 @@
+{
+  "schema": "parallaxe-anomaly-gap-v1",
+  "date": "2026-11-12",
+  "source_branch": "continuation/observations-20261110",
+  "designed": 120,
+  "runtime": 118,
+  "remaining": 2,
+  "limits": [
+    "Fiches fidèles au texte de référence original, prolongées d'un plan de production; aucune n'est annoncée jouable.",
+    "Les nouvelles preuves purement sonores nécessitent un équivalent accessible et privé.",
+    "Aucune anomalie liée à un décor inexistant n'est proposée au tirage."
+  ],
+  "remaining_anomalies": [
+    {
+      "id": "hall_stretch",
+      "name": "Les mètres supplémentaires",
+      "family": "Architecture",
+      "place": "Couloir",
+      "intensity": 3,
+      "status": "Conçu — non implémenté",
+      "priority": "P1",
+      "target": "Couloir Saint-Clair; navigabilité/projection à préserver",
+      "baseline": "Le même nombre de panneaux sépare entrée et issue.",
+      "perceptionA": "Le couloir semble plus long.",
+      "perceptionB": "Les proportions normales persistent.",
+      "comparison": "Compter les panneaux visibles, puis comparer les positions des pairs.",
+      "trigger": "Entrer dans la zone centrale.",
+      "success": "Une longueur perçue incompatible avec les repères communs confirme.",
+      "assets": "Dilatation visuelle et ancrages de réseau distincts.",
+      "fairness": "À produire seulement après tests de locomotion et motion sickness.",
+      "requiredReference": "Distances visuelles étirées uniquement, positions de joueurs et collisions restent communes",
+      "technicalImplementation": "Effet optique local de perspective, aucune géométrie de collision serveur modifiée",
+      "qaAcceptance": "Même repères, seul un regard déformé; aucun saut ni masquage de sortie",
+      "statusReason": "Absente de src/game/catalog.ts et du rendu/selecteur; aucune recette nouvelle revendiquée."
+    },
+    {
+      "id": "observatory_earth",
+      "name": "La fenêtre sur ailleurs",
+      "family": "Atmosphère",
+      "place": "Observatoire futur",
+      "intensity": 4,
+      "status": "Conçu — non implémenté",
+      "priority": "P2",
+      "target": "Observatoire futur NON sélectionnable",
+      "baseline": "La fenêtre montre le relief terrestre nocturne.",
+      "perceptionA": "Une immense planète occupe le ciel.",
+      "perceptionB": "Le relief normal demeure visible.",
+      "comparison": "Décrire l’horizon et la relation au cadre de la fenêtre.",
+      "trigger": "Ouverture des volets.",
+      "success": "Une vue extérieure incompatible confirme.",
+      "assets": "Ciel planétaire original, éclairage local.",
+      "fairness": "Aucun objet spatial n’apparaît dans le HUD réel ni dans la logique réseau.",
+      "requiredReference": "Vue sur relief extérieur normal; planète géante ajoutée seulement à A",
+      "technicalImplementation": "Lieu observatoire séparé avec skybox, fenêtre, planète et variations jour/nuit",
+      "qaAcceptance": "N'ajouter au catalogue qu'avec un lieu réellement visitable et un témoin normal",
+      "statusReason": "Absente de src/game/catalog.ts et du rendu/selecteur; aucune recette nouvelle revendiquée."
+    }
+  ]
+}

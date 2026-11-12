@@ -1,3 +1,6 @@
+## État courant C9 — 12 novembre 2026
+118 anomalies dans le catalogue, 2 absentes. `shadow_points` projette les maillages réellement utilisés par l’inspecteur : ne pas remplacer par une silhouette générique, ne pas modifier les joints du vrai corps, ne pas partager la direction privée sur le réseau. Groupe entier immobile au marquage C9 ; poses valides et récentes requises. La cible n’indique jamais une faute. Solo : support T1 explicite. Exécuter `npm run test:shadow` et les suites précédentes. `hall_stretch` reste exclu avant sa recette locomotion/confort. Le contexte WebGL local étant indisponible, ne pas annoncer de vérification de pixels sur la seule géométrie.
+
 ## État courant voix — 11 novembre 2026
 117 anomalies dans le catalogue ; 3 concepts absents. L’autorité courante de suivi est `docs/parallaxe-open-work-20261101.json`. Ne pas modifier les références originales A/B. `vent_whisper` est exclu par défaut ; requiert le consentement explicite de chaque membre et utilise uniquement le nom propre local. Ne jamais remplacer le générateur embarqué par une capture ou du TTS réseau. `radio_future` annonce un événement normal du relais à +6 s, pas une action future de l’utilisateur. Exécuter `npm run test:spoken` et les suites précédentes ; audio humain et GPU restent non validés.
 

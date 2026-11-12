@@ -49,8 +49,8 @@
   "compteurs": {
     "conception_ouverts": 446,
     "anomalies_concues": 120,
-    "anomalies_runtime": 117,
-    "anomalies_non_implantees": 3,
+    "anomalies_runtime": 118,
+    "anomalies_non_implantees": 2,
     "session_ouverts": 9,
     "radio_ouverts": 8,
     "items_total": 600,
@@ -64,7 +64,8 @@
     "Le classeur initial (96/24) est un instantané historique ; le classeur _v2 (100/20) est la version actualisée du registre. Les deux restent conservés.",
     "Pour les nouvelles anomalies, « Implémenté — QA partielle » exige toujours une réception GPU et multijoueur réel avant clôture.",
     "Les gestes du lot temporel sont publics, les résultats de perception restent privés. Leurs tests automatiques ne remplacent pas la réception réseau humain/GPU.",
-    "Les voix synthétiques nominatives requièrent un accord explicite de chaque membre de l’équipe ; elles ne sont pas une captation ni une imitation vocale."
+    "Les voix synthétiques nominatives requièrent un accord explicite de chaque membre de l’équipe ; elles ne sont pas une captation ni une imitation vocale.",
+    "Ombres C9 : géométrie réelle partagée avec le modèle, pas une silhouette générique. Les tests de matrices/ressources ne certifient pas les pixels. Les poses reçues périmées en temps monotone suspendent toute preuve de mouvement."
   ],
   "lots": [
     {
@@ -140,11 +141,11 @@
     {
       "id": "W08",
       "priorite": "P1",
-      "domaine": "3 anomalies restant à intégrer",
-      "action": "Intégrer le couloir qui s’allonge, l’ombre qui pointe et l’observatoire après leurs prérequis physiques et de confort.",
+      "domaine": "2 anomalies restant à intégrer",
+      "action": "Terminer hall_stretch seulement après tests de locomotion/confort, puis créer un observatoire visitable avec volets, horizon normal et planète privée.",
       "criteres": "Chaque case nouvellement jouable seulement après ajout moteur + lieux + tests de comparaison, sans marketing fictif",
       "preuve": "PR code par lot, baseline/QA, table d'identifiants",
-      "liens": "P51 ; 3 concepts absents du runtime ; 2 cas vocaux intégrés dans ce lot",
+      "liens": "P51 ; 2 concepts absents du runtime ; shadow_points intégré dans ce lot",
       "etat": "À traiter / vérifier"
     },
     {
@@ -8466,13 +8467,13 @@
       "domaine": "Anomalies",
       "id": "shadow_points",
       "nom": "L’ombre accusatrice",
-      "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Intégrer l'effet shadow_points dans le moteur et son lieu compatible (Couloir) ; prévoir Projection d’avatar et bras animé.",
+      "priorite": "P1",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Recetter les silhouettes projetées du vrai modèle articulé au repère C9 : posture normale, bras privé vers un équipier, qualité basse, comparaison solo T1, arrêt au déplacement/pause et poses périmées.",
       "critere": "Référence : L’ombre de l’inspecteur suit sa posture. | A : Son ombre pointe vers un équipier. | B : L’ombre reste neutre. | comparaison : Arrêter les mouvements et comparer l’orientation du bras. | réussite : Une ombre autonome confirme.",
-      "details": "Famille Entité ; intensité 4 ; déclenchement Tous les joueurs au repère central. ; équité La cible n’est pas le joueur fautif. Aucune mécanique de blâme.",
-      "verification": "npm run test:scene ; npm run test:inspection ; capture GPU",
+      "details": "Projection plane des géométries partagées du corps ; seules les articulations de la copie projetée peuvent diverger. 1 s immobile avec toute l’équipe dans C9. Cible selon ordre public des identités, indépendante des votes et sans blâme. Solo : mannequin T1 explicite. Aucune nouvelle collision. Tests CPU réalisés ; contexte WebGL indisponible dans le navigateur de contrôle.",
+      "verification": "npm run test:shadow ; npm run test:scene ; npm test ; contrôle réel GPU et 2–4 personnes",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json",
       "statut_de_suivi": "Ouvert — non clôturé",
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
@@ -9950,25 +9951,26 @@
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
   ],
-  "version_suivi": "v7 / 117-anomalies",
+  "version_suivi": "118 / projection du corps C9",
   "snapshot_initial": {
     "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "runtime_at_creation": 96,
     "planned_at_creation": 24,
     "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
   },
-  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx",
+  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx",
   "source_revision": "continuation/observations-20261110",
-  "date_revision": "2026-11-11",
-  "gap_json": "docs/anomalies-gap-spoken-20261111.json",
-  "gap_csv": "docs/ANOMALIES_RESTANTES_VOIX_20261111.csv",
+  "date_revision": "2026-11-12",
+  "gap_json": "docs/anomalies-gap-shadow-20261112.json",
+  "gap_csv": "docs/ANOMALIES_RESTANTES_OMBRE_20261112.csv",
   "historical_workbooks": [
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "docs/PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Acoustique.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx",
-    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx"
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx",
+    "docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx"
   ],
   "audit_20261110": {
     "criteria_remapped": 446,
@@ -9990,5 +9992,5 @@
     "local_observation_state_tests": 10,
     "pending": "CI géométrie, typage et builds ; GPU physique, micro et TURN non réalisés"
   },
-  "code_base_revision": "b16609c9650e8812eac95b980bfc184feef1c621"
+  "code_base_revision": "66a89d0d5cf9195f9ecdf0a13819b17ce1732a5a"
 }

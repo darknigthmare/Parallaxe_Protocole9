@@ -14,6 +14,7 @@ import { createAcousticState, ACOUSTIC_EFFECTS } from './acoustic-state';
 import { createSpokenWorld } from './spoken-world';
 import { SPOKEN_EFFECTS } from './spoken-state';
 import { createTemporalWorld } from './temporal-world';
+import { createShadowWorld } from './shadow-world';
 import { createFootstepState } from './footstep-state';
 import { TEMPORAL_EFFECTS, PROP_ANCHORS, isPropTarget, type PropEvent } from './temporal-state';
 
@@ -34,7 +35,7 @@ export const SCENE_EFFECTS = [
   'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
   'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
   'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
-  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...SPOKEN_EFFECTS, ...TEMPORAL_EFFECTS, 'footsteps_unowned',
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...SPOKEN_EFFECTS, ...TEMPORAL_EFFECTS, 'footsteps_unowned', 'shadow_points',
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -78,7 +79,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const footsteps = createFootstepState();
   let sharedMotion = false, motionSnapshotAge = 0, lastMotionServerTime = -1;
   let motionContextKey = "";
-  let motionPeers: {id:string;pose:{x:number;z:number};connected:boolean}[] = [];
+  let lastMotionReceipt = performance.now();
+  let motionPeers: {id:string;pose:{x:number;z:number;yaw?:number};connected:boolean}[] = [];
   let alive = true;
   let elapsed = 0;
   let quality: 'low' | 'medium' | 'high' = 'high';
@@ -775,6 +777,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const inspectionProps = createInspectionProps(); world.add(inspectionProps.root); targets.push(...inspectionProps.targets); occluders.push(...inspectionProps.colliders);
   const observationWorld = createObservationWorld(); world.add(observationWorld.root); targets.push(...observationWorld.targets); occluders.push(...observationWorld.colliders);
   const temporalWorld = createTemporalWorld(); world.add(temporalWorld.root); targets.push(...temporalWorld.targets); occluders.push(...temporalWorld.colliders);
+  const shadowWorld=createShadowWorld();world.add(shadowWorld.root);targets.push(...shadowWorld.targets);
   const spokenWorld=createSpokenWorld();world.add(spokenWorld.root);targets.push(...spokenWorld.targets);
 
   // These reference stands have identical collision bounds for every observer.
@@ -932,8 +935,10 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       }
       const capturedModels = [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)];
       capturedModels.forEach(model => model.setReflectionPass(true));
+      const restoreProjectedShadows=shadowWorld.reflectionMask();
       try { capture.call(reflector, gl, renderingScene, renderingCamera, geometry, material, group); }
       finally {
+        restoreProjectedShadows();
         capturedModels.forEach(model => model.setReflectionPass(false));
         reflectors.forEach((surface, index) => { surface.visible = surfaceVisibility[index]; });
         reflectedDoor.visible = reflectedDoorVisible;
@@ -964,7 +969,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     return true;
   }
   function applyView(view: PersonalView) {
-    if ((view.contextKey??'') !== motionContextKey) {motionContextKey=view.contextKey??'';lastMotionServerTime=-1;motionSnapshotAge=0;}
+    if ((view.contextKey??'') !== motionContextKey) {motionContextKey=view.contextKey??'';lastMotionServerTime=-1;motionSnapshotAge=0;lastMotionReceipt=performance.now();}
     phase = view.phase || phase; loop = view.loop || 0;
     effects = new Set((phase === 'reference' ? [] : view.effects || []).filter(e => (SCENE_EFFECTS as readonly string[]).includes(e)));
     const nextLevel = isLevelId(view.levelId) ? view.levelId : levelId;
@@ -983,6 +988,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     footsteps.setView({ ...view, phase, loop, effects: [...effects], levelId });
     temporalWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     spokenWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    shadowWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
     reflectedDoor.visible = false;
@@ -1064,7 +1070,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   }
   function setPeers(items: any[]) {
     motionPeers = items.filter(item=>String(item.id)!==selfIdentity.id).slice(0,4).map(item=>({
-      id:String(item.id??''),pose:{x:item.pose?.x,z:item.pose?.z},connected:item.connected!==false}));
+      id:String(item.id??''),pose:{x:item.pose?.x,z:item.pose?.z,yaw:item.pose?.yaw},connected:item.connected!==false}));
     const ids = new Set<string>();
     items.forEach((item, index) => {
       const id = String(item.id || item.playerId || String(item.slot ?? index));
@@ -1080,7 +1086,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       peer.talking = item.talking === true;
     });
     for (const [id, peer] of peers) if (!ids.has(id)) {
-      peerGroup.remove(peer.group); peers.delete(id);
+      shadowWorld.release(id);peerGroup.remove(peer.group); peers.delete(id);
       removeInspectionTargets(peer.group); peer.model.dispose();
     }
     updateWitnessVisibility(); updateInspectionRoster();
@@ -1102,6 +1108,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   function setIdentity(identity: InspectorIdentity) {
     const next = { id: String(identity.id || 'local'), name: String(identity.name || 'Inspecteur').slice(0, 24), slot: Number.isInteger(identity.slot) ? identity.slot : 0, color: identity.color };
     if (next.id === selfIdentity.id && next.name === selfIdentity.name && next.slot === selfIdentity.slot && next.color === selfIdentity.color) return;
+    shadowWorld.release(selfIdentity.id);shadowWorld.interrupt();
     for (const model of [selfAvatar, reflectionAvatar, doubleAvatar]) { scene.remove(model.root); removeInspectionTargets(model.root); model.dispose(); }
     selfIdentity = next;
     selfAvatar = createInspector(next, { local: true }); reflectionAvatar = createInspector(next, { reflectionOnly: true, nameplate: false }); doubleAvatar = createInspector(next, { nameplate: false });
@@ -1177,7 +1184,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     if (levelId === 'hotel') inspectionProps.update(elapsed);
     observationWorld.update(dt, pose, active && observationActive);
     acoustics.update(dt, pose, active && observationActive);
-    motionSnapshotAge += Number.isFinite(dt) ? Math.max(0,dt) : 0;
+    motionSnapshotAge = Math.max(motionSnapshotAge+(Number.isFinite(dt)?Math.max(0,dt):0),(performance.now()-lastMotionReceipt)/1000);
     footsteps.update(dt,[{id:sharedMotion?selfIdentity.id:'training',x:pose.x,z:pose.z},...motionPeers.map(p=>({id:p.id,x:p.pose.x,z:p.pose.z,connected:p.connected}))],
       active && observationActive, !sharedMotion || motionSnapshotAge < 1.75);
     temporalWorld.update(dt, active && observationActive);
@@ -1220,6 +1227,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       const speed = dt > 0 ? before.distanceTo(peer.group.position) / dt : 0;
       peer.model.animate({ time: elapsed, speed, talking: peer.talking, pitch: peer.target.pitch, ...avatarAnomalies(peer === connectedPeers[0]) });
     }
+    shadowWorld.update(dt,selfIdentity.id,[{id:selfIdentity.id,x:pose.x,z:pose.z,yaw:pose.yaw,talking},...motionPeers.map(p=>({id:p.id,x:p.pose.x,z:p.pose.z,yaw:p.pose.yaw,connected:p.connected,talking:peers.get(p.id)?.talking}))],
+      [selfAvatar,...[...peers.values()].map(p=>p.model)],active&&observationActive,sharedMotion,!sharedMotion||motionSnapshotAge<1.75);
     if (frame % 4 === 0 && active) {
       raycaster.setFromCamera(center, camera); raycaster.far = 5.8;
       const hits = raycaster.intersectObjects(targets, true);
@@ -1258,10 +1267,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       }
       if (model) return { title: observed.id === 'mirror' ? 'Badge dans le miroir' : 'Badge physique', location: observed.label, lines: model.badge.userData.code ? [`INSPECTEUR ${model.badge.userData.code}`, 'PARALLAXE'] : ['PLAQUE VIERGE'] };
     }
-    return levelId === 'hotel' ? observationWorld.getReading(observed?.id) ?? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
+    return levelId === 'hotel' ? shadowWorld.getReading(observed?.id) ?? observationWorld.getReading(observed?.id) ?? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
   }
   function dispose() {
     if (disposed) return; disposed = true; alive = false;
+    world.remove(shadowWorld.root);shadowWorld.dispose();
     world.remove(inspectionProps.root); inspectionProps.dispose();
     world.remove(observationWorld.root); observationWorld.dispose();
     world.remove(temporalWorld.root); temporalWorld.dispose();
@@ -1298,8 +1308,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     setTalking(next: boolean) { talking = !!next; },
     setQuality,
     setFlashlight(on: boolean) { flashlightOn = on; },
-    setActive(next: boolean) { active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); updateWitnessVisibility(); },
-    setObservationActive(next: boolean) { observationActive = next === true; },
+    setActive(next: boolean) { if(!next)shadowWorld.interrupt();active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); updateWitnessVisibility(); },
+    setObservationActive(next: boolean) { observationActive = next === true;if(!observationActive)shadowWorld.interrupt(); },
+    getShadowFrame: shadowWorld.snapshot,
     getTarget: () => target,
     getInspection,
     getAcousticFrame: () => {
@@ -1312,8 +1323,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     },
     setSharedInteractions: (events:readonly PropEvent[]|null,serverTime?:number) => {
       sharedMotion=events!==null;
-      if(events===null){lastMotionServerTime=-1;motionSnapshotAge=0;}
-      else if(Number.isSafeInteger(serverTime)&&serverTime!>lastMotionServerTime){lastMotionServerTime=serverTime!;motionSnapshotAge=0;}
+      if(events===null){lastMotionServerTime=-1;motionSnapshotAge=0;lastMotionReceipt=performance.now();}
+      else if(Number.isSafeInteger(serverTime)&&serverTime!>lastMotionServerTime){lastMotionServerTime=serverTime!;motionSnapshotAge=0;lastMotionReceipt=performance.now();}
       temporalWorld.sync(events,serverTime);
     },
     getFootstepFrame: footsteps.snapshot,

@@ -1747,5 +1747,19 @@
     "description": "Un murmure épelle un pseudonyme du salon. Le partenaire : Il entend seulement le ventilateur.",
     "cooperation": "Lire ensemble le pseudonyme entendu et localiser la bouche.",
     "hint": "Une voix articulée dans le conduit est anormale."
+  },
+  {
+    "id": "shadow_points",
+    "title": "L’ombre accusatrice",
+    "target": "body-shadow",
+    "intensity": 4,
+    "difficulty": 3,
+    "levels": [
+      "hotel"
+    ],
+    "baseline": "Au repère central C9, la projection complète de chaque inspecteur suit son corps et ses bras. En solo, le support T1 sert de témoin d’entraînement.",
+    "description": "Après regroupement et immobilité au repère, votre ombre seule étend son bras vers un équipier, tandis que votre corps reste neutre.",
+    "cooperation": "Immobilisez-vous tous dans C9, bras au repos. Comparez le bras réel et celui de la projection ; la direction ne désigne aucun responsable.",
+    "hint": "Un bras projeté autonome, avec des positions reçues à jour, est une différence observable."
   }
 ]
