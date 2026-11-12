@@ -67,6 +67,8 @@ jobs:
         run: npm run test:lift
       - name: Vérifier les voix locales et le retrait de leur autorisation
         run: npm run test:spoken
+      - name: Vérifier la projection réelle des corps, leurs reflets et la péremption des poses
+        run: npm run test:shadow
       - name: Vérifier le suivi courant et les sources A/B
         run: python3 scripts/validate-open-workbook.py
       - name: Vérifier la radio et les autorisations
