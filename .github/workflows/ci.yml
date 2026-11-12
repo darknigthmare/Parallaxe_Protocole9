@@ -47,6 +47,8 @@ jobs:
           cache: npm
       - name: Installer les dépendances verrouillées
         run: npm ci
+      - name: Vérifier les workflows locaux et le préparateur IA
+        run: npm run test:skills
       - name: Vérifier TypeScript
         run: npx tsc --noEmit
       - name: Vérifier les règles et les projections privées
@@ -69,6 +71,8 @@ jobs:
         run: npm run test:spoken
       - name: Vérifier la projection réelle des corps, leurs reflets et la péremption des poses
         run: npm run test:shadow
+      - name: Vérifier le cinquième lieu, les volets partagés et le ciel privé
+        run: npm run test:observatory
       - name: Vérifier le suivi courant et les sources A/B
         run: python3 scripts/validate-open-workbook.py
       - name: Vérifier la radio et les autorisations
