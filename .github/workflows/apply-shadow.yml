@@ -1,0 +1,87 @@
+name: Appliquer et vérifier la projection du corps
+
+on:
+  push:
+    branches: [continuation/observations-20261110]
+    paths: ['.github/workflows/apply-shadow.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-parallaxe-shadow
+  cancel-in-progress: false
+
+jobs:
+  apply-reviewed-lot:
+    if: github.repository == 'darknigthmare/Parallaxe_Protocole9' && github.ref == 'refs/heads/continuation/observations-20261110'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restaurer seulement les fichiers et les cellules contrôlés par empreinte
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/shadow-proof"
+          git merge-base --is-ancestor 66a89d0d5cf9195f9ecdf0a13819b17ce1732a5a HEAD
+          python3 .delivery/shadow/apply.py | tee "$RUNNER_TEMP/shadow-proof/restoration.json"
+          python3 scripts/validate-open-workbook.py | tee "$RUNNER_TEMP/shadow-proof/workbook.json"
+          npm test > "$RUNNER_TEMP/shadow-proof/domain.log" 2>&1
+      - name: Installer les dépendances verrouillées
+        run: npm ci
+      - name: Vérifier TypeScript, la projection, la scène et les régressions
+        run: |
+          set -euo pipefail
+          npx tsc --noEmit 2>&1 | tee "$RUNNER_TEMP/shadow-proof/typecheck.log"
+          npm run test:shadow 2>&1 | tee "$RUNNER_TEMP/shadow-proof/shadow.log"
+          npm run test:scene 2>&1 | tee "$RUNNER_TEMP/shadow-proof/scene.log"
+          npm run test:observation 2>&1 | tee "$RUNNER_TEMP/shadow-proof/observation.log"
+          npm run test:acoustic 2>&1 | tee "$RUNNER_TEMP/shadow-proof/acoustic.log"
+          npm run test:temporal 2>&1 | tee "$RUNNER_TEMP/shadow-proof/temporal.log"
+          npm run test:lift 2>&1 | tee "$RUNNER_TEMP/shadow-proof/lift.log"
+          npm run test:spoken 2>&1 | tee "$RUNNER_TEMP/shadow-proof/spoken.log"
+          npm run test:cabin 2>&1 | tee "$RUNNER_TEMP/shadow-proof/cabin.log"
+          npm run test:inspection 2>&1 | tee "$RUNNER_TEMP/shadow-proof/inspection.log"
+          npm run test:radio 2>&1 | tee "$RUNNER_TEMP/shadow-proof/radio.log"
+          npm run test:radio-ui 2>&1 | tee "$RUNNER_TEMP/shadow-proof/radio-ui.log"
+          npm run test:radio-config 2>&1 | tee "$RUNNER_TEMP/shadow-proof/radio-config.log"
+      - name: Compiler les deux éditions sans publier le site
+        run: |
+          set -euo pipefail
+          npm run build 2>&1 | tee "$RUNNER_TEMP/shadow-proof/hosted-build.log"
+          npm run build:local 2>&1 | tee "$RUNNER_TEMP/shadow-proof/local-build.log"
+      - name: Enregistrer les sources lisibles sur la branche de travail seulement
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test "$(git ls-remote origin refs/heads/continuation/observations-20261110 | cut -f1)" = "$EXPECTED_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AGENTS.md README.md package.json docs scripts src/game tests
+          git rm -r .delivery/shadow
+          if git diff --cached --name-only | grep -q '^.github/'; then echo 'Unexpected workflow edit'; exit 1; fi
+          git commit -m 'feat: integrate 118 anomalies with true body projection and monotonic pose freshness guards'
+          git push origin HEAD:refs/heads/continuation/observations-20261110
+          git rev-parse HEAD > "$RUNNER_TEMP/shadow-proof/COMMIT.txt"
+          git archive --format=tar.gz --output="$RUNNER_TEMP/shadow-proof/PARALLAXE_sources.tar.gz" HEAD
+      - name: Construire et vérifier le paquet de la révision exacte
+        run: |
+          set -euo pipefail
+          npm run package:release 2>&1 | tee "$RUNNER_TEMP/shadow-proof/package.log"
+          python3 tests/package-archive.test.py 2>&1 | tee "$RUNNER_TEMP/shadow-proof/archive.log"
+          cp outputs/release-v*/*.zip "$RUNNER_TEMP/shadow-proof/"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shadow-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/shadow-proof/
+          if-no-files-found: error
+          retention-days: 14
