@@ -53,6 +53,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Vérifier les règles et les projections privées
         run: npm test
+      - name: Vérifier les commandes accessibles, la migration et les événements clavier
+        run: npm run test:accessibility
       - name: Vérifier les géométries et les changements de lieu
         run: npm run test:scene
       - name: Vérifier le chalet et la voûte du métro
