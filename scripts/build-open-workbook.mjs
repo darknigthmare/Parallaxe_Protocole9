@@ -1,5 +1,6 @@
 /**
- * Recréation du registre Excel des travaux ouverts.
+ * Générateur historique de la v2 (1er novembre).
+ * Le suivi courant se reconstruit avec scripts/build-current-workbook.py.
  * Requiert l'environnement d'édition @oai/artifact-tool déjà utilisé pour
  * scripts/build-design-workbook.mjs ; cette dépendance n'est pas dans le jeu.
  * Commande: PARALLAXE_PROJECT=$PWD node scripts/build-open-workbook.mjs

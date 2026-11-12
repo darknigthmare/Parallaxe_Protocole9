@@ -1,3 +1,5 @@
+> **Document historique.** Pour l’état courant (112/120), utiliser `PARALLAXE_Suivi_Courant_2026-11-11_Temporal.xlsx` et `parallaxe-open-work-20261101.json`. Les chiffres ci-dessous décrivent la livraison du 1er novembre.
+
 # Reprise Excel ouverte — PARALLAXE · Protocole 9 (01/11/2026)
 
 ## Périmètre et conservation

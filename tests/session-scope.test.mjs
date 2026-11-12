@@ -20,7 +20,7 @@ function between(start,end){
   assert.ok(a>=0&&b>a,`Game callback boundaries: ${start}`);
   return game.slice(a,b);
 }
-const transport=between('  const stopCalibration=useCallback(','\n  useEffect(()=>{\n    const p=safeRead');
+const transport=between('  const stopCalibration=useCallback(','\n  useEffect(()=>{\n    const p=normalizePreferences');
 const calibration=between('  const probeRadio=','  const sendChat=');
 const decisions=between('  const beginSolo=','  const switchView=');
 const leaveAndResume=between('  const returnMenu=','  const fullscreen=');
@@ -49,7 +49,8 @@ export function harness(fetch){
     setTalking(v){state.talking=v;} stopProbe(){state.probeStops++;} disablePlayback(){} disableMicrophone(){} dispose(){this.disposed=true;}
   }
   const setRadioStatus=v=>state.radioStatus=v;
-  let online=null,credentials=null,savedSession=null;
+  let online=null,credentials=null,savedSession=null,namedConsent=false;
+  const spellableName=true,setNamedConsent=value=>{namedConsent=value;state.namedConsent=value;};
   const setOnline=v=>{online=v;state.online=v;},setCredentials=v=>{credentials=v;state.credentials=v;};
   const setSavedSession=v=>{savedSession=v;state.savedSession=v;};
   const setBusy=v=>state.busy=v,setNetworkDown=v=>state.networkDown=v,setError=v=>state.error=v;
@@ -57,7 +58,7 @@ export function harness(fetch){
   const setSlot=()=>{},setNotes=()=>{},setConfirmLeave=()=>{},notify=v=>notices.push(v),safeWrite=()=>{};
   const touchMove={current:{forward:0,strafe:0}},joystickOrigin={current:null},touchLook={current:null};
   const setTouchStick=()=>{};
-  const keys={current:new Set()},document={exitPointerLock(){}},sessionStorage={setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
+  const keys={current:new Set()},document={exitPointerLock(){}},sessionStorage={setItem:(k,v)=>storage.set(k,v),getItem:k=>storage.get(k),removeItem:k=>storage.delete(k)};
   const useCallback=fn=>fn,useEffect=fn=>{cleanups.push(fn());};
   const setInterval=fn=>{const id=++timer;intervals.set(id,fn);return id;},clearInterval=id=>intervals.delete(id);
   const setTimeout=fn=>{const id=++timer;timeouts.set(id,fn);return id;},clearTimeout=id=>timeouts.delete(id);
@@ -87,7 +88,7 @@ export function harness(fetch){
       return talkEdge;
     };
   }
-  return {state,storage,intervals,timeouts,notices,clients,radio,resetSession,acceptState,request,beginSolo,returnMenu,resumeSession,startNetwork,mountPoll,mountRadio,capturePadFrame,render,openModal,closeModal,togglePause,
+  return {state,storage,intervals,timeouts,notices,clients,radio,setNamedConsent,resetSession,acceptState,request,beginSolo,returnMenu,resumeSession,startNetwork,mountPoll,mountRadio,capturePadFrame,render,openModal,closeModal,togglePause,
     padFrame:(down,allowed=true)=>{const edge=padTalk.current.update(down,allowed);if(edge!==null)radio.current.setTalking(edge);return edge;},
     unmount:()=>{for(const cleanup of cleanups)cleanup?.();},tick:()=>{for(const fn of intervals.values())fn();}};
 }
@@ -381,4 +382,20 @@ test('a retired talkie can send its final off status with captured credentials w
   calls[1].resolve(reply(frame(a,999)));await stopping;
   assert.equal(h.state.online.code,b.code);assert.equal(h.state.online.revision,1);
   assert.equal(h.state.credentials.selfId,b.selfId);h.unmount();
+});
+
+
+test('actual create callback sends no name-spelling grant by default and menu withdrawal clears it',async()=>{
+  const {h,calls}=setup();h.startNetwork(false);assert.equal(JSON.parse(calls[0].options.body).namedVoiceConsent,false);
+  calls[0].resolve(opened(a));await settle();
+  assert.deepEqual(JSON.parse(h.storage.get('parallaxe-named-permission')),{code:a.code,selfId:a.selfId,allowed:false});
+  h.setNamedConsent(true);h.returnMenu();assert.equal(h.state.namedConsent,false);
+  h.startNetwork(false);assert.equal(JSON.parse(calls.at(-1).options.body).namedVoiceConsent,false);
+});
+
+test('explicit spelling choice is saved only with the opened room identity',async()=>{
+  const {h,calls}=setup();h.setNamedConsent(true);h.startNetwork(false);
+  assert.equal(JSON.parse(calls[0].options.body).namedVoiceConsent,true);
+  calls[0].resolve(opened(b));await settle();
+  assert.deepEqual(JSON.parse(h.storage.get('parallaxe-named-permission')),{code:b.code,selfId:b.selfId,allowed:true});
 });

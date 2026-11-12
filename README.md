@@ -1,3 +1,28 @@
+## Commandes et lisibilité — 12 novembre 2026
+Dans **Paramètres** : douze actions clavier remappables (conflits refusés), disposition AZERTY/QWERTY affichée, FOV vertical 50–95°, inversion verticale souris/tactile/stick et relevés écrits 100–150 %. Les flèches et Échap restent réservés. Une affectation réinitialise les appuis et le talkie ; refaire un appui volontaire après un menu ou une perte de focus. Les réglages existants sont migrés localement.
+
+Le mode confort stabilise aussi la caméra d’accueil ; le déplacement conserve une caméra sans balancement forcé. Les animations qui servent de preuve sont conservées. **119/120 concepts au catalogue : hall_stretch reste hors tirage**. Voir `docs/QA_ACCESSIBILITE_20261112.md`.
+
+## Reprise courante — 12 novembre 2026 / 119 sur 120 concepts
+
+**Observatoire 09** est le cinquième lieu optionnel. Dans « Lieu au choix », rejoignez la galerie, pressez E sur la commande de volets O9, puis examinez la baie pour comparer l’horizon. Le relief terrestre nocturne est la référence ; une planète privée peut apparaître après ouverture. La campagne garde ses trois secteurs et ses sauvegardes ; les neuf validations du lieu unique restent inchangées. Le nouveau lieu contient huit cas compatibles, pas les 119.
+
+Classeur courant : `docs/PARALLAXE_Suivi_Courant_2026-11-12_Observatoire.xlsx`. Les textes A/B d’origine, les 600 clés et les anciens Excel sont conservés. `hall_stretch` reste hors catalogue dans l’attente de sa recette de confort. Lire `docs/QA_OBSERVATOIRE_20261112.md` pour les contrôles et limites ; les tests CPU ne certifient ni pixels ni FPS. Cette reprise ne déploie pas le site.
+
+**Skills réellement ajoutés au dépôt** : cinq workflows adaptés, sous `.agents/skills/p9-*` et `.claude/skills/p9-*`. `npm run test:skills` vérifie les copies et leurs empreintes. `docs/SKILLS_AUDIT_20261112.md` compare Yautja, Moustique et Multiverse Breach et distingue fichiers locaux, références externes et activation des plugins. Pas d’installation globale implicite.
+
+Les sections suivantes décrivent les livraisons antérieures. Pour une archive jouable courante, utiliser l’artefact CI de la dernière révision de PR, pas les anciens ZIP 0.4.1 dans `public/downloads`.
+
+## Archive de reprise C9 — 118/120 concepts
+
+Le classeur courant est `docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx` (source JSON de suivi inchangée). Nouveau cas : `shadow_points`, projection des vrais maillages articulés de l’inspecteur au repère **C9**. Réunissez toute l’équipe dans le marquage au sol, immobilisez corps et bras une seconde, puis comparez le bras réel et sa projection. En entraînement, le support **T1** du miroir est explicitement le témoin ; ce n’est pas un joueur connecté. La direction du bras n’est liée ni à une faute ni au vote.
+
+Les ombres restent lisibles avec les shadow maps désactivées et ne changent aucune collision. Les mouvements, poses périmées, départs et interruptions annulent la preuve. Les 117 cas précédents et les archives Excel sont conservés. Voir `docs/QA_OMBRE_20261112.md` pour les tests, coûts géométriques et limites. **Deux concepts restent non intégrés** : `hall_stretch` et `observatory_earth`. 118/120 n’est pas le taux d’achèvement du jeu. Pas de publication automatique.
+
+> **Reprise voix — 11/11/2026** : 117/120 concepts intégrés sur la branche de travail (pas de déploiement). Le poste R9 annonce une extinction programmée de sa lampe ; V9 épelle le seul indicatif propre consenti. L’option nominative est facultative, désactivée par défaut et retirable dans Paramètres. Voir `docs/QA_VOIX_20261111.md` et le classeur historique `docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx`. Les anciens rapports ci-dessous gardent leur portée historique.
+
+> **Archive — 11/11/2026 : 115/120 anomalies dans la branche, 5 concepts encore absents.** Ascenseur réel, appel coopératif, neuf carillons privés, passager persistant et pas résiduels après immobilité. Excel courant : `docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx`. Voir `docs/QA_ASCENSEUR_20261111.md`. Les livraisons ci-dessous sont historiques ; aucune publication du site par ce lot.
+
 # PARALLAXE — Protocole 9
 
 **Édition jouable 0.4.1 · 29 octobre 2026**
@@ -206,3 +231,11 @@ Le workflow GitHub Actions reprend ces contrôles. Le test D1 s’exécute sépa
 L’observation cyclique s’inscrit dans le genre de [The Exit 8](https://playism.com/en/game/the-exit-8/) et [The Cabin Factory](https://www.internationalcatstudios.com/). PARALLAXE possède ses lieux, textes, géométries, sons synthétisés, règles coopératives et anomalies originaux. Aucun modèle ou son de ces jeux n’a été extrait.
 
 Références techniques : [connexions WebRTC](https://webrtc.org/getting-started/peer-connections), [relais TURN](https://webrtc.org/getting-started/turn-server), [permissions du microphone](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia), [Three.js](https://threejs.org/docs/). Les bibliothèques conservent leurs licences : [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+
+## Archive du lot — observations du 10 novembre 2026
+
+Le suivi archivé de ce lot est [PARALLAXE_Suivi_Courant_2026-11-11.xlsx](docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx).
+Le catalogue de ce lot contenait **104 anomalies sur les 120 concepts**, dont quatre nouvelles observations de Saint-Clair : constellation à reconstituer entre témoins, portrait vieillissant, escalier visible seulement dans l’ombre et marcheur au plafond. Les détails, correctifs, conditions et limites de test figurent dans [QA_OBSERVATIONS_20261111.md](docs/QA_OBSERVATIONS_20261111.md).
+Les anciens classeurs demeurent des instantanés de leurs livraisons ; ils ne remplacent pas ce suivi. `npm run test:observation` exerce les nouveaux états et les géométries réelles sur CPU. La réception GPU et multiappareils reste ouverte.
+
+La reprise du **11 novembre 2026** matérialise le lot auparavant interrompu au transfert. Les menus, lectures et interruptions du navigateur suspendent les chronomètres des observations. Voir `docs/QA_OBSERVATIONS_20261111.md`.

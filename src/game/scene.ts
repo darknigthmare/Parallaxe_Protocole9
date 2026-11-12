@@ -7,16 +7,25 @@ import { createInspector, type InspectorIdentity, type InspectorModel, type Insp
 import { createLocation, reflectiveGlass, type LocationWorld } from './locations';
 import { createInspectionProps, INSPECTION_EFFECTS, type InspectionMember } from './inspection-props';
 import { CABIN_EFFECTS } from './cabin';
+import { createObservationWorld } from './observation-world';
+import { OBSERVATION_EFFECTS, type StarMask } from './observation-state';
 import { isLevelId, type LevelId } from './levels';
+import { createAcousticState, ACOUSTIC_EFFECTS } from './acoustic-state';
+import { createSpokenWorld } from './spoken-world';
+import { SPOKEN_EFFECTS } from './spoken-state';
+import { createTemporalWorld } from './temporal-world';
+import { createShadowWorld } from './shadow-world';
+import { createFootstepState } from './footstep-state';
+import { TEMPORAL_EFFECTS, PROP_ANCHORS, isPropTarget, type PropEvent } from './temporal-state';
 
 /** Original procedural environment. No downloaded models or textures are required. */
 export type SceneInput = { forward: number; strafe: number; lookX?: number; lookY?: number; sprint?: boolean };
 export type ScenePose = { x: number; y: number; z: number; yaw: number; pitch: number };
 type InspectorTarget = { kind: 'self' | 'peer' | 'double'; id: string };
 type SceneTarget = { id: string; label: string; inspector?: InspectorTarget };
-export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string };
+export type PersonalView = { effects?: string[]; variant?: number; phase?: string; loop?: number; relayCode?: string; levelId?: LevelId; arrowDirection?: 'left' | 'right'; syncTime?: string; starMask?: StarMask; knockCount?: 0 | 3 | 4; contextKey?: string };
 export const SCENE_EFFECTS = [
-  'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'coat_without_body', 'fire_extinguisher_full', 'portrait_empty', 'door_number', 'door_open',
+  'observatory_earth', 'clock_reverse', 'clock_missing', 'clock_stop_gaze', 'portrait_eyes', 'coat_without_body', 'fire_extinguisher_full', 'portrait_empty', 'door_number', 'door_open',
   'plant_dead', 'plant_tall', 'trolley_missing', 'red_light', 'blackout', 'shadow_figure',
   'ceiling_eyes', 'floor_trail', 'exit_false', 'chair_float', 'mirror_stranger', 'phone_float',
   'window_watcher', 'wall_message', 'corridor_fog', 'carpet_wrong_weave', 'duplicate_chair', 'blood_handprint', 'missing_reflection', 'relay_mismatch',
@@ -26,7 +35,7 @@ export const SCENE_EFFECTS = [
   'avatar_badge_missing', 'avatar_height_offset', 'avatar_hands_swap', 'avatar_visor_watch', 'avatar_no_contact',
   'reflection_seated', 'reflection_badge_code', 'metro_timetable_loop', 'metro_route_poster', 'metro_platform_count', 'metro_tunnel_daylight',
   'clinic_tag_echo', 'clinic_shadow_bed', 'clinic_iv_reverse', ...INSPECTION_EFFECTS,
-  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS,
+  'mirror_extra_door', 'reflection_no_team', 'root_under_door', 'water_up_wall', 'extra_door', 'exit_breath', ...CABIN_EFFECTS, ...OBSERVATION_EFFECTS, ...ACOUSTIC_EFFECTS, ...SPOKEN_EFFECTS, ...TEMPORAL_EFFECTS, 'footsteps_unowned', 'shadow_points',
 ] as const;
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
@@ -65,6 +74,15 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const pose: ScenePose = { x: 0, y: 1.67, z: 9, yaw: 0, pitch: 0 };
   let input: SceneInput = { forward: 0, strafe: 0 };
   let active = false;
+  let cameraInvertY = false;
+  let cameraReduceMotion = false;
+  let observationActive = true;
+  const acoustics = createAcousticState();
+  const footsteps = createFootstepState();
+  let sharedMotion = false, motionSnapshotAge = 0, lastMotionServerTime = -1;
+  let motionContextKey = "";
+  let lastMotionReceipt = performance.now();
+  let motionPeers: {id:string;pose:{x:number;z:number;yaw?:number};connected:boolean}[] = [];
   let alive = true;
   let elapsed = 0;
   let quality: 'low' | 'medium' | 'high' = 'high';
@@ -297,7 +315,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   box(.22, 3.6, 28.4, -3.85, 1.8, -2, mats.wall);
   box(.22, 3.6, 28.4, 3.85, 1.8, -2, mats.wall);
   box(7.8, .16, 28.4, 0, 3.6, -2, mats.stone);
-  box(7.6, 3.6, .25, 0, 1.8, -16, mats.wall);
+  // Permanent rear-left lift recess. Opening x[-3.55,-1.35], below y=2.80;
+  // the corridor clamp stays z>=-15.10, so the inspection can never trap a player.
+  box(.25, 3.6, .25, -3.675, 1.8, -16, mats.wall);
+  box(5.15, 3.6, .25, 1.225, 1.8, -16, mats.wall);
+  box(2.20, .80, .25, -2.45, 3.20, -16, mats.wall);
   box(7.6, 3.6, .25, 0, 1.8, 12.1, mats.wall);
   for (const side of [-1, 1]) {
     box(.06, 1.04, 28, side * 3.707, .55, -2, mats.woodDark);
@@ -366,14 +388,14 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   box(.24, .055, .095, .055, 1.72, .28, mats.darkMetal, safetyRack, .018);
   const fireHose = torus(.14, .019, -.16, 1.57, .29, mats.darkMetal, safetyRack);
   fireHose.rotation.y = Math.PI / 2;
-  const fireMist = new THREE.Group();
+  const fireMist = new THREE.Group(); fireMist.position.set(0, 1.30, .28);
   safetyRack.add(fireMist); anomaly('fire_extinguisher_full', fireMist);
   fireMist.name = 'Saint-Clair — brume captive';
   const mistMat = new THREE.MeshStandardMaterial({ color: 0xcadad2, emissive: 0x57746b, emissiveIntensity: .20,
     transparent: true, opacity: .27, depthWrite: false });
   for (let i = 0; i < 7; i++) {
     const t = i * 2.399, radius = .025 + .018 * (i % 2);
-    const vapour = sphere(radius, Math.cos(t) * .048, 1.05 + i * .069, .28 + Math.sin(t) * .04, mistMat, fireMist, 16);
+    const vapour = sphere(radius, Math.cos(t) * .048, -.25 + i * .069, Math.sin(t) * .04, mistMat, fireMist, 16);
     vapour.scale.set(1.2, 1.6, .9);
   }
   tag(safetyRack, 'extinguisher', 'Extincteur de sécurité du service');
@@ -432,7 +454,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const terminalHead = new THREE.Group(); terminalHead.position.set(0, 1.07, .04); terminalHead.rotation.x = -.40; terminal.add(terminalHead);
   box(.72, .46, .055, 0, 0, 0, mats.darkMetal, terminalHead, .025);
   panel(.64, .37, 0, 0, .029, labelTexture('PROTOCOL 09\nDIAGNOSTIC', '#a6d9c2', '#112922'), terminalHead, .8);
-  tag(terminal, 'exit', 'Terminal de diagnostic — E'); obstacle(0, -12.9, .42, .32);
+  tag(terminal, 'exit', 'Terminal de diagnostic'); obstacle(0, -12.9, .42, .32);
 
   // Reception counter with fluted walnut, paperwork and a proper handset.
   const desk = new THREE.Group(); desk.position.set(2.52, 0, 7.72); world.add(desk);
@@ -495,6 +517,27 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   for (let y = 0; y < 2; y++) cylinder(.029, .024, .13, .025 + y * .105, .102, mats.brass, radio, .029, 32).rotation.x = Math.PI / 2;
   cylinder(.004, .36, .13, .36, -.03, mats.brass, radio, .004, 12).rotation.z = -.18;
   tag(radio, 'radio', 'Radio — fréquence 09'); obstacle(-2.72, 4.3, .45, .45);
+
+  // Service music box: physical lid, pinned cylinder, comb and winding handle.
+  // Wall mounted; the common corridor and existing observation props stay clear.
+  const musicBox = wallGroup(-1, -10.10);
+  musicBox.name = 'Saint-Clair — boîte à musique';
+  box(.60, .045, .39, 0, 1.03, .24, mats.woodDark, musicBox);
+  for (const x of [-.23, .23]) box(.035, .18, .26, x, .94, .17, mats.brass, musicBox);
+  box(.46, .10, .29, 0, 1.105, .24, mats.wood, musicBox, .018);
+  box(.42, .018, .25, 0, 1.163, .24, mats.darkMetal, musicBox);
+  const musicLid = new THREE.Group(); musicLid.position.set(0, 1.16, .105); musicBox.add(musicLid);
+  box(.46, .028, .29, 0, .01, .14, mats.woodDark, musicLid, .01);
+  const musicRoller = cylinder(.044, .28, 0, 1.21, .23, mats.brass, musicBox, .044, 24);
+  musicRoller.rotation.z = Math.PI / 2; musicRoller.name = 'Boîte — cylindre épinglé';
+  for (let i = 0; i < 12; i++) {
+    box(.012, .01, .11, -.14 + i * .025, 1.18, .32, mats.brass, musicBox);
+    const pin = sphere(.007, 0, -.13 + i * .023, .047, mats.darkMetal, musicRoller, 8); pin.castShadow = false;
+  }
+  cylinder(.015, .09, .275, 1.16, .24, mats.brass, musicBox, .015, 12).rotation.z = Math.PI / 2;
+  panel(.43, .075, 0, 1.07, .445, labelTexture('BOÎTE · ÉCOUTER'), musicBox);
+  tag(musicBox, 'music-box', 'Boîte à musique du salon — remonter');
+  obstacle(-3.38, -10.10, .22, .34);
 
   // Plant geometry uses bent leaves, lathed planters, stems, soil and stone grains.
   const plantLeafMat = new THREE.MeshStandardMaterial({ color: 0x2c5635, roughness: .73, side: THREE.DoubleSide });
@@ -734,6 +777,10 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   for (const x of [-.18, .18]) for (const z of [-.18, .18]) cylinder(.018, .43, x, .22, z, mats.brass, reflectionSeat);
   tag(reflectionSeat, 'chair', 'Siège vide du contrôle des reflets');
   const inspectionProps = createInspectionProps(); world.add(inspectionProps.root); targets.push(...inspectionProps.targets); occluders.push(...inspectionProps.colliders);
+  const observationWorld = createObservationWorld(); world.add(observationWorld.root); targets.push(...observationWorld.targets); occluders.push(...observationWorld.colliders);
+  const temporalWorld = createTemporalWorld(); world.add(temporalWorld.root); targets.push(...temporalWorld.targets); occluders.push(...temporalWorld.colliders);
+  const shadowWorld=createShadowWorld();world.add(shadowWorld.root);targets.push(...shadowWorld.targets);
+  const spokenWorld=createSpokenWorld();world.add(spokenWorld.root);targets.push(...spokenWorld.targets);
 
   // These reference stands have identical collision bounds for every observer.
   // When nobody else is present, numbered mannequins make the reflection count
@@ -862,7 +909,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const particleGeometry = new THREE.BufferGeometry(); particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
   const particles = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0xb9c5ad, size: .014, transparent: true, opacity: .30, depthWrite: false, sizeAttenuation: true })); scene.add(particles);
   const flashlight = new THREE.SpotLight(0xf1e8d2, 0, 19, .37, .45, 1.4); flashlight.position.copy(camera.position); scene.add(flashlight, flashlight.target);
-  extraWorlds = { metro: createLocation('metro'), clinic: createLocation('clinic'), cabin: createLocation('cabin') };
+  extraWorlds = { metro: createLocation('metro'), clinic: createLocation('clinic'), cabin: createLocation('cabin'), observatory: createLocation('observatory') };
   for (const location of Object.values(extraWorlds)) { scene.add(location.root); location.root.visible = false; targets.push(...location.targets); }
   const reflectors = [mirror, hotelWindowGlass, ...Object.values(extraWorlds).flatMap(location => location.reflectors)];
   let reflectionDepth = 0;
@@ -890,8 +937,10 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       }
       const capturedModels = [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)];
       capturedModels.forEach(model => model.setReflectionPass(true));
+      const restoreProjectedShadows=shadowWorld.reflectionMask();
       try { capture.call(reflector, gl, renderingScene, renderingCamera, geometry, material, group); }
       finally {
+        restoreProjectedShadows();
         capturedModels.forEach(model => model.setReflectionPass(false));
         reflectors.forEach((surface, index) => { surface.visible = surfaceVisibility[index]; });
         reflectedDoor.visible = reflectedDoorVisible;
@@ -906,6 +955,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   tag(doubleAvatar.root, 'player', 'Un inspecteur en trop', { kind: 'double', id: selfIdentity.id });
 
   function look(dx: number, dy: number) {
+    if(!Number.isFinite(dx)||!Number.isFinite(dy))return;
+    if(cameraInvertY)dy=-dy;
     if (!active) return;
     pose.yaw -= dx * .0022; pose.pitch = THREE.MathUtils.clamp(pose.pitch - dy * .0022, -1.35, 1.35);
   }
@@ -922,6 +973,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     return true;
   }
   function applyView(view: PersonalView) {
+    if ((view.contextKey??'') !== motionContextKey) {motionContextKey=view.contextKey??'';lastMotionServerTime=-1;motionSnapshotAge=0;lastMotionReceipt=performance.now();}
     phase = view.phase || phase; loop = view.loop || 0;
     effects = new Set((phase === 'reference' ? [] : view.effects || []).filter(e => (SCENE_EFFECTS as readonly string[]).includes(e)));
     const nextLevel = isLevelId(view.levelId) ? view.levelId : levelId;
@@ -935,7 +987,13 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     }
     world.visible = levelId === 'hotel'; hotelLights.visible = levelId === 'hotel';
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
-    for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); }
+    observationWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    acoustics.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    footsteps.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    temporalWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    spokenWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    shadowWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
+    for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); if('setOpening' in location)location.setOpening(temporalWorld.snapshot().shutterOpening); }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
     reflectedDoor.visible = false;
     updateEnvironment(elapsed - environmentStarted);
@@ -946,6 +1004,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       effects.has('coat_without_body') ? .81 : .27);
     coatShell.rotation.y = 0; coatShell.rotation.z = 0;
     fireBody.material = effects.has('fire_extinguisher_full') ? fireClear : fireRed;
+    if (!effects.has('fire_extinguisher_full')) fireMist.rotation.y = 0;
     (paintingCanvas.material as THREE.MeshStandardMaterial).map = effects.has('portrait_empty') ? portraitEmpty : portraitNormal;
     doorNumberMaterials.forEach((material, i) => { material.map = i === 0 && effects.has('door_number') ? wrongNumberMap : doorNumberMaps[i]; material.emissiveMap = material.map; });
     doorLeaves.forEach((leaf, i) => { leaf.rotation.y = i === 0 && effects.has('door_open') ? -1.12 : 0; });
@@ -1014,6 +1073,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     peers.set(id, result); return result;
   }
   function setPeers(items: any[]) {
+    motionPeers = items.filter(item=>String(item.id)!==selfIdentity.id).slice(0,4).map(item=>({
+      id:String(item.id??''),pose:{x:item.pose?.x,z:item.pose?.z,yaw:item.pose?.yaw},connected:item.connected!==false}));
     const ids = new Set<string>();
     items.forEach((item, index) => {
       const id = String(item.id || item.playerId || String(item.slot ?? index));
@@ -1029,7 +1090,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       peer.talking = item.talking === true;
     });
     for (const [id, peer] of peers) if (!ids.has(id)) {
-      peerGroup.remove(peer.group); peers.delete(id);
+      shadowWorld.release(id);peerGroup.remove(peer.group); peers.delete(id);
       removeInspectionTargets(peer.group); peer.model.dispose();
     }
     updateWitnessVisibility(); updateInspectionRoster();
@@ -1051,6 +1112,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   function setIdentity(identity: InspectorIdentity) {
     const next = { id: String(identity.id || 'local'), name: String(identity.name || 'Inspecteur').slice(0, 24), slot: Number.isInteger(identity.slot) ? identity.slot : 0, color: identity.color };
     if (next.id === selfIdentity.id && next.name === selfIdentity.name && next.slot === selfIdentity.slot && next.color === selfIdentity.color) return;
+    shadowWorld.release(selfIdentity.id);shadowWorld.interrupt();
     for (const model of [selfAvatar, reflectionAvatar, doubleAvatar]) { scene.remove(model.root); removeInspectionTargets(model.root); model.dispose(); }
     selfIdentity = next;
     selfAvatar = createInspector(next, { local: true }); reflectionAvatar = createInspector(next, { reflectionOnly: true, nameplate: false }); doubleAvatar = createInspector(next, { nameplate: false });
@@ -1085,8 +1147,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       // No involuntary head bob: landmarks remain stable and camera sickness is reduced.
       camera.position.set(pose.x, pose.y, pose.z); camera.rotation.set(pose.pitch, pose.yaw, 0, 'YXZ');
     } else {
-      camera.position.set(-1.64 + Math.sin(elapsed * .055) * .12, 1.67, 9.55);
-      camera.lookAt(.30 + Math.sin(elapsed * .05) * .16, 1.70, -7.2);
+      camera.position.set(-1.64 + (cameraReduceMotion ? 0 : Math.sin(elapsed * .055) * .12), 1.67, 9.55);
+      camera.lookAt(.30 + (cameraReduceMotion ? 0 : Math.sin(elapsed * .05) * .16), 1.70, -7.2);
     }
     clockBody.getWorldPosition(clockWorldPoint);
     const clockDistance = clockWorldPoint.sub(camera.position);
@@ -1124,6 +1186,22 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     particles.rotation.y = Math.sin(elapsed * .02) * .01;
     if (levelId !== 'hotel') extraWorlds[levelId].update(elapsed);
     if (levelId === 'hotel') inspectionProps.update(elapsed);
+    observationWorld.update(dt, pose, active && observationActive);
+    acoustics.update(dt, pose, active && observationActive);
+    motionSnapshotAge = Math.max(motionSnapshotAge+(Number.isFinite(dt)?Math.max(0,dt):0),(performance.now()-lastMotionReceipt)/1000);
+    footsteps.update(dt,[{id:sharedMotion?selfIdentity.id:'training',x:pose.x,z:pose.z},...motionPeers.map(p=>({id:p.id,x:p.pose.x,z:p.pose.z,connected:p.connected}))],
+      active && observationActive, !sharedMotion || motionSnapshotAge < 1.75);
+    temporalWorld.update(dt, active && observationActive);
+    const observatory=extraWorlds.observatory;
+    if('setOpening' in observatory)observatory.setOpening(temporalWorld.snapshot().shutterOpening);
+    spokenWorld.update(dt,pose,active&&observationActive,temporalWorld.snapshot());
+    const acousticFrame = acoustics.snapshot();
+    musicLid.rotation.x = acousticFrame.musicPlaying ? -1.12 : 0;
+    musicRoller.rotation.y = acousticFrame.musicAngle;
+    if (!effects.has('phone_float')) {
+      phoneReceiver.position.y = acousticFrame.phoneLifted ? .30 : .11;
+      phoneReceiver.rotation.z = acousticFrame.phoneLifted ? -.20 : 0;
+    }
     updateEnvironment(elapsed - environmentStarted);
     updateWitnessVisibility();
     const selfSpeed = active && dt > 0 ? Math.hypot(pose.x - oldX, pose.z - oldZ) / dt : 0;
@@ -1155,6 +1233,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       const speed = dt > 0 ? before.distanceTo(peer.group.position) / dt : 0;
       peer.model.animate({ time: elapsed, speed, talking: peer.talking, pitch: peer.target.pitch, ...avatarAnomalies(peer === connectedPeers[0]) });
     }
+    shadowWorld.update(dt,selfIdentity.id,[{id:selfIdentity.id,x:pose.x,z:pose.z,yaw:pose.yaw,talking},...motionPeers.map(p=>({id:p.id,x:p.pose.x,z:p.pose.z,yaw:p.pose.yaw,connected:p.connected,talking:peers.get(p.id)?.talking}))],
+      [selfAvatar,...[...peers.values()].map(p=>p.model)],active&&observationActive,sharedMotion,!sharedMotion||motionSnapshotAge<1.75);
     if (frame % 4 === 0 && active) {
       raycaster.setFromCamera(center, camera); raycaster.far = 5.8;
       const hits = raycaster.intersectObjects(targets, true);
@@ -1177,7 +1257,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     });
     function count(group: THREE.Object3D) { let total = 0; group.traverse(object => { const m = object as THREE.Mesh; if (m.isMesh) total += (m.geometry.index?.count || m.geometry.attributes.position?.count || 0) / 3; }); return Math.round(total); }
     const common = count(commonWorld);
-    const levelTriangles = { hotel: count(world) + common, metro: count(extraWorlds.metro.root) + common, clinic: count(extraWorlds.clinic.root) + common, cabin: count(extraWorlds.cabin.root) + common };
+    const levelTriangles = { hotel: count(world) + common, metro: count(extraWorlds.metro.root) + common, clinic: count(extraWorlds.clinic.root) + common, cabin: count(extraWorlds.cabin.root) + common, observatory: count(extraWorlds.observatory.root) + common };
     return { sceneTriangles: Math.round(triangles), meshes, levelId, levelTriangles, activeLevelTriangles: levelTriangles[levelId], inspectorTriangles: count(selfAvatar.root), reflectiveSurfaces: reflectors.length, activeReflectiveSurfaces: 2, drawCalls: renderer.info.render.calls, renderedTriangles: renderer.info.render.triangles, quality, supportedEffects: [...SCENE_EFFECTS] };
   }
   function getInspection() {
@@ -1193,11 +1273,15 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       }
       if (model) return { title: observed.id === 'mirror' ? 'Badge dans le miroir' : 'Badge physique', location: observed.label, lines: model.badge.userData.code ? [`INSPECTEUR ${model.badge.userData.code}`, 'PARALLAXE'] : ['PLAQUE VIERGE'] };
     }
-    return levelId === 'hotel' ? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
+    return levelId === 'hotel' ? shadowWorld.getReading(observed?.id) ?? observationWorld.getReading(observed?.id) ?? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
   }
   function dispose() {
     if (disposed) return; disposed = true; alive = false;
+    world.remove(shadowWorld.root);shadowWorld.dispose();
     world.remove(inspectionProps.root); inspectionProps.dispose();
+    world.remove(observationWorld.root); observationWorld.dispose();
+    world.remove(temporalWorld.root); temporalWorld.dispose();
+    world.remove(spokenWorld.root);spokenWorld.dispose();
     for (const model of [selfAvatar, reflectionAvatar, doubleAvatar, ...[...peers.values()].map(peer => peer.model)]) { scene.remove(model.root); peerGroup.remove(model.root); model.dispose(); }
     for (const location of Object.values(extraWorlds)) { scene.remove(location.root); location.dispose(); }
     const geometries = new Set<THREE.BufferGeometry>(); const materials = new Set<THREE.Material>();
@@ -1224,13 +1308,54 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     },
     setPeers,
     setIdentity,
+    setSpokenIdentity:spokenWorld.setIdentity,
+    getSpokenFrame:spokenWorld.snapshot,
     setInspectionRoster(members: InspectionMember[] | null) { inspectionRoster = members?.map(member => ({ ...member })) ?? null; updateInspectionRoster(); },
     setTalking(next: boolean) { talking = !!next; },
     setQuality,
+    setCameraPreferences(next: {fov?:number;invertY?:boolean;reduceMotion?:boolean}) {
+      if(Number.isFinite(next.fov)) {
+        const fov=THREE.MathUtils.clamp(next.fov!,50,95);
+        if(camera.fov!==fov){camera.fov=fov;camera.updateProjectionMatrix();}
+      }
+      if(typeof next.invertY==='boolean')cameraInvertY=next.invertY;
+      if(typeof next.reduceMotion==='boolean')cameraReduceMotion=next.reduceMotion;
+    },
     setFlashlight(on: boolean) { flashlightOn = on; },
-    setActive(next: boolean) { active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); updateWitnessVisibility(); },
+    setActive(next: boolean) { if(!next)shadowWorld.interrupt();active = next; input = { forward: 0, strafe: 0 }; selfAvatar.root.visible = active; reflectionAvatar.root.visible = false; doubleAvatar.root.visible = active && effects.has('avatar_double'); updateWitnessVisibility(); },
+    setObservationActive(next: boolean) { observationActive = next === true;if(!observationActive)shadowWorld.interrupt(); },
+    getShadowFrame: shadowWorld.snapshot,
     getTarget: () => target,
     getInspection,
+    getAcousticFrame: () => {
+      if(isPropTarget(target?.id))temporalWorld.focus(target!.id as import('./temporal-state').PropTarget);
+      const a=acoustics.snapshot(),t=temporalWorld.snapshot(),anchor=t.focus?PROP_ANCHORS[t.focus]:null;
+      const nearby=anchor&&Math.hypot(pose.x-anchor[0],pose.z-anchor[2])<=3.6;
+      const f=footsteps.snapshot(),s=spokenWorld.snapshot();
+      const ownStepPrefix=`step-${sharedMotion?selfIdentity.id:'training'}-`;
+      return {...a,active:a.active||f.active,key:`${a.key}:${f.key}`,voices:[...a.voices,...t.voices,...s.voices,...f.voices.filter(v=>!v.id.startsWith(ownStepPrefix))],caption:s.caption|| (nearby&&t.caption?t.caption:f.caption&&a.focus==='rain'?f.caption:a.caption)};
+    },
+    setSharedInteractions: (events:readonly PropEvent[]|null,serverTime?:number) => {
+      sharedMotion=events!==null;
+      if(events===null){lastMotionServerTime=-1;motionSnapshotAge=0;lastMotionReceipt=performance.now();}
+      else if(Number.isSafeInteger(serverTime)&&serverTime!>lastMotionServerTime){lastMotionServerTime=serverTime!;motionSnapshotAge=0;lastMotionReceipt=performance.now();}
+      temporalWorld.sync(events,serverTime);
+    },
+    getFootstepFrame: footsteps.snapshot,
+    getTemporalFrame: temporalWorld.snapshot,
+    getPropTarget: () => active&&observationActive&&isPropTarget(target?.id)&&((target?.id==='observatory-shutters')===(levelId==='observatory'))&&['hotel','observatory'].includes(levelId)?target!.id as import('./temporal-state').PropTarget:null,
+    activateProp() { if(!active||!observationActive||!['hotel','observatory'].includes(levelId)||!isPropTarget(target?.id)||(target?.id==='observatory-shutters')!==(levelId==='observatory'))return false;if(target!.id!=='service-radio')spokenWorld.stop();return temporalWorld.activate(target!.id as import('./temporal-state').PropTarget,pose); },
+    listen() {
+      if (!active || !observationActive || levelId !== 'hotel') return false;
+      const t = target;
+      if(t&&['phone','music-box','door','window','stars'].includes(t.id)){temporalWorld.clearFocus();spokenWorld.stop();}
+      if (t?.id === 'phone' && !effects.has('phone_float')) return acoustics.activate('phone');
+      if (t?.id === 'music-box') return acoustics.activate('music-box');
+      if (t?.id === 'door' && t.label.includes('903')) return acoustics.activate('door');
+      if (t?.id === 'window' || t?.id === 'stars') return acoustics.activate('rain');
+      return false;
+    },
+    stopListening() { acoustics.stop(); temporalWorld.clearFocus(); spokenWorld.stop(); },
     dispose,
     getStats,
   };

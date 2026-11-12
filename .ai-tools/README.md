@@ -161,3 +161,9 @@ plugins dans un client ni le gameplay du projet.
 - [Claude Code : sources de plugins et révisions verrouillées](https://code.claude.com/docs/en/plugins/marketplace-reference).
 
 Ces trois projets utilisent une licence MIT. Conserver leurs mentions de licence lors de la copie de leurs fichiers. Les adresses exactes des sources à la révision vérifiée figurent dans [sources.json](sources.json).
+
+## Skills locaux P9 — 12 novembre 2026
+
+Le préparateur externe ci-dessus ne constitue pas une installation de plugin. Cinq workflows originaux sont maintenant livrés directement dans les deux répertoires de skills du projet : p9-reprise, p9-anomalies, p9-scene, p9-coop-radio et p9-livraison. Voir `project-skills.json` et `../docs/SKILLS_AUDIT_20261112.md`. Ils ne copient pas intégralement Spec Kit, Superpowers ou Game Studios.
+
+`python3 validate_project_skills.py` (depuis `.ai-tools`) ou `npm run test:skills` (depuis la racine) contrôle noms, métadonnées, miroirs et empreintes. `setup.py doctor` rapporte leur présence séparément de la disponibilité des clients et intégrations externes. La lecture effective par un client reste à vérifier dans son environnement.

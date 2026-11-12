@@ -47,16 +47,36 @@ jobs:
           cache: npm
       - name: Installer les dépendances verrouillées
         run: npm ci
+      - name: Vérifier les workflows locaux et le préparateur IA
+        run: npm run test:skills
       - name: Vérifier TypeScript
         run: npx tsc --noEmit
       - name: Vérifier les règles et les projections privées
         run: npm test
+      - name: Vérifier les commandes accessibles, la migration et les événements clavier
+        run: npm run test:accessibility
       - name: Vérifier les géométries et les changements de lieu
         run: npm run test:scene
       - name: Vérifier le chalet et la voûte du métro
         run: npm run test:cabin
       - name: Vérifier les documents et les objets physiques d’inspection
         run: npm run test:inspection
+      - name: Vérifier les observations visuelles
+        run: npm run test:observation
+      - name: Vérifier les séquences acoustiques, le mode silencieux et le routage local
+        run: npm run test:acoustic
+      - name: Vérifier les gestes coopératifs et leurs perceptions temporelles
+        run: npm run test:temporal
+      - name: Vérifier l’ascenseur, le passager et les pas résiduels
+        run: npm run test:lift
+      - name: Vérifier les voix locales et le retrait de leur autorisation
+        run: npm run test:spoken
+      - name: Vérifier la projection réelle des corps, leurs reflets et la péremption des poses
+        run: npm run test:shadow
+      - name: Vérifier le cinquième lieu, les volets partagés et le ciel privé
+        run: npm run test:observatory
+      - name: Vérifier le suivi courant et les sources A/B
+        run: python3 scripts/validate-open-workbook.py
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio

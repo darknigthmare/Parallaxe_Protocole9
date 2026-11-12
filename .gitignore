@@ -39,7 +39,10 @@ yarn-error.log*
 /.sites-runtime/
 
 # Workspace scaffolding and publication archives
-/.agents/
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/p9-*/
 /.codex/
 /outputs/
 /work/

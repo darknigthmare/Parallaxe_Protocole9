@@ -89,11 +89,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props']) {
+  for (const name of ['levels', 'avatar', 'observatory', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'shadow-state','body-shadow','shadow-world','footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|cabin|location-clues|locations|inspection-data|inspection-props))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|avatar|observatory|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|shadow-state|body-shadow|shadow-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -158,6 +158,32 @@ try {
     assert.ok(finalStats.sceneTriangles < 1_500_000, 'Unexpected stored geometry growth');
     for (const count of Object.values(finalStats.levelTriangles)) assert.ok(count < 500_000, 'Unexpected per-location geometry growth');
     assert.ok(finalStats.meshes < 2_500, 'Unexpected mesh-count growth');
+  });
+
+  check('FOV changes the projection without changing pose, collisions or the scene', () => {
+    game.setActive(true);game.setPose({x:0,z:8,yaw:0,pitch:0});game.setInput({forward:0,strafe:0});game.update(.02);
+    const pose=game.getPose(),count=scene.children.length,matrix=renderer.camera.projectionMatrix.clone();
+    game.setCameraPreferences({fov:95});game.update(.02);
+    assert.equal(renderer.camera.fov,95);assert.notDeepEqual(renderer.camera.projectionMatrix.elements,matrix.elements);
+    assert.deepEqual(game.getPose(),pose);assert.equal(scene.children.length,count);
+    game.setCameraPreferences({fov:500});assert.equal(renderer.camera.fov,95);
+    game.setCameraPreferences({fov:NaN});assert.equal(renderer.camera.fov,95);
+    game.setCameraPreferences({fov:-1});assert.equal(renderer.camera.fov,50);
+    game.setCameraPreferences({fov:65});game.setActive(false);
+  });
+  check('vertical inversion affects the common look path but never yaw or movement', () => {
+    game.setActive(true);game.setPose({x:0,z:8,yaw:0,pitch:0});game.setCameraPreferences({invertY:false});game.look(20,30);
+    const normal=game.getPose();game.setPose({yaw:0,pitch:0});game.setCameraPreferences({invertY:true});game.look(20,30);
+    const inverted=game.getPose();assert.equal(inverted.pitch,-normal.pitch);assert.equal(inverted.yaw,normal.yaw);assert.equal(inverted.x,normal.x);assert.equal(inverted.z,normal.z);
+    game.look(NaN,Infinity);assert.deepEqual(game.getPose(),inverted);
+    game.setCameraPreferences({invertY:false});game.setPose({x:0,z:9,yaw:0,pitch:0});game.setActive(false);
+  });
+  check('reduced motion freezes the attract camera without changing the reference scene', () => {
+    game.setActive(false);game.setCameraPreferences({reduceMotion:true});game.update(.05);
+    const position=renderer.camera.position.clone(),rotation=renderer.camera.quaternion.clone();
+    for(let i=0;i<12;i++)game.update(.05);
+    assert.ok(renderer.camera.position.equals(position));assert.ok(renderer.camera.quaternion.equals(rotation));
+    game.setCameraPreferences({reduceMotion:false});game.update(.05);assert.ok(!renderer.camera.position.equals(position));
   });
 
   check('wall landmarks face inward; floor faces upward', () => {
@@ -280,6 +306,30 @@ try {
     assert.equal(mist.visible, false);
   });
 
+  check('new observation props are installed in the actual scene and reset between passages', () => {
+    const photo = scene.getObjectByName('P9 — portrait du gardien');
+    const figure = scene.getObjectByName('Plafond — marcheur inversé');
+    assert.ok(photo && figure);
+    game.setView({ levelId:'hotel', phase:'inspect', loop:71, effects:['photo_age','ceiling_walker'] });
+    game.setActive(true);game.setInput({forward:0,strafe:0});game.setPose({x:-1.8,z:-14.2});
+    for(let i=0;i<450;i++)game.update(.05);
+    assert.ok(photo.userData.age>.99);assert.equal(figure.visible,true);
+    game.setView({ levelId:'hotel', phase:'reference', loop:72, effects:[] });
+    assert.equal(photo.userData.age,0);assert.equal(figure.visible,false);
+    game.setActive(false);
+  });
+
+  check('extinguisher mist stays within its cylinder during rotation and resets without residue', () => {
+    const body = scene.getObjectByName('Saint-Clair — corps de l’extincteur');
+    const mist = scene.getObjectByName('Saint-Clair — brume captive');
+    game.setView({effects:['fire_extinguisher_full'],levelId:'hotel',phase:'inspect'});
+    for(let i=0;i<100;i++){
+      game.update(.05);mist.updateMatrixWorld(true);body.updateMatrixWorld(true);
+      for(const puff of mist.children){const local=body.worldToLocal(puff.getWorldPosition(new THREE.Vector3()));assert.ok(Math.hypot(local.x,local.z)<.08);assert.ok(Math.abs(local.y)<.31);}
+    }
+    game.setView({effects:[],levelId:'hotel',phase:'reference'});assert.equal(mist.visible,false);assert.equal(mist.rotation.y,0);
+  });
+
   check('relay values are legible text inputs, stable on repeat, and previous textures disposed', () => {
     const display = allObjects.find(object => object.material?.map?.image?.__text?.includes('RELAIS'));
     assert.ok(display);
@@ -315,10 +365,49 @@ try {
   }
   function centerOf(object) { return new THREE.Box3().setFromObject(object).getCenter(new THREE.Vector3()); }
 
+  check('four temporal props remain inspectable in the complete scene, never move collisions and preserve A/B', () => {
+    const cases = [
+      ['bell_after_departure', [1.05,8.75], [1.95,1.23,7.95], 'bell'],
+      ['flower_afterimage', [-1.7,-4.1], [-3.30,1.15,-4.10], 'vase'],
+      ['door_future_shadow', [1.65,11.10], [3.39,1.20,11.10], 'witness-door'],
+      ['mannequin_turns', [1.6,-13.6], [3.20,1.5,-14.00], 'listening-mannequin'],
+    ];
+    for(const [effect,eye,point,target] of cases){
+      inspectFrom(effect,eye,point,target);
+      assert.equal(game.getPropTarget(),target);
+      assert.equal(game.activateProp(),true);
+      for(let i=0;i<30;i++)game.update(.05);
+      const after=game.getTemporalFrame();assert.ok(after.events.some(e=>e.target===target));
+      game.setView({effects:[],levelId:'hotel',phase:'reference',loop:0});
+      assert.equal(game.getTemporalFrame().events.length,0);
+    }
+  });
+
+  check('spoken props have unobstructed rays, a common lamp and private transcripts', () => {
+    inspectFrom('radio_future',[-1.9,7.35],[-3.03,1.35,7.35],'service-radio');
+    assert.equal(game.getPropTarget(),'service-radio');assert.equal(game.activateProp(),true);
+    for(let i=0;i<40;i++)game.update(.05);
+    assert.ok(game.getSpokenFrame().voices.some(v=>v.kind==='spoken:future'));
+    const lamp=scene.getObjectByName('Poste R9 — voyant du relais');assert.ok(lamp.material.emissiveIntensity>0);
+    for(let i=0;i<90;i++)game.update(.05);assert.equal(lamp.material.emissiveIntensity,0);
+    game.setView({effects:[],phase:'inspect',levelId:'hotel',loop:0});game.update(0);
+    assert.equal(lamp.material.emissiveIntensity,0,'Normal and affected view share the relay action');
+    assert.ok(!game.getSpokenFrame().voices.some(v=>v.kind.startsWith('spoken:')));
+    game.setView({effects:[],phase:'reference',levelId:'hotel',loop:1});game.update(0);assert.ok(lamp.material.emissiveIntensity>0);
+    inspectFrom('vent_whisper',[1.75,-3.10],[3.35,2.55,-3.10],'vent');
+    game.setSpokenIdentity('ECHO 09',true);for(let i=0;i<30;i++)game.update(.05);
+    assert.match(game.getSpokenFrame().caption,/ECH/);assert.ok(!game.getSpokenFrame().caption.includes('09'));
+    for(let i=0;i<70;i++)game.update(.05);assert.match(game.getSpokenFrame().caption,/ECHO \[espace\] 09/);
+    game.setSpokenIdentity('',false);game.update(0);assert.ok(!game.getSpokenFrame().caption.includes('ECHO'));
+  });
+
   check('all 25 clue locations are raycast-inspectable from walkable positions', () => {
     const ceiling = [[0, 5], [0, 3.45, 2], 'ceiling'];
     const cases = {
       clock_reverse: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
+      photo_age: [[-1.8, -14.2], [-3.45, 2.05, -14.2], 'aged-photo'],
+      stair_wrong_shadow: [[1.6, -7.65], [3.50, 1.85, -7.65], 'landing'],
+      paired_stars: [[-1.8, -12.25], [-3.475, 2.54, -12.25], 'stars'],
       clock_missing: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       clock_stop_gaze: [[1.8, -5.65], [3.5, 2.43, -5.65], 'clock'],
       coat_without_body: [[-2.1, -2.15], [-2.82, .75, -2.15], 'coat'],
@@ -798,6 +887,159 @@ try {
       }
     }
     game.setInput({ forward: 0, strafe: 0 }); game.setView({ effects: [], levelId: 'hotel' });
+  });
+
+  check('real acoustic props are reachable, animate on intent and preserve private sound through A/B', () => {
+    game.setObservationActive(true);
+    inspectFrom('telephone_breath', [2.4, 8.65], [2.56, 1.25, 7.65], 'phone');
+    assert.equal(game.listen(), true);
+    game.update(.05);
+    assert.equal(game.getAcousticFrame().phoneLifted, true);
+    assert.ok(game.getAcousticFrame().voices.some(v => v.kind === 'breath'));
+    const receiver = rootByLabel('Téléphone de la réception').children.find(o => o.isGroup);
+    assert.equal(receiver.position.y, .30);
+    game.setView({effects: [], levelId: 'hotel', phase: 'inspect'});game.update(0);
+    assert.equal(game.getAcousticFrame().phoneLifted, true);
+    assert.ok(!game.getAcousticFrame().voices.some(v => v.kind === 'breath'));
+    game.stopListening();game.update(0);assert.equal(receiver.position.y, .11);
+    inspectFrom('music_one_note', [-1.8, -10.10], [-3.35, 1.18, -10.10], 'music-box');
+    assert.equal(game.listen(), true);
+    for (let i=0;i<180;i++)game.update(.05);
+    assert.ok(game.getAcousticFrame().voices.some(v=>v.kind==='held-note'));
+    game.setObservationActive(false);game.update(.05);
+    assert.equal(game.getAcousticFrame().voices.length,0);
+    const angle=game.getAcousticFrame().musicAngle;
+    for(let i=0;i<50;i++)game.update(.05);
+    assert.equal(game.getAcousticFrame().musicAngle,angle);
+    assert.equal(game.listen(),false);
+    game.setObservationActive(true);
+    game.setView({effects:['rain_inside'],phase:'inspect',levelId:'hotel',loop:777});
+    game.setPose({x:0,z:2.65});game.update(.05);
+    assert.match(game.getAcousticFrame().caption,/plafond/);
+    game.setView({effects:[],phase:'reference',levelId:'hotel',loop:778});game.update(0);
+    assert.match(game.getAcousticFrame().caption,/fenêtre/);
+    assert.equal(game.getAcousticFrame().musicPlaying,false);
+    game.setView({effects:[],phase:'inspect',levelId:'cabin'});game.update(0);
+    assert.equal(game.getAcousticFrame().voices.length,0);
+    game.setView({effects:[],phase:'inspect',levelId:'hotel'});
+  });
+
+  check('optional observatory control and horizon are inspectable through the complete scene', () => {
+    game.setView({levelId:'observatory',phase:'inspect',loop:191,contextKey:'obs-local',effects:['observatory_earth']});
+    game.setActive(true);game.setObservationActive(true);game.setInput({forward:0,strafe:0});
+    const aim=(x,z,tx,ty,tz)=>{game.setPose({x,z,yaw:Math.atan2(-(tx-x),-(tz-z)),pitch:Math.atan2(ty-1.67,Math.hypot(tx-x,tz-z))});for(let i=0;i<5;i++)game.update(.016);};
+    aim(-1.9,-4.45,-3.28,1.23,-4.45);
+    assert.equal(game.getTarget()?.id,'observatory-shutters');
+    assert.equal(game.getPropTarget(),'observatory-shutters');assert.equal(game.activateProp(),true);
+    const planet=scene.getObjectByName('O9 — planète privée');
+    for(let i=0;i<32;i++)game.update(.05);
+    aim(-1.9,-7.6,-3.38,1.67,-7.6);
+    assert.equal(game.getTarget()?.id,'observatory-window');assert.equal(game.getPropTarget(),null);
+    assert.equal(planet.visible,true);assert.match(game.getInspection().lines.join(' '),/UN GRAND DISQUE/);
+    game.setQuality('low');assert.equal(planet.visible,true);
+    game.setView({levelId:'observatory',phase:'inspect',loop:191,contextKey:'obs-local',effects:[]});
+    for(let i=0;i<5;i++)game.update(.016);
+    assert.equal(planet.visible,false);assert.match(game.getInspection().lines.join(' '),/SANS GRAND DISQUE/);
+    game.setView({levelId:'observatory',phase:'reference',loop:192,contextKey:'obs-local',effects:['observatory_earth']});
+    assert.equal(planet.visible,false);for(let i=0;i<5;i++)game.update(.016);
+    assert.match(game.getInspection().lines.join(' '),/0 %/);
+    game.setView({levelId:'hotel',phase:'reference',effects:[]});game.setQuality('high');game.setActive(false);
+  });
+
+  check('observatory gallery preserves the walking route and hides its exterior outside the optional location', () => {
+    game.setView({levelId:'observatory',phase:'reference',loop:193,effects:[]});
+    game.setActive(true);game.setObservationActive(true);game.setPose({x:0,z:9,yaw:0,pitch:0});game.setInput({forward:1,strafe:0});
+    for(let i=0;i<200;i++)game.update(.05);
+    assert.ok(game.getPose().z< -10,'Entry-to-diagnostic route must remain walkable');
+    game.setInput({forward:0,strafe:0});
+    const root=scene.getObjectByName('Observatoire 09 — galerie terrestre');assert.equal(root.visible,true);
+    for(const levelId of ['hotel','metro','clinic','cabin']) {game.setView({levelId,phase:'reference',effects:[]});assert.equal(root.visible,false);}
+    game.setView({levelId:'hotel',phase:'reference',effects:[]});game.setActive(false);
+  });
+
+  check('lift button remains reachable in the complete scene and cannot trap the player behind its doors', () => {
+    game.setPeers([]);game.setSharedInteractions(null);game.setActive(true);game.setObservationActive(true);
+    game.setView({phase:'inspect',loop:91,levelId:'hotel',effects:['visitor_one_frame']});
+    game.setPose({x:-2.45,z:-13.95,yaw:0,pitch:0});game.setInput({forward:0,strafe:0});
+    scene.updateMatrixWorld(true);for(let i=0;i<4;i++)game.update(.016);
+    assert.equal(game.getTarget()?.id,'lift');assert.equal(game.getPropTarget(),'lift');assert.equal(game.activateProp(),true);
+    for(let i=0;i<4*60;i++)game.update(1/60);
+    assert.equal(scene.getObjectByName('Ascenseur — passager persistant').visible,true);
+    game.setInput({forward:1,strafe:0});for(let i=0;i<4*60;i++)game.update(1/60);
+    assert.ok(game.getPose().z>=-15.10,'Player stays in the corridor, not the moving cabin');
+    game.setInput({forward:-1,strafe:0});for(let i=0;i<60;i++)game.update(1/60);
+    assert.ok(game.getPose().z>-14,'Retreat always works');game.setInput({forward:0,strafe:0});
+    game.setView({phase:'reference',loop:92,levelId:'hotel',effects:[]});
+    assert.equal(scene.getObjectByName('Ascenseur — passager persistant').visible,false);
+  });
+
+  check('actual post-collision poses drive footsteps and lost remote snapshots suppress residual proof', () => {
+    game.setPeers([]);game.setSharedInteractions(null);game.setActive(true);game.setObservationActive(true);
+    game.setView({phase:'inspect',loop:93,levelId:'hotel',effects:['footsteps_unowned']});game.setPose({x:0,z:0,yaw:0,pitch:0});
+    game.setInput({forward:0,strafe:0});for(let i=0;i<4*60;i++)game.update(1/60);
+    assert.ok(game.getFootstepFrame().residualCount>0);
+    game.setInput({forward:1,strafe:0});game.update(.05);assert.equal(game.getFootstepFrame().residualCount,0);game.setInput({forward:0,strafe:0});
+    game.setSharedInteractions([],1000);for(let i=0;i<5*60;i++)game.update(1/60);
+    assert.equal(game.getFootstepFrame().residualCount,0);assert.match(game.getFootstepFrame().caption,/synchronisées/);
+    game.setSharedInteractions([],900);game.update(.01);assert.equal(game.getFootstepFrame().networkFresh,false,'Old poll cannot re-enable the residual proof');
+    game.setSharedInteractions(null);game.setObservationActive(false);game.update(.1);assert.equal(game.getFootstepFrame().voices.length,0);game.setObservationActive(true);
+  });
+
+  check('real scene observation timers stop behind a modal or unfocused browser', () => {
+    game.setView({ effects: ['photo_age'], phase: 'inspect', levelId: 'hotel', loop: 811 });
+    game.setActive(true); game.setPose({ x: -1.8, z: -14.2, yaw: 0, pitch: 0 });
+    game.setInput({ forward: 0, strafe: 0 });
+    const portrait = scene.getObjectByName('P9 — portrait du gardien');
+    assert.ok(portrait);
+    game.setObservationActive(false);
+    for (let i = 0; i < 500; i++) game.update(.05);
+    assert.equal(portrait.userData.age, 0, 'Modal time must not secretly age the portrait');
+    game.setObservationActive(true);
+    for (let i = 0; i < 440; i++) game.update(.05);
+    assert.ok(portrait.userData.age > .99, 'The visible inspection resumes normally');
+    game.setView({ effects: [], phase: 'reference', levelId: 'hotel', loop: 812 });
+    assert.equal(portrait.userData.age, 0);
+  });
+
+  check('C9 projects the real body without moving it and preserves neutral low-quality comparison', () => {
+    game.setIdentity({id:'shadow-self',name:'Alpha',slot:0});game.setPeers([]);game.setSharedInteractions(null);
+    game.setView({phase:'inspect',levelId:'hotel',loop:941,effects:['shadow_points']});game.setActive(true);game.setObservationActive(true);
+    game.setPose({x:-.5,z:-3.05,yaw:0,pitch:-1});game.setInput({forward:0,strafe:0});
+    for(let i=0;i<80;i++)game.update(1/60);
+    assert.equal(game.getShadowFrame().pointing,true);assert.equal(game.getShadowFrame().target.id,'training-witness-T1');
+    const body=scene.children.find(o=>o.userData.localInspector);const q=body.getObjectByName('Right shoulder').quaternion.toArray();
+    const shadow=scene.getObjectByName('C9 — projection du corps shadow-self');assert.ok(shadow.visible);
+    assert.notDeepEqual(shadow.getObjectByName('Right shoulder').quaternion.toArray(),q);
+    for(const quality of ['low','medium','high']){game.setQuality(quality);game.update(.02);assert.equal(shadow.visible,true);}
+    assert.deepEqual(body.getObjectByName('Right shoulder').quaternion.toArray(),q);
+    const before=game.getPose();game.setView({phase:'inspect',levelId:'hotel',loop:941,effects:[]});game.update(.02);
+    assert.deepEqual(game.getPose(),before);assert.deepEqual(shadow.getObjectByName('Right shoulder').quaternion.toArray(),q);
+    game.setView({phase:'reference',levelId:'hotel',loop:942,effects:['shadow_points']});game.update(.02);assert.equal(game.getShadowFrame().pointing,false);
+    game.setObservationActive(false);assert.equal(shadow.visible,false);assert.equal(body.getObjectByName('Foot contact shadow').visible,true);game.setObservationActive(true);
+  });
+
+  check('C9 sign is physically inspectable; all movement bounds survive the new station',()=>{
+    game.setView({phase:'reference',loop:943,levelId:'hotel',effects:[]});game.setActive(true);game.setObservationActive(true);game.setPeers([]);game.setSharedInteractions(null);
+    game.setPose({x:0,z:1.4,yaw:0,pitch:Math.atan2(.014-1.67,2.7)});game.setInput({forward:0,strafe:0});
+    for(let i=0;i<5;i++)game.update(.016);assert.equal(game.getTarget()?.id,'body-shadow');assert.ok(game.getInspection()?.title.includes('C9'));
+    game.setPose({x:0,z:-.9,yaw:0,pitch:0});game.setInput({forward:1,strafe:0});for(let i=0;i<60;i++)game.update(1/60);
+    assert.ok(game.getPose().z<-3,'Paint does not create a new collision');game.setInput({forward:0,strafe:0});
+  });
+
+  check('real elapsed polling age suppresses shadows and residual proof after an animation-frame stall',()=>{
+    const descriptor=Object.getOwnPropertyDescriptor(performance,'now');let now=10000;
+    Object.defineProperty(performance,'now',{value:()=>now,configurable:true});
+    try{
+      game.setView({phase:'inspect',levelId:'hotel',loop:944,effects:['shadow_points','footsteps_unowned'],contextKey:'shadow-network'});
+      game.setPose({x:-.5,z:-3.05,yaw:0,pitch:0});game.setPeers([{id:'shadow-peer',name:'Bravo',slot:1,connected:true,pose:{x:1.2,z:-3.05,yaw:0}}]);
+      game.setSharedInteractions([],100000);for(let i=0;i<70;i++){now+=16;game.update(1/60);}
+      assert.equal(game.getShadowFrame().pointing,true);
+      now+=5000;game.update(.001);assert.equal(game.getShadowFrame().pointing,false);assert.equal(game.getFootstepFrame().networkFresh,false);
+      game.setSharedInteractions([],99999);game.update(.001);assert.equal(game.getShadowFrame().reason,'synchronizing');
+      game.setSharedInteractions([],100001);for(let i=0;i<70;i++){now+=16;game.update(1/60);}
+      assert.equal(game.getShadowFrame().pointing,true);
+      game.setPeers([{id:'shadow-peer',name:'Bravo',slot:1,connected:false,pose:{x:1.2,z:-3.05}}]);game.update(.02);assert.equal(game.getShadowFrame().pointing,false);
+    }finally{if(descriptor)Object.defineProperty(performance,'now',descriptor);else delete performance.now;game.setPeers([]);game.setSharedInteractions(null);}
   });
 
   check('quality caps, peer cleanup and ready callback are consistent', () => {
