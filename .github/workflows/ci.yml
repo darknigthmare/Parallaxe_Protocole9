@@ -51,6 +51,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Vérifier les règles et les projections privées
         run: npm test
+      - name: Vérifier l’adaptateur Vercel et les révisions du stockage REST
+        run: npm run test:vercel
       - name: Vérifier les géométries et les changements de lieu
         run: npm run test:scene
       - name: Vérifier le chalet et la voûte du métro

@@ -30,7 +30,9 @@
     "test:session-actions": "node tests/session-actions.test.mjs",
     "test:session-adapters": "node tests/session-adapters.test.mjs",
     "test:session-client": "node tests/session-scope.test.mjs",
-    "test:movement": "node tests/movement-input.test.mjs"
+    "test:movement": "node tests/movement-input.test.mjs",
+    "build:vercel": "vite build --config standalone/vite.config.ts",
+    "test:vercel": "node tests/vercel-session.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
