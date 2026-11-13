@@ -2,6 +2,10 @@ import type {IncomingMessage,ServerResponse} from 'node:http';
 import {createSessionHandlers} from '../src/vercel/session-handler';
 import {createSupabaseSessionStore} from '../src/vercel/supabase-store';
 
+// Preserve the raw stream for the same strict JSON and 16 KiB checks as the
+// portable/D1 targets instead of letting the platform consume it first.
+export const config={api:{bodyParser:false}};
+
 // This adapter is intentionally separate from the Cloudflare D1 and portable
 // Node targets. The browser and authoritative game domain remain unchanged.
 export default async function handler(incoming:IncomingMessage,outgoing:ServerResponse){
