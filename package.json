@@ -3,7 +3,7 @@
   "version": "0.4.1",
   "private": true,
   "engines": {
-    "node": ">=22.13.0"
+    "node": "24.x"
   },
   "scripts": {
     "install:ci": "node scripts/install-ci.mjs",
@@ -30,7 +30,9 @@
     "test:session-actions": "node tests/session-actions.test.mjs",
     "test:session-adapters": "node tests/session-adapters.test.mjs",
     "test:session-client": "node tests/session-scope.test.mjs",
-    "test:movement": "node tests/movement-input.test.mjs"
+    "test:movement": "node tests/movement-input.test.mjs",
+    "build:vercel": "node scripts/build-vercel.mjs",
+    "test:vercel": "node tests/vercel-session.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
