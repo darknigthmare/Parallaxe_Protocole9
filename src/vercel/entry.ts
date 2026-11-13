@@ -1,10 +1,6 @@
 import type {IncomingMessage,ServerResponse} from 'node:http';
-import {createSessionHandlers} from '../src/vercel/session-handler';
-import {createSupabaseSessionStore} from '../src/vercel/supabase-store';
-
-// Preserve the raw stream for the same strict JSON and 16 KiB checks as the
-// portable/D1 targets instead of letting the platform consume it first.
-export const config={api:{bodyParser:false}};
+import {createSessionHandlers} from './session-handler';
+import {createSupabaseSessionStore} from './supabase-store';
 
 // This adapter is intentionally separate from the Cloudflare D1 and portable
 // Node targets. The browser and authoritative game domain remain unchanged.
@@ -24,7 +20,14 @@ export default async function handler(incoming:IncomingMessage,outgoing:ServerRe
     const storeToken=process.env.PARALLAXE_STORE_TOKEN;
     if(!url||!publishableKey||!storeToken)return send(Response.json({error:'Le service coopératif est temporairement indisponible. Le mode solo reste jouable.'},{status:503,headers}));
     const chunks:Buffer[]=[];let bytes=0;
-    if(incoming.method==='POST')for await(const chunk of incoming){
+    // Vercel's Node helpers may provide an already parsed body. Support that
+    // boundary as well as the raw stream without changing the game protocol.
+    const parsed=(incoming as IncomingMessage&{body?:unknown}).body;
+    if(incoming.method==='POST'&&parsed!==undefined){
+      const buffer=Buffer.isBuffer(parsed)?parsed:Buffer.from(typeof parsed==='string'?parsed:JSON.stringify(parsed));
+      if(buffer.length>16384)return send(Response.json({error:'Transmission trop longue.'},{status:413,headers}));
+      chunks.push(buffer);
+    }else if(incoming.method==='POST')for await(const chunk of incoming){
       const buffer=Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk);bytes+=buffer.length;
       if(bytes>16384)return send(Response.json({error:'Transmission trop longue.'},{status:413,headers}));
       chunks.push(buffer);

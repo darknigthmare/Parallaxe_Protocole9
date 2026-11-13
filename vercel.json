@@ -5,8 +5,9 @@
   "outputDirectory": "standalone-dist",
   "installCommand": "npm ci",
   "functions": {
-    "api/session.ts": {
-      "maxDuration": 30
+    "api/session.js": {
+      "maxDuration": 30,
+      "includeFiles": "build-server/session.cjs"
     }
   },
   "headers": [
