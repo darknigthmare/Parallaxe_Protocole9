@@ -2,7 +2,7 @@ name: Vérifier PARALLAXE
 
 on:
   push:
-    branches: [main]
+    branches: [main, continuation/observations-20261110]
   pull_request:
   workflow_dispatch:
 
