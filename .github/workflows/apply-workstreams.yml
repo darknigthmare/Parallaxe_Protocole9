@@ -29,6 +29,7 @@ jobs:
           git merge-base --is-ancestor 46f0d60c0b04c89d555c62020641737f3138bbbc HEAD
           python3 .delivery/chantiers/apply.py | tee "$RUNNER_TEMP/workstreams-proof/restoration.json"
           python3 .delivery/chantiers/overlay.py | tee "$RUNNER_TEMP/workstreams-proof/recovery.log"
+          python3 .delivery/chantiers/harden.py | tee "$RUNNER_TEMP/workstreams-proof/hardening.log"
           python3 scripts/validate-open-workbook.py | tee "$RUNNER_TEMP/workstreams-proof/workbook.json"
       - run: npm ci
       - name: Typage et suites complètes
@@ -55,7 +56,7 @@ jobs:
           git add AGENTS.md README.md package.json app docs scripts src/game tests
           git rm -r .delivery/chantiers
           if git diff --cached --name-only | grep -q '^.github/'; then exit 1; fi
-          git commit -m 'feat: recover controller menus, portable solo checkpoints and private-safe performance capture'
+          git commit -m 'feat: recover controller menus, validated solo checkpoints and private-safe performance capture'
           git push origin HEAD:refs/heads/continuation/observations-20261110
           git rev-parse HEAD > "$RUNNER_TEMP/workstreams-proof/COMMIT.txt"
           git archive --format=tar.gz --output="$RUNNER_TEMP/workstreams-proof/PARALLAXE_sources.tar.gz" HEAD
