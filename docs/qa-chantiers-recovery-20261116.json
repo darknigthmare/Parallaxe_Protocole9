@@ -1,0 +1,23 @@
+{
+  "schema": "parallaxe-ci-evidence-v1",
+  "date": "2026-11-16",
+  "scope": "Recovery verification of the applied source commit before removal of the temporary workflow. The final branch commit needs its own permanent CI result.",
+  "source_commit": "bc8294538bb53b68c93e44798826196db3224705",
+  "workflow_trigger_commit": "d662e609ed1bebdcece770abb387700579580905",
+  "workflow_run": 43801010215,
+  "workflow_url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/43801010215",
+  "artifact_id": 14195514232,
+  "checks": {"domain":175,"workstreams":51,"accessibility":24,"scene_cpu":52,"cabin_cpu":9,"inspection":13,"observations":17,"acoustic":23,"temporal":25,"lift":18,"spoken":22,"shadow":15,"observatory":13,"radio":42,"radio_ui":16,"radio_config":59,"tooling":18},
+  "named_game_tests":574,
+  "named_tooling_tests":18,
+  "typecheck":"passed",
+  "hosted_build":"passed",
+  "local_build":"passed",
+  "extracted_archive_server":"passed",
+  "workbook":"docs/PARALLAXE_Suivi_Courant_2026-11-12_Chantiers.xlsx",
+  "workbook_validation":"CRC/XML, cached formulas, 600 keys, 28 workstreams and original A/B design checked",
+  "portable_sha256":"d12ce8e8ec4b4ba620caef2e772757b0e16341a08ee48579199b3dcec8da2f4a",
+  "sources_sha256":"644ae5a115e67ab901c430f1efaf2dc3ae2f5847dd7f03ccd1aae52abdb1f702",
+  "dirty":false,
+  "limits":["No physical GPU or pixel validation","No physical controller or microphone test","No restrictive-network TURN or human multiplayer test","Windows launcher remains unverified","119 of 120 anomaly concepts in code does not mean the 600 tracked items are closed"]
+}
