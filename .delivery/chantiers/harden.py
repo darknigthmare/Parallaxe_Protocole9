@@ -8,7 +8,7 @@ def read(name,expected):
     assert sha256(b).hexdigest()==expected, 'Source drift: '+name
     return p,b.decode('utf8')
 def one(s,old,new):
-    assert s.count(old)==1, 'Missing or ambiguous replacement'
+    assert s.count(old)==1, 'Missing or ambiguous replacement: '+old
     return s.replace(old,new)
 
 p,s=read('src/game/gamepad-menu.ts','7f24662dcc7e8d54b3c010be2c5626e65499c741ffbb4d8787e8321dbb11d786')
@@ -17,9 +17,9 @@ p.write_text(s)
 
 p,s=read('src/game/training-backup.ts','155e390af84f088d85acc460a411912f46cfa49d8492e0ae36c8a3210602e3d0')
 s=one(s,"!['campaign','single'].includes(String(p.mode))||!isLevelId(p.levelId)||!['standard','relaxed'].includes(String(p.difficulty))", "(p.mode!=='campaign'&&p.mode!=='single')||!isLevelId(p.levelId)||(p.difficulty!=='standard'&&p.difficulty!=='relaxed')")
-s=one(s,'!ANOMALY_BY_ID[id]','!Object.hasOwn(ANOMALY_BY_ID,id)')
-s=one(s,'!!ANOMALY_BY_ID[id]','!!Object.hasOwn(ANOMALY_BY_ID,id)')
-s=one(s,'&&ANOMALY_BY_ID[x]','&&Object.hasOwn(ANOMALY_BY_ID,x)')
+s=one(s,"typeof id!=='string'||!ANOMALY_BY_ID[id]", "typeof id!=='string'||!Object.hasOwn(ANOMALY_BY_ID,id)")
+s=one(s,'known.filter(id=>!!ANOMALY_BY_ID[id])','known.filter(id=>!!Object.hasOwn(ANOMALY_BY_ID,id))')
+s=one(s,"typeof x==='string'&&!!ANOMALY_BY_ID[x]", "typeof x==='string'&&Object.hasOwn(ANOMALY_BY_ID,x)")
 s=one(s,"typeof text!=='string'||text.length>BACKUP_LIMIT", "typeof text!=='string'||(text.length>BACKUP_LIMIT||new TextEncoder().encode(text).byteLength>BACKUP_LIMIT)")
 p.write_text(s)
 
