@@ -58,6 +58,8 @@ def populate(wb, root, tracker):
     sheet.get_range('E40:E42').set_number_format('0.0%')
     sheet.get_range('F40:F42').set_number_format('#,##0')
     sheet.get_range('A39:F42').format.row_height=28
+    sheet.get_range('A39:A42').format.wrap_text=True
+    sheet.get_range('A40:F42').format.row_height=44
     sheet.merge_cells('A44:H44');sheet.get_range('A44').values=[['Sources : docs/reprise-scenes-20261116.json ; docs/scene-inventory-20261116.json ; docs/QA_SCENES_LIVRAISON_20261116.md']]
     sheet.get_range('A44:H44').format.wrap_text=True;sheet.get_range('A44:H44').format.row_height=32
     sheet.freeze_panes.freeze_rows(5);sheet.freeze_panes.freeze_columns(2)
