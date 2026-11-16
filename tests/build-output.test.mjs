@@ -1,0 +1,21 @@
+/** Test built distributions before the next build replaces standalone-dist. */
+import assert from 'node:assert/strict';
+import { readFile,readdir } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
+const target=process.argv[2];assert.ok(['vercel','portable'].includes(target));
+const version=JSON.parse(await readFile('package.json','utf8')).version;
+const commit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+const identity=JSON.parse(await readFile('standalone-dist/build-info.json','utf8'));
+assert.deepEqual(identity,{schema:'parallaxe-build-v1',game:'parallaxe-protocole-9',version,target,commit});
+const downloads=await readdir('standalone-dist/downloads');
+assert.ok(downloads.includes('PARALLAXE_Design_Complet.xlsx'));
+assert.equal(downloads.some(name=>/^PARALLAXE_(?:(?:Jeu_PC_LAN|Sources)_v.*\.zip|v.*_(?:manifest\.json|COMMIT\.txt|SHA256SUMS\.txt))$/.test(name)),false,'Historical release bytes must not survive a fresh build');
+const html=await readFile('standalone-dist/index.html','utf8');
+const names=[...html.matchAll(/src="(\/assets\/[^\"]+\.js)"/g)].map(x=>x[1]);assert.ok(names.length);
+const js=(await Promise.all(names.map(name=>readFile(join('standalone-dist',name),'utf8')))).join('\n');
+assert.ok(js.includes('/build-info.json'));
+assert.ok(!js.includes('/downloads/PARALLAXE_Jeu_PC_LAN_v0.4.1.zip'),'No hardcoded old PC download in the application');
+if(target==='vercel')assert.ok((await readFile('build-server/session.cjs','utf8')).length>0);
+else assert.ok((await readFile('standalone-dist/server/session.mjs','utf8')).length>0);
+console.log(JSON.stringify({buildOutput:'passed',target,commit,checks:['exact public identity','historical download cleanup','compiled version-bound links','distribution server present']}));

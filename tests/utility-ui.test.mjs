@@ -5,8 +5,8 @@ import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';import {tmpdir} f
 const temp=await mkdtemp(join(tmpdir(),'p9-utility-ui-'));
 const hooks=`let cells=[],index=0,effects=[],cleanup=[];export function reset(){for(const c of cleanup)c?.();cells=[];index=0;effects=[];cleanup=[];}export function begin(){index=0;}export function flush(){for(const f of effects.splice(0))f();}export function unmount(){for(const c of cleanup)c?.();cleanup=[];}export function useState(v){const n=index++;if(!(n in cells))cells[n]=typeof v==='function'?v():v;return [cells[n],v=>{cells[n]=typeof v==='function'?v(cells[n]):v;}];}export function useRef(v){const n=index++;if(!(n in cells))cells[n]={current:v};return cells[n];}export function useEffect(fn,deps){const n=index++,old=cells[n];if(!old||deps?.some((v,i)=>v!==old[i])){cells[n]=deps;effects.push(()=>{cleanup[n]?.();cleanup[n]=fn();});}}export function h(type,props,...children){return {type,props:{...props,children}};}`;
 await writeFile(join(temp,'hooks.mjs'),hooks);
-for(const name of ['levels','catalog','rules','training-backup','performance-capture']){let s=(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'));s=ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(temp,name+'.mjs'),s);}
-for(const name of ['training-storage','performance-settings']){let s=ts.transpileModule(await readFile(new URL(`../app/${name}.tsx`,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'h'}}).outputText.replace(/from ['"]react['"]/g,"from './hooks.mjs'").replace(/from ['"]@\/src\/game\/([^'"]+)['"]/g,"from './$1.mjs'").replace(/from ['"]\.\/training-storage['"]/g,"from './training-storage.mjs'");await writeFile(join(temp,name+'.mjs'),"import {h} from './hooks.mjs';\n"+s);}
+for(const name of ['levels','catalog','rules','training-backup','performance-capture','release-downloads']){let s=(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'));s=ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(temp,name+'.mjs'),s);}
+for(const name of ['training-storage','performance-settings','release-downloads']){let s=ts.transpileModule(await readFile(new URL(`../app/${name}.tsx`,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'h'}}).outputText.replace(/from ['"]react['"]/g,"from './hooks.mjs'").replace(/from ['"]@\/src\/game\/([^'"]+)['"]/g,"from './$1.mjs'").replace(/from ['"]\.\/training-storage['"]/g,"from './training-storage.mjs'");await writeFile(join(temp,name==='release-downloads'?'release-downloads-ui.mjs':name+'.mjs'),"import {h} from './hooks.mjs';\n"+s);}
 const hook=await import(pathToFileURL(join(temp,'hooks.mjs'))),{TrainingStorage}=await import(pathToFileURL(join(temp,'training-storage.mjs'))),{PerformanceSettings}=await import(pathToFileURL(join(temp,'performance-settings.mjs')));
 const {PerformanceCapture}=await import(pathToFileURL(join(temp,'performance-capture.mjs'))),{createTrainingBackup}=await import(pathToFileURL(join(temp,'training-backup.mjs'))),{createRun}=await import(pathToFileURL(join(temp,'rules.mjs')));
 const previousStorage=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
@@ -29,10 +29,27 @@ test('real performance panel disables capture outside reference and only exports
 
 
 test('all new UI modules and Game have no TypeScript/JSX syntax diagnostics',async()=>{
-  for(const name of ['controller-navigation','training-storage','performance-settings','game']){
+  for(const name of ['controller-navigation','training-storage','performance-settings','release-downloads','game']){
     const source=await readFile(new URL(`../app/${name}.tsx`,import.meta.url),'utf8');
     const result=ts.transpileModule(source,{fileName:name+'.tsx',reportDiagnostics:true,compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}});
     const errors=(result.diagnostics??[]).filter(d=>d.category===ts.DiagnosticCategory.Error);
     assert.deepEqual(errors.map(d=>ts.flattenDiagnosticMessageText(d.messageText,' ')),[],name);
   }
+});
+
+
+test('actual downloads panel displays only the matching build and drops responses after unmount',async()=>{
+  const {ReleaseDownloads}=await import(pathToFileURL(join(temp,'release-downloads-ui.mjs')));
+  const previous=globalThis.fetch;
+  const render=()=>{hook.begin();const tree=ReleaseDownloads();hook.flush();return tree;};
+  try{
+    hook.reset();globalThis.fetch=async()=>Response.json({schema:'parallaxe-build-v1',game:'parallaxe-protocole-9',version:'0.4.1',target:'vercel',commit:'a'.repeat(40)});
+    render();for(let i=0;i<30;i++)await Promise.resolve();
+    let tree=render();assert.ok(all(tree).some(n=>n.type==='a'&&n.props.href.includes('/archive/'+ 'a'.repeat(40))));
+    assert.ok(all(tree).some(n=>label(n).includes('aaaaaaaaaaaa')));hook.reset();
+    let resolve;globalThis.fetch=()=>new Promise(r=>resolve=r);render();hook.unmount();
+    resolve(Response.json({schema:'parallaxe-build-v1',game:'parallaxe-protocole-9',version:'0.4.1',target:'vercel',commit:'b'.repeat(40)}));
+    for(let i=0;i<30;i++)await Promise.resolve();
+    tree=render();assert.ok(!all(tree).some(n=>n.type==='a'&&n.props.href.includes('/archive/')));
+  }finally{hook.reset();globalThis.fetch=previous;}
 });

@@ -1,3 +1,14 @@
+# État courant — reprise du 16 novembre 2026
+
+Le jeu et son hébergement persistant sont réunis sur **main** (PR #5 fusionnée). **119/120 concepts, cinq lieux, 600 entrées de suivi ; recettes matérielles toujours ouvertes.**
+
+- Jeu : https://parallaxe-protocole-9.vercel.app/ ; launcher : https://launcher-applications.vercel.app/.
+- Archives du jeu : identité de build, sources du commit exact et vérifications GitHub de ce commit. Les paquets PC/LAN sont les artefacts CI réussis, pas les anciens ZIP à nom 0.4.1. Les artefacts nécessitent une connexion GitHub et expirent après 14 jours.
+- Métro, clinique, Chalet et Observatoire sont construits à leur première visite, puis réutilisés sans baisse de détail. L’inventaire CPU de démarrage diminue ; aucun gain de FPS ou de mémoire GPU n’est certifié.
+- Suivi de cette reprise : `docs/reprise-scenes-20261116.json`, `docs/QA_SCENES_LIVRAISON_20261116.md` et le classeur `docs/PARALLAXE_Suivi_Reprise_2026-11-16_Scenes.xlsx`.
+
+Les paragraphes datés ci-dessous sont des archives. Les versions, comptes et liens historiques qu’ils contiennent ne remplacent pas l’identité du build courant.
+
 ## Reprise chantiers — 12 novembre 2026
 Catalogue conservé à **119/120**. Le nouveau lot ajoute la navigation des menus au **pad standard**, un **clavier virtuel**, l’**export/import de paliers solo** (aperçu, confirmation et copie précédente) et un **capteur de performances local** utilisable seulement pendant une référence solo. Voir [recette et limites](docs/QA_CHANTIERS_20261112.md) et [revue des 28 lots](docs/CHANTIERS_20261112.md). Le chemin du classeur courant est donné par `docs/parallaxe-open-work-20261101.json`.
 

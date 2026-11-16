@@ -30,3 +30,19 @@ test('the writer produces a bounded JSON file without exporting unrelated enviro
     await rm(folder,{recursive:true,force:true});
   }
 });
+
+test('built download cleanup removes stale release metadata and ZIPs but keeps design and unrelated assets', async()=>{
+  const {mkdir,readdir}=await import('node:fs/promises');
+  const {cleanBuiltDownloads}=await import('../scripts/build-info.mjs');
+  const root=await mkdtemp(join(tmpdir(),'p9-clean-downloads-'));
+  try{
+    await cleanBuiltDownloads(root);
+    const downloads=join(root,'downloads');await mkdir(downloads);
+    const stale=['PARALLAXE_Jeu_PC_LAN_v0.4.1.zip','PARALLAXE_Sources_v0.4.1.zip','PARALLAXE_v0.4.1_COMMIT.txt','PARALLAXE_v0.4.1_manifest.json','PARALLAXE_v0.4.1_SHA256SUMS.txt'];
+    const keep=['PARALLAXE_Design_Complet.xlsx','instructions.txt','poster.png'];
+    for(const name of [...stale,...keep])await writeFile(join(downloads,name),name);
+    await cleanBuiltDownloads(root);await cleanBuiltDownloads(root);
+    assert.deepEqual((await readdir(downloads)).sort(),keep.sort());
+    for(const name of keep)assert.equal(await readFile(join(downloads,name),'utf8'),name);
+  }finally{await rm(root,{recursive:true,force:true});}
+});
