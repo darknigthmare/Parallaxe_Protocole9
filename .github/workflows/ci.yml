@@ -49,6 +49,8 @@ jobs:
         run: npm ci
       - name: Vérifier les workflows locaux et le préparateur IA
         run: npm run test:skills
+      - name: Vérifier les téléchargements liés au commit
+        run: npm run test:downloads
       - name: Vérifier TypeScript
         run: npx tsc --noEmit
       - name: Vérifier les règles et les projections privées
@@ -80,7 +82,9 @@ jobs:
       - name: Vérifier le cinquième lieu, les volets partagés et le ciel privé
         run: npm run test:observatory
       - name: Vérifier le suivi courant et les sources A/B
-        run: python3 scripts/validate-open-workbook.py
+        run: |
+          python3 scripts/validate-open-workbook.py
+          python3 scripts/validate-reprise-scenes-workbook.py
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
@@ -90,10 +94,14 @@ jobs:
       - name: Compiler le site et le Worker hébergés
         run: npm run build
       - name: Compiler la version publique Vercel
-        run: npm run build:vercel
+        run: |
+          npm run build:vercel
+          node tests/build-output.test.mjs vercel
       # Both builds reset standalone-dist; build local last to retain its server.
       - name: Compiler l’édition indépendante
-        run: npm run build:local
+        run: |
+          npm run build:local
+          node tests/build-output.test.mjs portable
       - name: Construire les ZIP PC et sources de cette révision
         run: npm run package:release
       - name: Vérifier et lancer le paquet PC depuis son ZIP extrait
