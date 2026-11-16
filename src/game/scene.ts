@@ -66,7 +66,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const hotelLights = new THREE.Group(); hotelLights.name = 'Éclairage Saint-Clair'; scene.add(hotelLights);
   const commonWorld = new THREE.Group(); commonWorld.name = 'Effets communs aux quatre lieux'; scene.add(commonWorld);
   let levelId: LevelId = 'hotel';
-  let extraWorlds: Record<Exclude<LevelId, 'hotel'>, LocationWorld>;
+  const extraWorlds: Partial<Record<Exclude<LevelId, 'hotel'>, LocationWorld>> = {};
   const textures: THREE.Texture[] = [];
   const targets: THREE.Object3D[] = [];
   const lightSources: { light: THREE.PointLight | THREE.SpotLight; base: number; color: THREE.Color }[] = [];
@@ -911,11 +911,13 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const particleGeometry = new THREE.BufferGeometry(); particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
   const particles = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0xb9c5ad, size: .014, transparent: true, opacity: .30, depthWrite: false, sizeAttenuation: true })); scene.add(particles);
   const flashlight = new THREE.SpotLight(0xf1e8d2, 0, 19, .37, .45, 1.4); flashlight.position.copy(camera.position); scene.add(flashlight, flashlight.target);
-  extraWorlds = { metro: createLocation('metro'), clinic: createLocation('clinic'), cabin: createLocation('cabin'), observatory: createLocation('observatory') };
-  for (const location of Object.values(extraWorlds)) { scene.add(location.root); location.root.visible = false; targets.push(...location.targets); }
-  const reflectors = [mirror, hotelWindowGlass, ...Object.values(extraWorlds).flatMap(location => location.reflectors)];
+  // Keep the hotel entry ready; optional worlds are built only at first visit.
+  // Returning reuses their objects, preserving geometry and avoiding duplicate targets.
+  const reflectors: Reflector[] = [];
   let reflectionDepth = 0;
-  for (const reflector of reflectors) {
+  function configureReflector(reflector: Reflector) {
+    reflectors.push(reflector);
+    resizeReflector(reflector);
     reflector.getReflectionCamera(camera).layers.enable(1);
     const capture = reflector.onBeforeRender;
     reflector.userData.reflectiveSurface = true;
@@ -952,6 +954,21 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       }
     };
   }
+  configureReflector(mirror); configureReflector(hotelWindowGlass);
+  function ensureLocation(id: Exclude<LevelId, 'hotel'>): LocationWorld {
+    const existing = extraWorlds[id];
+    if (existing) return existing;
+    const location = createLocation(id);
+    extraWorlds[id] = location;
+    location.root.visible = false;
+    scene.add(location.root); targets.push(...location.targets);
+    for (const reflector of location.reflectors) configureReflector(reflector);
+    return location;
+  }
+  function resizeReflector(surface: Reflector) {
+    surface.getRenderTarget().setSize(quality === 'high' ? 512 : quality === 'medium' ? 256 : 128,
+      quality === 'high' ? 768 : quality === 'medium' ? 384 : 192);
+  }
   tag(selfAvatar.root, 'player', 'Votre tenue d’inspection', { kind: 'self', id: selfIdentity.id });
   tag(selfAvatar.radio, 'radio', 'Votre talkie-walkie');
   tag(doubleAvatar.root, 'player', 'Un inspecteur en trop', { kind: 'double', id: selfIdentity.id });
@@ -966,7 +983,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     if (x < -3.32 || x > 3.32 || z < -15.10 || z > 11.3) return false;
     if (Math.abs(x - 2.05) < .43 && Math.abs(z - 4.40) < .43) return false;
     if (witnessCenters.some(center => Math.abs(x - center.x) < .35 && Math.abs(z - center.z) < .35)) return false;
-    const currentObstacles = levelId === 'hotel' ? occluders : extraWorlds[levelId].colliders;
+    const currentObstacles = levelId === 'hotel' ? occluders : ensureLocation(levelId).colliders;
     for (const c of currentObstacles) {
       if (effects.has('trolley_missing') && c.x === 2.66 && c.z === -3.76) continue;
       if (effects.has('chair_float') && c.x === -2.53 && c.z === 2.65) continue;
@@ -975,11 +992,18 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     return true;
   }
   function applyView(view: PersonalView) {
-    if ((view.contextKey??'') !== motionContextKey) {motionContextKey=view.contextKey??'';lastMotionServerTime=-1;motionSnapshotAge=0;lastMotionReceipt=performance.now();}
-    phase = view.phase || phase; loop = view.loop || 0;
+    if (disposed) return;
+    const contextChanged = (view.contextKey??'') !== motionContextKey;
+    if (contextChanged) {
+      motionContextKey=view.contextKey??'';lastMotionServerTime=-1;motionSnapshotAge=0;lastMotionReceipt=performance.now();
+      target=null;poseHistory.length=0;environmentKey='';
+    }
+    const nextPhase = view.phase || phase, nextLoop = view.loop || 0;
+    if (nextPhase !== phase || nextLoop !== loop) target = null;
+    phase = nextPhase; loop = nextLoop;
     effects = new Set((phase === 'reference' ? [] : view.effects || []).filter(e => (SCENE_EFFECTS as readonly string[]).includes(e)));
     const nextLevel = isLevelId(view.levelId) ? view.levelId : levelId;
-    if (nextLevel !== levelId) { levelId = nextLevel; pose.x = 0; pose.z = 9; pose.yaw = 0; pose.pitch = 0; poseHistory.length = 0; }
+    if (nextLevel !== levelId) { levelId = nextLevel; pose.x = 0; pose.z = 9; pose.yaw = 0; pose.pitch = 0; poseHistory.length = 0; target = null; }
     const nextEnvironmentKey = `${levelId}:${phase}:${loop}:${[...effects].sort().join(',')}`;
     if (nextEnvironmentKey !== environmentKey) {
       environmentKey = nextEnvironmentKey; environmentStarted = elapsed;
@@ -995,7 +1019,14 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     temporalWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     spokenWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
     shadowWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
-    for (const location of Object.values(extraWorlds)) { location.root.visible = location.id === levelId; location.setView(effects, view.relayCode || '0909'); if('setOpening' in location)location.setOpening(temporalWorld.snapshot().shutterOpening); }
+    const currentLocation = levelId === 'hotel' ? null : ensureLocation(levelId);
+    for (const location of Object.values(extraWorlds)) location.root.visible = location === currentLocation;
+    // Do not regenerate hidden worlds' relay textures or touch their clues.
+    // Every visit reapplies the complete current view before the first render.
+    if (currentLocation) {
+      currentLocation.setView(effects, view.relayCode || '0909');
+      if ('setOpening' in currentLocation) currentLocation.setOpening(temporalWorld.snapshot().shutterOpening);
+    }
     for (const [key, object] of anomalyRoots) object.visible = effects.has(key);
     reflectedDoor.visible = false;
     updateEnvironment(elapsed - environmentStarted);
@@ -1064,7 +1095,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     renderer.shadowMap.enabled = q !== 'low';
     moon.shadow.mapSize.set(q === 'high' ? 2048 : 1024, q === 'high' ? 2048 : 1024);
     if (moon.shadow.map) { moon.shadow.map.dispose(); moon.shadow.map = null; }
-    for (const surface of reflectors) surface.getRenderTarget().setSize(q === 'high' ? 512 : q === 'medium' ? 256 : 128, q === 'high' ? 768 : q === 'medium' ? 384 : 192);
+    for (const surface of reflectors) resizeReflector(surface);
     particles.visible = q !== 'low'; currentWidth = 0;
   }
   function createPeer(id: string, name: string, slot: number, color?: number) {
@@ -1186,7 +1217,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     flashlight.position.copy(camera.position); flashlight.position.y -= .12;
     camera.getWorldDirection(vector); flashlight.target.position.copy(camera.position).addScaledVector(vector, 8);
     particles.rotation.y = Math.sin(elapsed * .02) * .01;
-    if (levelId !== 'hotel') extraWorlds[levelId].update(elapsed);
+    if (levelId !== 'hotel') ensureLocation(levelId).update(elapsed);
     if (levelId === 'hotel') inspectionProps.update(elapsed);
     observationWorld.update(dt, pose, active && observationActive);
     acoustics.update(dt, pose, active && observationActive);
@@ -1195,7 +1226,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       active && observationActive, !sharedMotion || motionSnapshotAge < 1.75);
     temporalWorld.update(dt, active && observationActive);
     const observatory=extraWorlds.observatory;
-    if('setOpening' in observatory)observatory.setOpening(temporalWorld.snapshot().shutterOpening);
+    if(levelId === 'observatory' && observatory && 'setOpening' in observatory)observatory.setOpening(temporalWorld.snapshot().shutterOpening);
     spokenWorld.update(dt,pose,active&&observationActive,temporalWorld.snapshot());
     const acousticFrame = acoustics.snapshot();
     musicLid.rotation.x = acousticFrame.musicPlaying ? -1.12 : 0;
@@ -1260,8 +1291,11 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     });
     function count(group: THREE.Object3D) { let total = 0; group.traverse(object => { const m = object as THREE.Mesh; if (m.isMesh) total += (m.geometry.index?.count || m.geometry.attributes.position?.count || 0) / 3; }); return Math.round(total); }
     const common = count(commonWorld);
-    const levelTriangles = { hotel: count(world) + common, metro: count(extraWorlds.metro.root) + common, clinic: count(extraWorlds.clinic.root) + common, cabin: count(extraWorlds.cabin.root) + common, observatory: count(extraWorlds.observatory.root) + common };
-    return { sceneTriangles: Math.round(triangles), meshes, levelId, levelTriangles, activeLevelTriangles: levelTriangles[levelId], inspectorTriangles: count(selfAvatar.root), reflectiveSurfaces: reflectors.length, activeReflectiveSurfaces: 2, drawCalls: renderer.info.render.calls, renderedTriangles: renderer.info.render.triangles, quality, supportedEffects: [...SCENE_EFFECTS] };
+    // null means not constructed, never a claimed zero-cost world.
+    const levelTriangles: Record<LevelId, number | null> = { hotel: count(world) + common, metro: null, clinic: null, cabin: null, observatory: null };
+    for (const location of Object.values(extraWorlds)) levelTriangles[location.id] = count(location.root) + common;
+    const loadedLevels: LevelId[] = ['hotel', ...Object.keys(extraWorlds) as Exclude<LevelId, 'hotel'>[]];
+    return { sceneTriangles: Math.round(triangles), meshes, levelId, loadedLevels, levelTriangles, activeLevelTriangles: levelTriangles[levelId], inspectorTriangles: count(selfAvatar.root), reflectiveSurfaces: reflectors.length, activeReflectiveSurfaces: 2, drawCalls: renderer.info.render.calls, renderedTriangles: renderer.info.render.triangles, quality, supportedEffects: [...SCENE_EFFECTS] };
   }
   function getInspection() {
     const observed = target;
@@ -1276,7 +1310,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       }
       if (model) return { title: observed.id === 'mirror' ? 'Badge dans le miroir' : 'Badge physique', location: observed.label, lines: model.badge.userData.code ? [`INSPECTEUR ${model.badge.userData.code}`, 'PARALLAXE'] : ['PLAQUE VIERGE'] };
     }
-    return levelId === 'hotel' ? shadowWorld.getReading(observed?.id) ?? observationWorld.getReading(observed?.id) ?? inspectionProps.getReading(observed?.id) : extraWorlds[levelId].getReading(observed);
+    return levelId === 'hotel' ? shadowWorld.getReading(observed?.id) ?? observationWorld.getReading(observed?.id) ?? inspectionProps.getReading(observed?.id) : ensureLocation(levelId).getReading(observed);
   }
   function dispose() {
     if (disposed) return; disposed = true; alive = false;

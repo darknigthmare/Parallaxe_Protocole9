@@ -24,6 +24,7 @@ const originalCapture = globalThis.__parallaxeGeometryRenderer;
 const passed = [];
 let game;
 let finalStats;
+let entryStats;
 
 function check(name, callback) {
   callback();
@@ -109,8 +110,68 @@ try {
   game.update(0);
   const renderer = globalThis.__parallaxeGeometryRenderer;
   const scene = renderer.scene;
+  check('entry constructs only Saint-Clair; other worlds remain unallocated until visited', () => {
+    const stats=game.getStats();entryStats=stats;
+    assert.deepEqual(stats.loadedLevels,['hotel']);
+    assert.equal(stats.reflectiveSurfaces,2);
+    for(const id of ['metro','clinic','cabin','observatory'])assert.equal(stats.levelTriangles[id],null);
+  });
+  check('first visit builds only that location, retains quality and reuses its resources on return', () => {
+    const expected=['hotel'];
+    game.setQuality('low');
+    for(const id of ['metro','clinic','cabin','observatory']){
+      const before=game.getStats();
+      game.setView({phase:'reference',levelId:id,effects:[],contextKey:'lazy-'+id});game.update(0);
+      expected.push(id);
+      const stats=game.getStats();
+      assert.deepEqual(stats.loadedLevels,expected);
+      assert.equal(stats.reflectiveSurfaces,expected.length*2);
+      assert.ok(stats.levelTriangles[id]>0);assert.ok(stats.sceneTriangles>before.sceneTriangles);
+      const surfaces=[];scene.traverse(o=>{if(o.userData.reflectiveSurface)surfaces.push(o);});
+      for(const mirror of surfaces){assert.equal(mirror.getRenderTarget().width,128);assert.equal(mirror.getRenderTarget().height,192);}
+      game.setView({phase:'reference',levelId:'hotel',effects:[]});
+      game.setView({phase:'reference',levelId:id,effects:[]});game.update(0);
+      assert.equal(game.getStats().meshes,stats.meshes,'Returning must not reconstruct the world');
+      assert.equal(game.getStats().sceneTriangles,stats.sceneTriangles);
+    }
+    game.setQuality('high');game.setView({phase:'reference',levelId:'hotel',effects:[]});game.update(0);
+  });
   const allObjects = [];
   scene.traverse(object => allObjects.push(object));
+  check('inactive location relay textures are untouched and refreshed once on revisit',()=>{
+    game.setView({phase:'reference',levelId:'metro',relayCode:'1234'});game.update(0);
+    const root=scene.getObjectByName('Terminus 09 — métro désaffecté');let panel;
+    root.traverse(o=>{if(o.material?.map?.image?.__text?.includes('RELAIS'))panel=o;});
+    assert.ok(panel);const prior=panel.material.map;let disposed=0;prior.addEventListener('dispose',()=>disposed++);
+    game.setView({phase:'reference',levelId:'hotel',relayCode:'5678'});game.update(0);
+    game.setView({phase:'inspect',levelId:'hotel',relayCode:'6789',effects:['clock_reverse']});game.update(.02);
+    assert.equal(panel.material.map,prior);assert.equal(disposed,0);
+    game.setView({phase:'reference',levelId:'metro',relayCode:'9999'});game.update(0);
+    assert.notEqual(panel.material.map,prior);assert.equal(disposed,1);
+    assert.deepEqual(panel.material.map.image.__text,['RELAIS','9999']);
+    game.setView({phase:'reference',levelId:'hotel',relayCode:'0909',effects:[]});game.update(0);
+  });
+  for(const [id,name,effect] of [
+    ['metro','Terminus 09 — métro désaffecté','metro_tracks'],
+    ['clinic','Aile blanche — clinique de nuit','clinic_bed'],
+    ['cabin','Chalet de service — module témoin','cabine_table_size'],
+    ['observatory','Observatoire 09 — galerie terrestre','observatory_earth'],
+  ])check('cached '+id+' restores its original reference after an affected visit and another location',()=>{
+    game.setView({phase:'reference',levelId:id,effects:[],relayCode:'0909',contextKey:'base-'+id});game.update(0);
+    const root=scene.getObjectByName(name);assert.ok(root);
+    const signature=()=>{const result=[];root.traverse(o=>{
+      const mats=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
+      // Ambient particles keep moving normally; only inspectable support transforms must reset.
+      const transform=o.userData.inspect?[...o.position.toArray(),...o.quaternion.toArray(),...o.scale.toArray()]:[];
+      result.push([o.uuid,o.visible,...transform,
+        ...mats.map(m=>[m.color?.getHex(),m.emissive?.getHex(),m.emissiveIntensity,m.map?.image?.__text?.join('|')??m.map?.uuid])]);
+    });return result;};
+    const normal=signature();game.setView({phase:'inspect',levelId:id,effects:[effect],relayCode:'0909',contextKey:'affected-'+id});game.update(.2);
+    game.setView({phase:'reference',levelId:'hotel',effects:[],contextKey:'elsewhere'});game.update(.1);
+    game.setView({phase:'reference',levelId:id,effects:[effect],relayCode:'0909',contextKey:'returned-'+id});game.update(0);
+    assert.deepEqual(signature(),normal,'Reference sanitizes the effect and restores the cached world');
+    game.setView({phase:'reference',levelId:'hotel',effects:[]});game.update(0);
+  });
   const roots = id => allObjects.filter(object => object.userData.inspect?.id === id);
   const rootByLabel = label => allObjects.find(object => object.userData.inspect?.label === label);
   check('reference-only profiler resets per displayed frame and exposes no object or player identifiers',()=>{
@@ -1041,6 +1102,17 @@ try {
     assert.ok(game.getPose().z<-3,'Paint does not create a new collision');game.setInput({forward:0,strafe:0});
   });
 
+  check('changing passage context invalidates a selected support before the next animation frame',()=>{
+    game.setView({phase:'reference',levelId:'hotel',loop:943,effects:[],contextKey:'previous-session'});
+    game.setActive(true);game.setObservationActive(true);game.setPeers([]);game.setSharedInteractions(null);
+    game.setPose({x:0,z:1.4,yaw:0,pitch:Math.atan2(.014-1.67,2.7)});game.setInput({forward:0,strafe:0});
+    for(let i=0;i<5;i++)game.update(.016);
+    assert.equal(game.getTarget()?.id,'body-shadow');
+    game.setView({phase:'reference',levelId:'hotel',loop:943,effects:[],contextKey:'new-session'});
+    assert.equal(game.getTarget(),null);
+    assert.equal(game.getInspection(),null);
+  });
+
   check('real elapsed polling age suppresses shadows and residual proof after an animation-frame stall',()=>{
     const descriptor=Object.getOwnPropertyDescriptor(performance,'now');let now=10000;
     Object.defineProperty(performance,'now',{value:()=>now,configurable:true});
@@ -1077,6 +1149,24 @@ try {
     game.dispose(); game.dispose(); assert.ok(renderer.disposed);
     for (const resource of resources) assert.equal(disposals.get(resource), 1, `Resource ${resource.type} was leaked or disposed twice`);
   });
+  for(const visit of [null,'observatory'])check('partial scene teardown releases each constructed resource once ('+(visit??'hotel only')+')',()=>{
+    const partial=createScene({clientWidth:1440,clientHeight:900});
+    try{
+      if(visit)partial.setView({phase:'reference',levelId:visit,effects:[]});
+      partial.update(0);const local=globalThis.__parallaxeGeometryRenderer,resources=new Set();
+      local.scene.traverse(o=>{
+        if(o.geometry)resources.add(o.geometry);
+        for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){resources.add(m);if(m.map)resources.add(m.map);}
+        if(o.userData.reflectiveSurface)resources.add(o.getRenderTarget());
+      });
+      const counts=new Map();for(const r of resources)r.addEventListener('dispose',()=>counts.set(r,(counts.get(r)??0)+1));
+      const loaded=partial.getStats().loadedLevels;
+      partial.dispose();partial.dispose();partial.setView({phase:'reference',levelId:'cabin'});
+      assert.deepEqual(partial.getStats().loadedLevels,loaded,'Disposed scene never constructs another location');
+      assert.equal(local.disposed,true);
+      for(const r of resources)assert.equal(counts.get(r),1,r.type??'render target');
+    }finally{partial.dispose();}
+  });
 } finally {
   game?.dispose();
   globalThis.window = originalWindow;
@@ -1089,6 +1179,9 @@ console.log(JSON.stringify({
   verification: 'CPU geometry, transforms, materials, collision and raycasting only',
   passed: passed.length,
   checks: passed,
+  entryTriangles: entryStats.sceneTriangles,
+  entryMeshes: entryStats.meshes,
+  entryReflectiveSurfaces: entryStats.reflectiveSurfaces,
   sceneTriangles: finalStats.sceneTriangles,
   sceneMeshesIncludingInactiveAnomalies: finalStats.meshes,
   trianglesByLocationIncludingInactiveAnomalies: finalStats.levelTriangles,

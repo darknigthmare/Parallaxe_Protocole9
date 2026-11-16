@@ -1,0 +1,64 @@
+{
+  "schema": "parallaxe-reprise-scenes-v1",
+  "date": "2026-11-16",
+  "base_commit": "820d57c0f9888937c16db48becd7e51c6d74e1e8",
+  "source_workbook": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Chantiers.xlsx",
+  "source_workbook_sha256": "ee40620ab6a4d4f269c91bbdde54094e72b36b31363afc123e123046fa4ca88b",
+  "runtime": 119,
+  "remaining": 1,
+  "items": 600,
+  "updates": {
+    "W12": {
+      "etat": "Chargement au premier passage — CPU vérifié, GPU ouvert",
+      "preuves_disponibles": "tests/scene.geometry.test.mjs ; docs/scene-inventory-20261116.json",
+      "prochaine_recette": "Mesurer les temps de démarrage et de première visite sur GPU réel ; vérifier les cinq lieux et les miroirs sans régression graphique."
+    },
+    "W13": {
+      "etat": "Réinitialisation et libération renforcées — QA partielle",
+      "preuves_disponibles": "62 contrôles de scène, dont références des quatre lieux et destruction partielle",
+      "prochaine_recette": "Recette visuelle A/B puis référence entre sessions/lieux sur la version publiée ; animations ambiantes normales préservées."
+    },
+    "W22": {
+      "etat": "Téléchargements raccordés à la révision — Windows ouvert",
+      "preuves_disponibles": "test:downloads ; tests/build-output.test.mjs ; test du ZIP extrait avec source HTTP vérifié",
+      "prochaine_recette": "Tester les liens Archives en web et local ; lancer le paquet sous Windows. Les artefacts GitHub peuvent expirer après 14 jours."
+    },
+    "W23": {
+      "etat": "Identité et téléchargements concordants — recette ouverte",
+      "preuves_disponibles": "build-info.json ; manifeste embarqué ; SHA-256 ; classeur de reprise et registre 28 lots",
+      "prochaine_recette": "Comparer SHA public, COMMIT du paquet et manifeste lors de chaque réception humaine. Aucun chiffre de catalogue ne clôt les 600 entrées."
+    }
+  },
+  "closed_by_this_delivery": 0,
+  "metrics": {
+    "schema": "parallaxe-scene-inventory-v1",
+    "date": "2026-11-16",
+    "baseline_commit": "820d57c0f9888937c16db48becd7e51c6d74e1e8",
+    "method": "Real Three.js CPU geometry; WebGL renderer, canvas and PMREM stubbed. Counts sum mesh instances including inactive effects, not unique GPU bytes or frame-time.",
+    "before": {
+      "triangles": 617631,
+      "meshes": 1604,
+      "mirrors": 10
+    },
+    "entry": {
+      "triangles": 445010,
+      "meshes": 1186,
+      "mirrors": 2
+    },
+    "after_all_visits": {
+      "triangles": 617631,
+      "meshes": 1604,
+      "mirrors": 10
+    },
+    "per_location_unchanged": {
+      "hotel": 283040,
+      "metro": 102766,
+      "clinic": 126607,
+      "cabin": 75956,
+      "observatory": 51396
+    },
+    "scene_checks": 62,
+    "gpu_fps_verified": false,
+    "first_visit_cost_measured": false
+  }
+}

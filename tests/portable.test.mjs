@@ -5,6 +5,7 @@ import {join,resolve,basename} from 'node:path';
 import {spawn} from 'node:child_process';
 import {createServer} from 'node:net';
 import {isDeepStrictEqual} from 'node:util';
+import {createHash} from 'node:crypto';
 
 // Exercise the actual compiled deliverable, isolated from all user sessions.
 const packageRootIndex=process.argv.indexOf('--package-root');
@@ -49,6 +50,18 @@ try{
   for(const path of assetPaths){
     const response=await fetch(origin+path);assert.equal(response.status,200,`Public asset ${path}`);
     assert.deepEqual(Buffer.from(await response.arrayBuffer()),await readFile(resolve(temporary,'standalone-dist',`.${path}`)),`Public asset bytes ${path}`);
+  }
+  const identity=await (await fetch(origin+'/build-info.json')).json();
+  assert.equal(identity.game,'parallaxe-protocole-9');assert.equal(identity.target,'portable');
+  assert.match(identity.commit,/^[a-f0-9]{40}$/);
+  if(usesExtractedPackage){
+    assert.equal(identity.commit,(await readFile(join(temporary,'COMMIT.txt'),'utf8')).trim());
+    const response=await fetch(origin+`/downloads/PARALLAXE_v${identity.version}_manifest.json`);
+    assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/application\/json/);
+    const manifest=await response.json();assert.equal(manifest.commit,identity.commit);assert.equal(manifest.dirty,false);
+    const source=await fetch(origin+'/downloads/'+manifest.sources.file);assert.equal(source.status,200);
+    const bytes=Buffer.from(await source.arrayBuffer());assert.equal(bytes.length,manifest.sources.bytes);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),manifest.sources.sha256);
   }
   const publicSibling=await fetch(origin+`/${basename(publicFixture)}/accessible.txt`);assert.equal(publicSibling.status,200);assert.equal(await publicSibling.text(),'PUBLIC PATH FIXTURE');
   const normalizedPublic=await fetch(origin+`/x%2f..%2f${basename(publicFixture)}%2faccessible.txt`);assert.equal(normalizedPublic.status,200);assert.equal(await normalizedPublic.text(),'PUBLIC PATH FIXTURE');

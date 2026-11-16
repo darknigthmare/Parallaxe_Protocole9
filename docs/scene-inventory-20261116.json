@@ -1,0 +1,31 @@
+{
+  "schema": "parallaxe-scene-inventory-v1",
+  "date": "2026-11-16",
+  "baseline_commit": "820d57c0f9888937c16db48becd7e51c6d74e1e8",
+  "method": "Real Three.js CPU geometry; WebGL renderer, canvas and PMREM stubbed. Counts sum mesh instances including inactive effects, not unique GPU bytes or frame-time.",
+  "before": {
+    "triangles": 617631,
+    "meshes": 1604,
+    "mirrors": 10
+  },
+  "entry": {
+    "triangles": 445010,
+    "meshes": 1186,
+    "mirrors": 2
+  },
+  "after_all_visits": {
+    "triangles": 617631,
+    "meshes": 1604,
+    "mirrors": 10
+  },
+  "per_location_unchanged": {
+    "hotel": 283040,
+    "metro": 102766,
+    "clinic": 126607,
+    "cabin": 75956,
+    "observatory": 51396
+  },
+  "scene_checks": 62,
+  "gpu_fps_verified": false,
+  "first_visit_cost_measured": false
+}
