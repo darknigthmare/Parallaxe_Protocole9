@@ -43,7 +43,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
       - name: Installer les dépendances verrouillées
         run: npm ci
@@ -53,6 +53,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Vérifier les règles et les projections privées
         run: npm test
+      - name: Vérifier l’adaptateur Vercel et le stockage REST
+        run: npm run test:vercel
       - name: Vérifier les menus manette, sauvegardes portables et mesures privées
         run: npm run test:workstreams
       - name: Vérifier les commandes accessibles, la migration et les événements clavier
@@ -87,6 +89,9 @@ jobs:
         run: npm run test:radio-config
       - name: Compiler le site et le Worker hébergés
         run: npm run build
+      - name: Compiler la version publique Vercel
+        run: npm run build:vercel
+      # Both builds reset standalone-dist; build local last to retain its server.
       - name: Compiler l’édition indépendante
         run: npm run build:local
       - name: Construire les ZIP PC et sources de cette révision
