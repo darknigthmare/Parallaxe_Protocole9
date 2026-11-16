@@ -286,6 +286,10 @@ def doctor(root):
             return False
     return {
         "repository": str(root), "read_only": True, "runtime_verified": False,
+        "parallaxe_local_skills": {"manifest_present": present(".ai-tools/project-skills.json"),
+            "codex_entries": sorted(p.parent.name for p in (root / ".agents/skills").glob("p9-*/SKILL.md") if present(str(p.relative_to(root)))),
+            "claude_entries": sorted(p.parent.name for p in (root / ".claude/skills").glob("p9-*/SKILL.md") if present(str(p.relative_to(root)))),
+            "integrity_command": "python3 .ai-tools/validate_project_skills.py", "runtime_verified": False},
         "executables_found": {name: shutil.which(name) is not None for name in ("git", "uvx", "codex", "claude")},
         "spec_kit": {"integration_state_present": present(".specify/integration.json"),
                      "codex_entry_present": present(".agents/skills/speckit-specify/SKILL.md"),

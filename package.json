@@ -31,8 +31,18 @@
     "test:session-adapters": "node tests/session-adapters.test.mjs",
     "test:session-client": "node tests/session-scope.test.mjs",
     "test:movement": "node tests/movement-input.test.mjs",
+    "test:observation": "node tests/observation-state.test.mjs && node tests/observation-world.test.mjs",
+    "test:acoustic": "node tests/acoustic.test.mjs",
+    "test:temporal": "node tests/temporal-state.test.mjs && node tests/temporal-world.test.mjs",
+    "test:lift": "node tests/lift-footsteps.test.mjs",
+    "test:spoken": "node tests/spoken.test.mjs",
+    "test:shadow": "node tests/shadow.test.mjs",
+    "test:skills": "python3 .ai-tools/validate_project_skills.py && python3 -m unittest discover -s .ai-tools/tests",
+    "test:observatory": "node tests/observatory.test.mjs",
+    "test:accessibility": "node tests/accessibility.test.mjs",
+    "test:workstreams": "node tests/gamepad-menu.test.mjs && node tests/training-backup.test.mjs && node tests/performance-capture.test.mjs && node tests/utility-ui.test.mjs",
     "build:vercel": "node scripts/build-vercel.mjs",
-    "test:vercel": "node tests/vercel-session.test.mjs"
+    "test:vercel": "node tests/build-info.test.mjs && node tests/vercel-boundary.test.mjs && node tests/vercel-session.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

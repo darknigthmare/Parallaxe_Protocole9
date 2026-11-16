@@ -2,28 +2,30 @@ name: Vérification des classeurs et de la conception
 
 on:
   push:
-    branches: [continuation/excel-ouverts-20261101]
+    branches: [main, continuation/observations-20261110]
     paths:
       - 'docs/parallaxe-open-work-20261101.json'
-      - 'docs/PARALLAXE_Registre_Ouverts_2026-11-01*.xlsx'
-      - 'docs/anomalies-gap-20261101.json'
-      - 'docs/ANOMALIES_RESTANTES_20261101.csv'
+      - 'docs/*.xlsx'
+      - 'docs/anomalies-gap-*.json'
+      - 'docs/ANOMALIES_RESTANTES_*.csv'
       - 'docs/anomalies-design.json'
       - 'docs/runtime-catalog.json'
       - 'scripts/build-design-workbook.mjs'
       - 'scripts/build-open-workbook.mjs'
+      - 'scripts/build-current-workbook.py'
       - 'scripts/validate-open-workbook.py'
       - '.github/workflows/excel-registre.yml'
   pull_request:
     paths:
       - 'docs/parallaxe-open-work-20261101.json'
-      - 'docs/PARALLAXE_Registre_Ouverts_2026-11-01*.xlsx'
-      - 'docs/anomalies-gap-20261101.json'
-      - 'docs/ANOMALIES_RESTANTES_20261101.csv'
+      - 'docs/*.xlsx'
+      - 'docs/anomalies-gap-*.json'
+      - 'docs/ANOMALIES_RESTANTES_*.csv'
       - 'docs/anomalies-design.json'
       - 'docs/runtime-catalog.json'
       - 'scripts/build-design-workbook.mjs'
       - 'scripts/build-open-workbook.mjs'
+      - 'scripts/build-current-workbook.py'
       - 'scripts/validate-open-workbook.py'
       - '.github/workflows/excel-registre.yml'
 

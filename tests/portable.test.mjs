@@ -82,8 +82,23 @@ try{
   const missing=await action({action:'start',code:host.code},host.token,409);
   assert.equal(missing.code,'INVALID_DECISION_CONTEXT');assert.equal(missing.state.phase,'lobby');
   const started=await action({action:'start',code:host.code,decisionEpoch:missing.state.decisionEpoch},host.token);assert.equal(started.state.phase,'reference');
+  // Exercise new gestures through the actual packaged HTTP server, not only the domain.
+  for(const client of [host,beta])await action({action:'pose',code:host.code,pose:{x:1.7,y:1.67,z:8,yaw:0,pitch:0}},client.token);
+  const propRequest={action:'prop',code:host.code,target:'bell',requestId:'portable-bell-0001',expectedSequence:0,decisionEpoch:started.state.decisionEpoch};
+  await action(propRequest,undefined,401);
+  const shared=await action(propRequest,host.token);
+  const remoteShared=(await fetch(`${origin}/api/session?code=${host.code}`,{headers:{Authorization:`Bearer ${beta.token}`}}).then(r=>r.json())).state;
+  assert.deepEqual(shared.state.propEvents,remoteShared.propEvents);
+  assert.deepEqual(Object.keys(remoteShared.propEvents[0]).sort(),['actorId','at','id','sequence','target','x','z']);
+  assert.equal(remoteShared.propEvents.length,1);
+  const sameGesture=await action(propRequest,host.token);
+  assert.deepEqual(sameGesture.state.propEvents,shared.state.propEvents);
+  await action({...propRequest,requestId:'portable-bell-0002'},beta.token,409);
   const nextRequest={action:'next',code:host.code,decisionEpoch:started.state.decisionEpoch};
   const first=await action(nextRequest,host.token);assert.equal(first.state.phase,'inspect');
+  assert.equal(first.state.propEvents.length,0);
+  const obsoleteGesture=await action(propRequest,host.token,409);
+  assert.equal(obsoleteGesture.code,'STALE_DECISION_CONTEXT');assert.equal(obsoleteGesture.state.propEvents.length,0);
   const repeatedNext=await action(nextRequest,host.token,409);
   assert.equal(repeatedNext.code,'STALE_DECISION_CONTEXT');assert.equal(repeatedNext.state.loop,first.state.loop);assert.equal(repeatedNext.state.phase,'inspect');
   const second=await fetch(`${origin}/api/session?code=${host.code}`,{headers:{Authorization:`Bearer ${beta.token}`}}).then(r=>r.json());
@@ -101,6 +116,25 @@ try{
   assert.ok(stale.state.players.every(player=>player.vote===null));
   assert.equal((await action({action:'leave',code:host.code},beta.token)).left,true);
   assert.equal((await action({action:'leave',code:host.code},host.token)).left,true);
+  // Fifth optional location: same shared actuation, no private sky value over HTTP.
+  const observatory=await action({action:'create',name:'O9 Alpha',mode:'single',levelId:'observatory'});
+  const o9peer=await action({action:'join',name:'O9 Beta',code:observatory.code});
+  const o9start=await action({action:'start',code:observatory.code,decisionEpoch:observatory.state.decisionEpoch},observatory.token);
+  assert.equal(o9start.state.levelId,'observatory');assert.equal(o9start.state.mode,'single');
+  for(const client of [observatory,o9peer])await action({action:'pose',code:observatory.code,pose:{x:-2,y:1.67,z:-4.45,yaw:Math.PI/2,pitch:0}},client.token);
+  const shutters={action:'prop',code:observatory.code,target:'observatory-shutters',requestId:'http-shutters-0001',expectedSequence:0,decisionEpoch:o9start.state.decisionEpoch};
+  await action(shutters,undefined,401);
+  const common=await action(shutters,observatory.token);
+  const other=(await fetch(`${origin}/api/session?code=${observatory.code}`,{headers:{Authorization:`Bearer ${o9peer.token}`}}).then(r=>r.json())).state;
+  assert.deepEqual(common.state.propEvents,other.propEvents);
+  assert.equal(common.state.propEvents[0].target,'observatory-shutters');
+  assert.deepEqual(Object.keys(other.propEvents[0]).sort(),['actorId','at','id','sequence','target','x','z']);
+  assert.deepEqual((await action(shutters,observatory.token)).state.propEvents,other.propEvents);
+  await action({...shutters,target:'bell',requestId:'http-wrong-hotel-0001'},observatory.token,409);
+  const obsnext=await action({action:'next',code:observatory.code,decisionEpoch:o9start.state.decisionEpoch},observatory.token);
+  assert.equal(obsnext.state.propEvents.length,0);
+  assert.equal((await action(shutters,observatory.token,409)).code,'STALE_DECISION_CONTEXT');
+  for(const client of [observatory,o9peer])await action({action:'leave',code:observatory.code},client.token);
   // The fourth location uses the same authoritative protocol with a full roster.
   const cabin=await action({action:'create',name:'Chalet QA Alpha',mode:'single',levelId:'cabin'});
   const cabinClients=[cabin];
@@ -142,6 +176,14 @@ try{
   assert.equal(cabinVerdict.state.levelId,'cabin');
   for(const client of [...cabinClients].reverse())assert.equal((await action({action:'leave',code:cabin.code},client.token)).left,true);
   console.log(JSON.stringify({chalet:{clients:4,diagnoses:9,won:true,privateReadingsProtected:true}}));
+  const voiceHost=await action({action:'create',name:'ECHO 09',namedVoiceConsent:true});
+  const voicePeer=await action({action:'join',code:voiceHost.code,name:'BRAVO',namedVoiceConsent:true});
+  const voiceStart=await action({action:'start',code:voiceHost.code,decisionEpoch:voicePeer.state.decisionEpoch},voiceHost.token);
+  assert.ok(voiceStart.state.players.every(p=>p.namedVoiceConsent));
+  const revoked=await action({action:'revoke-named-voice',code:voiceHost.code},voiceHost.token);
+  assert.equal(revoked.state.phase,'reference');assert.equal(revoked.state.players.find(p=>p.id===voiceHost.selfId).namedVoiceConsent,false);
+  await action({action:'grant-named-voice',code:voiceHost.code},voiceHost.token,400);
+  for(const c of [voicePeer,voiceHost])await action({action:'leave',code:voiceHost.code},c.token);
   console.log(JSON.stringify({portable:'passed',checks:[
     'precompiled package starts without node_modules',
     'HTML served',
@@ -150,6 +192,8 @@ try{
     'server modules blocked after path normalization',
     'encoded traversal outside public root rejected',
     'two real clients join',
+    'two HTTP clients receive one authenticated public gesture without private results',
+    'gesture replay is idempotent and old-passage gestures are rejected',
     'missing decision context returns 409 and current private state',
     'reference and inspection start',
     'duplicate next cannot skip a passage',
@@ -157,6 +201,7 @@ try{
     'unanimity resolves correctly',
     'old vote rejected after next passage',
     'both leave cleanly',
+    'explicit name grants and irreversible withdrawal persist through actual HTTP handlers',
     'four clients complete nine Chalet diagnoses and win',
     'Chalet pings never broadcast private reading text',
     'all four Chalet clients leave cleanly',

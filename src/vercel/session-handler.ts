@@ -27,7 +27,7 @@ function accessToken(request:Request){
 export function createSessionHandlers(store:SessionStore,settings:IceSettings={}){
 async function read(code:string):Promise<StoredRoom>{
   const row=await store.read(code);
-  if(!row||row.expires_at<Date.now())throw new SessionError('Équipe introuvable ou expirée. Vérifiez le code.',404);
+  if(!row||row.expires_at<=Date.now())throw new SessionError('Équipe introuvable ou expirée. Vérifiez le code.',404);
   return row;
 }
 async function mutate(code:string,apply:(room:Room)=>Room):Promise<Room>{
@@ -43,7 +43,8 @@ async function mutate(code:string,apply:(room:Room)=>Room):Promise<Room>{
 }
 function failure(error:unknown):Response {
   if(error instanceof SessionError)return Response.json({error:error.message},{status:error.status,headers});
-  console.error('Parallaxe session failed',error instanceof Error?error.message:'Unknown error');
+  // Provider/parse errors can embed credentials or persisted private game state.
+  console.error('Parallaxe session failed: unexpected storage or protocol error');
   return Response.json({error:'La liaison coopérative est interrompue. Réessayez ; votre session reste conservée.'},{status:503,headers});
 }
 async function GET(request:Request){
@@ -64,7 +65,7 @@ async function POST(request:Request){
   try{
     if(Number(request.headers.get('Content-Length')??'0')>16384)throw new SessionError('Transmission trop longue.',413);
     const raw=await request.text();
-    if(raw.length>16384)throw new SessionError('Transmission trop longue.',413);
+    if(raw.length>16384||new TextEncoder().encode(raw).byteLength>16384)throw new SessionError('Transmission trop longue.',413);
     let payload:Record<string,unknown>;
     try{payload=JSON.parse(raw);}catch{throw new SessionError('Transmission illisible.');}
     if(!payload||typeof payload!=='object'||Array.isArray(payload))throw new SessionError('Transmission invalide.');
@@ -88,7 +89,7 @@ async function POST(request:Request){
       const token=secret();const hash=await tokenHash(token);const now=Date.now();
       const player=makePlayer(crypto.randomUUID(),name,hash,0,now);
       const room=await mutate(code,current=>joinRoom(current,player));
-      return Response.json({code,token,selfId:player.id,state:projectRoom(room,player.id,now)},{headers});
+      return Response.json({code,token,selfId:player.id,state:projectRoom(room,player.id,Date.now())},{headers});
     }
     if(typeof action!=='string')throw new SessionError('Action manquante.');
     const hash=await tokenHash(accessToken(request));

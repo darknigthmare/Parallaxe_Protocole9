@@ -15,12 +15,13 @@ const session=between('  const resetSession=useCallback(','  const cancelOpening
 const modals=between('  const openModal=useCallback(','  const acceptState=useCallback(');
 const accepted=between('  const acceptState=useCallback(','  useEffect(()=>()=>{sessionScope.current!.invalidate();},[]);');
 const blur=between('    const onBlur=','    const onMouse=');
-const pointers=between('  const canUsePointer=','  const patchPref=');
+const pointers=between('  const canUsePointer=','  const revokeNamedVoice=');
 const vote=between('  const vote=','  const switchView=');
 const blocked=between('  useEffect(()=>{if(inputBlocked||!playing)resetControls();','\n  useEffect(()=>{\n    let disposed=false;');
 const harnessSource=`
 function makeHarness(){
-  const state={modal:'none',error:'',focused:true,talking:true,stick:{x:0,y:0},online:null,credentials:null,run:{phase:'inspect'},cancelled:0,inputs:[],looks:[],captures:[]};
+  const state={modal:'none',error:'',focused:true,talking:true,stick:{x:0,y:0},online:null,credentials:null,run:{phase:'inspect'},cancelled:0,inputs:[],looks:[],captures:[],padResets:0,measurePauses:0};
+  const gameplayPad={current:{reset:()=>state.padResets++}},performanceCapture={current:{pause:()=>state.measurePauses++}};
   const keys={current:new Set()},touchMove={current:{forward:0,strafe:0}},joystickOrigin={current:null},touchLook={current:null};
   const frameState={current:{playing:true,blocked:false,sensitivity:1}},canvasRef={current:{}};
   const engine={current:{setInput:input=>state.inputs.push({...input}),look:(x,y)=>state.looks.push({x,y})}};
@@ -172,3 +173,7 @@ for(const status of ['blocked','not-playing','not-focused','hidden']){
     assert.equal(h.joystickOrigin.current,null);assert.equal(h.touchLook.current,null);assert.equal(h.state.captures.length,0);
   });
 }
+
+test('real blur resets gameplay neutral gate and measurement even between two frames',()=>{
+  const h=harness();h.onBlur();assert.equal(h.state.padResets,1);assert.equal(h.state.measurePauses,1);
+});

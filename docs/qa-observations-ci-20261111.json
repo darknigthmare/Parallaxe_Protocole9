@@ -1,0 +1,70 @@
+{
+  "schema": "parallaxe-ci-evidence-v1",
+  "date": "2026-11-11",
+  "code_commit": "0ba8796c2611645995a4c72624ab7f0ef7cf8117",
+  "scope": "Exact code and workbook revision tested before this documentation-only evidence commit. Supersedes pending-CI note in QA_OBSERVATIONS_20261111.md for this code revision only.",
+  "branch": "continuation/observations-20261110",
+  "pull_request": "https://github.com/darknigthmare/Parallaxe_Protocole9/pull/5",
+  "game_workflow": {
+    "id": 43054765484,
+    "url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/43054765484",
+    "status": "completed",
+    "conclusion": "success",
+    "job_id": 130641137961,
+    "completed_at_utc": "2026-11-11T16:06:16Z"
+  },
+  "workbook_workflow": {
+    "id": 43054765492,
+    "url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/43054765492",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "environment": {"os": "Ubuntu 26.04.1", "platform": "linux", "node": "22.23.4", "npm": "10.9.9"},
+  "checks": [
+    {"command": "npm ci", "status": "passed"},
+    {"command": "npx tsc --noEmit", "status": "passed"},
+    {"command": "npm test", "passed": 168, "failed": 0, "scope": "22 rules, 33 resilience, 16 decisions, 5 adapters, 64 client callbacks, 28 movement"},
+    {"command": "npm run test:scene", "passed": 38, "failed": 0, "scope": "CPU geometry, transforms, materials, collisions and inspection rays; not pixels or GPU"},
+    {"command": "npm run test:cabin", "passed": 9, "failed": 0},
+    {"command": "npm run test:inspection", "passed": 13, "failed": 0},
+    {"command": "npm run test:observation", "passed": 17, "failed": 0, "scope": "10 state tests and 7 Three.js geometry tests"},
+    {"command": "npm run test:radio", "passed": 42, "failed": 0},
+    {"command": "npm run test:radio-ui", "passed": 15, "failed": 0},
+    {"command": "npm run test:radio-config", "passed": 59, "failed": 0},
+    {"command": "python3 scripts/validate-open-workbook.py", "status": "passed", "scope": "ZIP CRC/XML, cached formulas, 600 keys/criteria/statuses, 120 original A/B rows, remaining CSV and JSON"},
+    {"command": "npm run build", "status": "passed"},
+    {"command": "npm run build:local", "status": "passed"},
+    {"command": "npm run package:release", "status": "passed", "dirty": false},
+    {"command": "python3 tests/package-archive.test.py", "status": "passed", "scope": "Fresh ZIP extraction; real Node HTTP server without node_modules; two protocol clients; four automated HTTP clients complete nine Chalet diagnoses; private readings and path protections"}
+  ],
+  "named_tests_total": 361,
+  "content": {"designed_anomalies": 120, "runtime_anomalies": 104, "remaining_anomalies": 16, "tracked_items": 600, "work_packages": 28, "historical_open_qa": 124},
+  "delivery": {
+    "game_artifact_id": 13871331982,
+    "source_artifact_id": 13870527920,
+    "portable_filename": "PARALLAXE_Jeu_PC_LAN_v0.4.1.zip",
+    "portable_bytes": 4409984,
+    "portable_sha256": "2eac5060c829cbe56864ac1468c2d59f2ef9bce3698d0a82d7a5a2f76f6f3cc7",
+    "source_zip_sha256": "c516cdd7b642369d831364f05a98fc013c30f69b8ad56b977f6e7aa98634db77",
+    "tracked_source_tar_sha256": "2b93f11ec3dc3f0a5e62039f5d7e5a4f151189906ae1e7cea59bae61949d0676",
+    "workbook_path": "docs/PARALLAXE_Suivi_Courant_2026-11-11.xlsx",
+    "workbook_bytes": 183301,
+    "workbook_sha256": "4088da393c124629767bddf373f151412eea89820aa55ef38a596a46db07d23b",
+    "dependencies_changed": false,
+    "site_deployed": false
+  },
+  "fixed_during_verification": [
+    "Constellation reading ray was intercepted by the existing window. Upper-pane proxy moved in front of glass/trim; shared points offset from the middle mullion. Full-scene ray tests now pass.",
+    "Coat/extinguisher public object ping targets accepted without exposing private readings.",
+    "Extinguisher mist remains inside cylinder during rotation and resets between rounds.",
+    "Observation timers stop during modal views or loss of focus."
+  ],
+  "limits": [
+    "No physical GPU, WebGL pixels, shader appearance or FPS validation.",
+    "No physical microphone/headset, restrictive-network TURN or human multi-device playtest.",
+    "Windows launcher remains unverified; archive execution was tested on Linux with Node.",
+    "Procedural original assets are not certified AAA artwork.",
+    "Sixteen design concepts remain unimplemented; 600 tracked items are not all closed.",
+    "This is a branch delivery, not a main merge or site deployment."
+  ]
+}

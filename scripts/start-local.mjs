@@ -73,13 +73,13 @@ async function api(request,response,url){
     const name=validateName(payload.name);const access=token();let key;
     for(const [existing,entry] of rooms)if(entry.expiresAt<Date.now())rooms.delete(existing);
     do{key=code();}while(rooms.has(key));
-    const now=Date.now();const actor=makePlayer(randomUUID(),name,hash(access),0,now);
+    const now=Date.now();const actor=makePlayer(randomUUID(),name,hash(access),0,now,payload.namedVoiceConsent===true);
     const room=put(createRoom(key,actor,payload.difficulty==='relaxed'?'relaxed':'standard',token(),now,{mode:payload.mode==='single'?'single':'campaign',levelId:isLevelId(payload.levelId)?payload.levelId:'hotel'}));
     return json(response,201,{code:key,token:access,selfId:actor.id,state:projectRoom(room,actor.id,now)});
   }
   const key=validateCode(payload.code);
   if(payload.action==='join'){
-    const name=validateName(payload.name);const access=token();const now=Date.now();const actor=makePlayer(randomUUID(),name,hash(access),0,now);
+    const name=validateName(payload.name);const access=token();const now=Date.now();const actor=makePlayer(randomUUID(),name,hash(access),0,now,payload.namedVoiceConsent===true);
     // No await separates read/mutate/write: the Node event loop serializes mutations.
     const room=put(joinRoom(readRoom(key),actor));
     return json(response,200,{code:key,token:access,selfId:actor.id,state:projectRoom(room,actor.id,now)});

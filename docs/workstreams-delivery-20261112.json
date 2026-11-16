@@ -1,0 +1,66 @@
+[
+  [
+    "PAD-MENU",
+    "Fonctionnement",
+    "Navigation des menus au pad standard : focus visible, A confirmer, B/Menu retour, croix/stick parcourir, réglage horizontal des curseurs/listes.",
+    "Garde neutre, transitions, répétition bornée et navigateur refusant Gamepad API ; commandes réelles de DOM testées.",
+    "Manettes physiques, claviers internationaux, dialogues système et rendu à réceptionner. Aucun remappage des boutons du pad.",
+    "src/game/gamepad-menu.ts ; app/controller-navigation.tsx"
+  ],
+  [
+    "PAD-TEXT",
+    "Saisie",
+    "Clavier virtuel local pour nom, code salon, notes et messages ; brouillon puis validation dans le champ, jamais envoi automatique.",
+    "Contexte de menu, cible encore connectée, limite de longueur, focus confiné et annulation.",
+    "Navigation séquentielle, pas clavier spatial ; permissions micro, fichier et plein écran restent soumis aux gestes de confiance du navigateur.",
+    "app/controller-navigation.tsx"
+  ],
+  [
+    "PAD-NEUTRAL",
+    "Correctif",
+    "Un retour au neutre est obligatoire avant de reprendre les actions du jeu après pause, blur ou reconnexion ; contrôle du slot standard non forcément zéro.",
+    "La vraie suspension Game réinitialise immédiatement la garde et le PTT, même sans image entre blur/reconnexion.",
+    "Le retour au neutre est intentionnel ; les pads sans mapping standard sont ignorés.",
+    "app/game.tsx ; src/game/gamepad-menu.ts"
+  ],
+  [
+    "SAVE-PORTABLE",
+    "Fonctionnement",
+    "Export/import du palier solo et des découvertes avec aperçu, confirmation, copie locale précédente et fusion des découvertes.",
+    "17 tests de sauvegarde plus les callbacks réels de choix de fichier, expiration de lecture et confirmation.",
+    "Pas de transfert coopératif, graine, réponse courante, rôle ou consentement ; nouvelle référence propre après import.",
+    "src/game/training-backup.ts ; app/training-storage.tsx"
+  ],
+  [
+    "SAVE-ROLLBACK",
+    "Correctif",
+    "Écriture de la copie précédente avant remplacement ; annulation ou rollback si stockage plein/refusé, message explicite en cas de récupération partielle.",
+    "Quota sur deuxième clé, stockage totalement interdit, ancienne progression inchangée, aucun faux succès UI.",
+    "Stockage local non transactionnel ; récupération après fermeture brutale et restrictions propres aux navigateurs à recevoir.",
+    "src/game/training-backup.ts"
+  ],
+  [
+    "PERF-LOCAL",
+    "Outil de recette",
+    "Mesure volontaire 30 s / 60 s / 30 min actives depuis une référence solo ; intervalles réels, CPU de scène, dessins/reflets et compteurs mémoire GPU disponibles.",
+    "Histogrammes bornés, quantiles, stalls visibles non supprimés, menus/focus exclus, changement de configuration arrête la série.",
+    "CPU mesuré autour de scene.update uniquement ; pas de temps GPU, consommation, VRAM ou certification FPS.",
+    "src/game/performance-capture.ts ; app/performance-settings.tsx"
+  ],
+  [
+    "PERF-PRIVACY",
+    "Sûreté",
+    "Le capteur exige à la fois la référence solo côté interface et la phase de référence réelle de la scène. Aucun chiffre de mesure pendant une inspection ou un salon coopératif.",
+    "Liste explicite des champs exportés, absence de seed/jeton/nom/indice ; compteur par image englobant les rendus de miroir.",
+    "Le rapport ne contient pas le lieu : noter manuellement le parcours de référence pour une comparaison reproductible.",
+    "app/game.tsx ; src/game/scene.ts"
+  ],
+  [
+    "TRACK-28",
+    "Suivi",
+    "Relecture des 28 lots, correction des périmètres périmés (quatre lieux, 104 cas, observatoire conçu) et distinction entre code, test et réception.",
+    "600 clés inchangées, 120 sources normales/A/B inchangées, 119 cas toujours sélectionnables, hall_stretch hors tirage.",
+    "Aucun des 28 lots ni des 600 points n’est déclaré terminé par cette reprise seule.",
+    "docs/CHANTIERS_20261112.md ; docs/chantiers-20261112.json"
+  ]
+]

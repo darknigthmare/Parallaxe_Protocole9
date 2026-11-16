@@ -40,13 +40,13 @@ function bounds(object) { object.updateWorldMatrix(true, true); return new THREE
 
 try {
   const threeModule = pathToFileURL(path.join(path.dirname(require.resolve('three')), 'three.module.js')).href;
-  for (const name of ['levels', 'cabin', 'location-clues', 'locations']) {
+  for (const name of ['levels', 'observatory', 'cabin', 'location-clues', 'locations']) {
     let source = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), {
       compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
     }).outputText;
     source = source.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    source = source.replace(/from '(\.\/(?:cabin|location-clues))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(temporary, `${specifier}.mjs`)).href)}`);
+    source = source.replace(/from '(\.\/(?:observatory|cabin|location-clues))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(temporary, `${specifier}.mjs`)).href)}`);
     fs.writeFileSync(path.join(temporary, `${name}.mjs`), source);
   }
   globalThis.document = { createElement: () => canvasStub() };
@@ -64,7 +64,7 @@ try {
 
   check('fourth optional location preserves three-stage campaign identity', () => {
     assert.deepEqual(LEVEL_ORDER, ['hotel', 'metro', 'clinic']);
-    assert.deepEqual(SELECTABLE_LEVELS, ['hotel', 'metro', 'clinic', 'cabin']);
+    assert.deepEqual(SELECTABLE_LEVELS, ['hotel', 'metro', 'clinic', 'cabin', 'observatory']);
     assert.equal(isLevelId('cabin'), true); assert.equal(getLevel('cabin').name, 'Chalet de service');
     assert.equal(getLevel('unrecognized').id, 'hotel');
     assert.match(getLevel('cabin').baseline.join(' '), /tasse et le carnet/);

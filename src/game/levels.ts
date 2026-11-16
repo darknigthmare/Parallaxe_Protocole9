@@ -1,9 +1,9 @@
-export type LevelId='hotel'|'metro'|'clinic'|'cabin';
+export type LevelId='hotel'|'metro'|'clinic'|'cabin'|'observatory';
 export type GameMode='campaign'|'single';
 export type Level={id:LevelId;name:string;subtitle:string;description:string;baseline:string[]};
 export const LEVEL_ORDER:LevelId[]=['hotel','metro','clinic'];
 /** Optional locations never extend an existing campaign or change its save checkpoints. */
-export const SELECTABLE_LEVELS:LevelId[]=[...LEVEL_ORDER,'cabin'];
+export const SELECTABLE_LEVELS:LevelId[]=[...LEVEL_ORDER,'cabin','observatory'];
 export const LEVELS:Record<LevelId,Level>={
   hotel:{id:'hotel',name:'Saint-Clair',subtitle:'01 · L’hôtel sans neuvième étage',description:'Un hôtel désert sous la pluie. Des boiseries, des chambres closes et un service qui ne s’arrête jamais.',baseline:[
     'Les chambres 901, 902, 903 et 904 sont fermées. Le chariot et sa valise restent au sol.',
@@ -32,6 +32,12 @@ export const LEVELS:Record<LevelId,Level>={
     'Le code de relais peut changer entre passages, mais doit être identique pour tous dans le même passage.',
     'L’étalonnage radio transmet 1, 2, 3. Comparez les transcriptions si le son n’est pas disponible.',
   ]},
+  observatory:{id:'observatory',name:'Observatoire 09',subtitle:'05 · La galerie terrestre',description:'Un observatoire de montagne : optique fixe, volets métalliques et relief nocturne au-delà de la baie.',baseline:[
+    'La baie O9 donne sur un relief terrestre nocturne et un ciel étoilé. Aucun grand disque planétaire ne domine l’horizon.',
+    'E sur la commande ouvre ou ferme les deux volets ensemble. E sur la baie lit votre propre horizon, une fois les volets ouverts.',
+    'Le télescope reste fixe. Le chemin central, les fenêtres et les limites de déplacement sont identiques pour tous.',
+    'Le terminal est au fond. Le miroir reproduit le corps et le relais permet le même contrôle radio que les autres lieux.',
+  ]},
   cabin:{id:'cabin',name:'Chalet de service',subtitle:'04 · Le module témoin',description:'Un chalet de bois assemblé dans un hangar silencieux. La table de contrôle, le foyer froid et les fenêtres donnent des repères à comparer.',baseline:[
     'La table possède quatre pieds et un plateau de 2,10 m sur 1,40 m, éloigné des deux murs. La tasse et le carnet reposent dessus.',
     'Le garde-corps délimite la même baie d’observation pour tous ; le passage le long du mur droit reste ouvert, même si la table paraît différente.',
@@ -52,6 +58,12 @@ LEVELS.hotel.baseline.push(
   'Le plan G9 montre 901 à gauche et 902 à droite près de l’entrée, puis 903 à gauche et 904 à droite vers la sortie. Le règlement R9 demande SIGNALEZ TOUTE ANOMALIE.',
   'Aucune racine ne sort sous les portes ; les murs restent secs, le joint de sortie immobile, et le miroir ne crée pas de porte supplémentaire.',
 );
+LEVELS.hotel.baseline.push(
+  'Le manteau du service est suspendu à son crochet. L’extincteur reste rouge opaque, sans contenu visible. La trotteuse continue même sous votre regard, et le tapis conserve ses losanges réguliers.',
+  'Depuis le repère ICI, face à la fenêtre G9, les six étoiles forment deux rangées de trois points. Comparez les positions depuis ce même côté ; il ne faut aucune connaissance astronomique.',
+  'Le portrait P9 près de l’issue garde les mêmes cheveux sombres, yeux et posture, même après dix secondes près du cadre. E affiche votre lecture locale.',
+  'Le palier de service porte une rampe horizontale à six montants sous son applique ; sa projection ne forme pas un escalier. La seconde moitié du plafond reste vide.',
+);
 LEVELS.metro.baseline.push(
   'Le tableau ARCHIVES reste fixe : 01:09 T09 → OBSERVATOIRE et 01:12 T12 ← BELVÉDÈRE. Le plan relie BELVÉDÈRE, OBSERVATOIRE et TERMINUS 09, sans station intermédiaire.',
   'Le portique SCELLÉ affiche 0000, sans passage physique possible. Le tunnel ne laisse entrer ni ciel bleu ni soleil.',
@@ -67,5 +79,5 @@ Object.values(LEVELS).forEach(level=>level.baseline.push(
   'Le contrôle radio émet le code RELAIS en tonalités téléphoniques puis 1, 2, 3, un clic de clôture et le silence. Les deux canaux sont présents ; comparez le relevé écrit si nécessaire.',
 ));
 Object.values(LEVELS).forEach(level=>level.baseline.push('La flèche et l’heure du panneau SYNCHRO peuvent changer entre passages, mais doivent être identiques pour tous les inspecteurs d’un même passage.'));
-export function isLevelId(value:unknown):value is LevelId{return value==='hotel'||value==='metro'||value==='clinic'||value==='cabin';}
+export function isLevelId(value:unknown):value is LevelId{return value==='hotel'||value==='metro'||value==='clinic'||value==='cabin'||value==='observatory';}
 export function getLevel(value?:unknown):Level{return LEVELS[isLevelId(value)?value:'hotel'];}

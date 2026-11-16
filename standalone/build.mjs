@@ -3,6 +3,7 @@ import {resolve,join,dirname} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import ts from 'typescript';
 import {build} from 'vite';
+import {writeBuildIdentity} from '../scripts/build-info.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 export async function buildLocal(){
@@ -14,6 +15,7 @@ export async function buildLocal(){
     const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText.replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");
     await writeFile(join(output,`${name}.mjs`),compiled);
   }
+  await writeBuildIdentity(root,join(root,'standalone-dist'),'portable');
   console.log('Édition locale compilée. Le dossier standalone-dist et scripts/start-local.mjs suffisent avec Node.js 22.13 ou ultérieur.');
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)await buildLocal();

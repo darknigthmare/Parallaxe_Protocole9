@@ -139,3 +139,6 @@ Cette validation ne remplace pas les essais GPU, l'écoute, les microphones, les
 ## Réconciliation appliquée en 0.4.1
 
 Les sources du Site ont été récupérées et comparées à la PR. Les quatre lieux, 96 anomalies, lectures privées, radio synthétique et sortie mono sont conservés avec les barrières de session, les contrôles tactiles et la traçabilité du paquet. La calibration annule ses opérations lors d'un remplacement de session. Les scénarios Site et PR sont réunis, notamment `test:cabin` et `test:inspection`. Les preuves actuelles et leurs limites sont consignées dans [qa-final-v0.4.1.json](qa-final-v0.4.1.json) ; les relevés précédents restent historiques.
+
+## Complément local vérifiable — 12 novembre 2026
+Les dix guides amont restent des références épinglées, non une installation globale. Les cinq workflows P9 sont maintenant livrés dans `.agents/skills` et `.claude/skills` : commencer par p9-reprise, puis choisir p9-anomalies/p9-scene/p9-coop-radio/p9-livraison. Le manifeste et `npm run test:skills` interdisent une divergence entre clients. Voir `SKILLS_AUDIT_20261112.md`. O9 est un exemple d’application : références A/B inchangées, ouverture physique vérifiée, commande commune et lecture privée, matrice CPU distincte des pixels non certifiés.

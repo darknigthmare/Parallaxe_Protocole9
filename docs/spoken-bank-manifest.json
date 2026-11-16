@@ -1,0 +1,208 @@
+{
+  "engine": "eSpeak text-to-speech: 1.48.15  16.Apr.15  Data at: /usr/lib/x86_64-linux-gnu/espeak-data",
+  "sample_rate": 8000,
+  "encoding": "unsigned 8-bit mu-law, formula in decoder",
+  "purpose": "Original offline synthetic phrases and spelling; no recorded person or external service",
+  "samples": {
+    "A": {
+      "text": "a",
+      "seconds": 0.197,
+      "sha256": "51bf80634077c90f6a1ed510b019a50b9950ca9f6e6ddd30981f96d934cbc619"
+    },
+    "B": {
+      "text": "bé",
+      "seconds": 0.21675,
+      "sha256": "ca1c1d95fc233ad2dada075bdf61c03179caf4c8634810463116036f4764d7c4"
+    },
+    "C": {
+      "text": "cé",
+      "seconds": 0.271,
+      "sha256": "a4d78bc31204551e525b546bf8b535e45e132ce47defe5ae74036d019539cfa1"
+    },
+    "D": {
+      "text": "dé",
+      "seconds": 0.21625,
+      "sha256": "c181eeea5b5cd38993e4db1b4be0a9373c3dd1f8d190e56df65428b277faba49"
+    },
+    "E": {
+      "text": "e",
+      "seconds": 0.205375,
+      "sha256": "6fba28320570462c06cccea004bad275eabe0960f8cfde06e6a4e4c5bef744d1"
+    },
+    "F": {
+      "text": "èf",
+      "seconds": 0.29075,
+      "sha256": "4bf0f897f49d5c1f76dcc19203cbf9c82c755f031112ea454de0464cab53366b"
+    },
+    "G": {
+      "text": "gé",
+      "seconds": 0.274625,
+      "sha256": "e5852f9eeeaa6756bc71546c9f8b5b481ee6cdccabb179cc7baf854b82e3e969"
+    },
+    "H": {
+      "text": "ache",
+      "seconds": 0.294375,
+      "sha256": "537d43be00e82f057d23ca8d6b89399d224b1e3cdb4ea625adf318156be3d2be"
+    },
+    "I": {
+      "text": "i",
+      "seconds": 0.17675,
+      "sha256": "83353124e6895ab05af7427ff76134dad267872b0c85c331f170fefe63cfac7e"
+    },
+    "J": {
+      "text": "ji",
+      "seconds": 0.263125,
+      "sha256": "60deabec46928bbda2e1b0df761b7c1f5e4c1a8d26c0f8df5ead90dd303dc378"
+    },
+    "K": {
+      "text": "ka",
+      "seconds": 0.23725,
+      "sha256": "3b144d0060b100dc0da9e81a86931942d580d956c2a7000220951977b154f1d9"
+    },
+    "L": {
+      "text": "èl",
+      "seconds": 0.2725,
+      "sha256": "5b61851d4aa1b73398c58923d9b959700b8d9805f0fd7a46dfb1941a1235ba3c"
+    },
+    "M": {
+      "text": "èm",
+      "seconds": 0.299625,
+      "sha256": "6ae8e14fbd4519c2e45d2e6c90e96caeb9a3e045d5283e7e5e21715ace2d5119"
+    },
+    "N": {
+      "text": "èn",
+      "seconds": 0.304375,
+      "sha256": "b8f8da2f0b0681853a8e9766bfb44507ee0006fccc1158b1d31eb76c7dc9fc72"
+    },
+    "O": {
+      "text": "o",
+      "seconds": 0.207375,
+      "sha256": "8b90a96a3dab6505213ee8a0e44d9e86ff8804ab443264803447052029a5570e"
+    },
+    "P": {
+      "text": "pé",
+      "seconds": 0.2125,
+      "sha256": "d2f2099e9326d3d97d4d2d55c814d43b05f13f2c504289609e1e99ce3bfa6549"
+    },
+    "Q": {
+      "text": "ku",
+      "seconds": 0.251625,
+      "sha256": "e4925bcf4d2a349867cf0c04fd29c9c64ccdebce82b26fa76e090a2773a6b6c6"
+    },
+    "R": {
+      "text": "èr",
+      "seconds": 0.273875,
+      "sha256": "73699ac858815659c9baf617d8667f0d39827363cab3b247767d107fef6ee1ef"
+    },
+    "S": {
+      "text": "ès",
+      "seconds": 0.20775,
+      "sha256": "7054dca6e0d981d79801f55036a141478c69ca2882f854e4542857a77880272d"
+    },
+    "T": {
+      "text": "té",
+      "seconds": 0.214875,
+      "sha256": "58cae9ca110c32b99ddf60e32c7cbd238819aa27e77098741982426261d83577"
+    },
+    "U": {
+      "text": "u",
+      "seconds": 0.20575,
+      "sha256": "5b733a269815c11a13946dc60139f15af9c0945d1a21a3508e24f88978137134"
+    },
+    "V": {
+      "text": "vé",
+      "seconds": 0.286375,
+      "sha256": "2d22023b286690bf566bc56813a94bb3ac3c70f5adbd91e8e413295641a72e84"
+    },
+    "W": {
+      "text": "double vé",
+      "seconds": 0.553125,
+      "sha256": "c9be4e8db1206d5034e3a3e5f86fce953c47f323528dd021818832396e4b0e03"
+    },
+    "X": {
+      "text": "iks",
+      "seconds": 0.2415,
+      "sha256": "3c67600204ef80aa93ba063ee98815bee3c0eb4868093a113e3e06a1d1999d9b"
+    },
+    "Y": {
+      "text": "i grec",
+      "seconds": 0.48575,
+      "sha256": "8cd77e5fc7ec47eb182a7faafd4fd5423456585dd375555fede7134a3cb297a0"
+    },
+    "Z": {
+      "text": "zèd",
+      "seconds": 0.364875,
+      "sha256": "8ae96e13b0af88cff2abc59411b00fb34432e87910184717be29ae6b10714a91"
+    },
+    "0": {
+      "text": "zéro",
+      "seconds": 0.40975,
+      "sha256": "6749736ac0f2a2583da5b654a321dc59c0cd14431eacf78f36478b1c2a9dd64f"
+    },
+    "1": {
+      "text": "un",
+      "seconds": 0.210875,
+      "sha256": "0da5947c43141f0b125f384425ab9f439ea0d4e82998f864d2962c14a42ca561"
+    },
+    "2": {
+      "text": "deux",
+      "seconds": 0.21575,
+      "sha256": "89fb51c0e810b6b64572ad6194f34bd2da2fcd0ddea6931e82208b1929a2819c"
+    },
+    "3": {
+      "text": "trois",
+      "seconds": 0.330625,
+      "sha256": "0750bba825b9c14bf6dbe34f6c1a804ed32ce43c0553bc480ef247916852abb7"
+    },
+    "4": {
+      "text": "quatre",
+      "seconds": 0.379625,
+      "sha256": "a098cb41d31b3c29aa45f1adb2bd5d2017831206e30666d505bb510f11174a9d"
+    },
+    "5": {
+      "text": "cinq",
+      "seconds": 0.34375,
+      "sha256": "a135442126d9b8a9b7c061c997e8f6e9a6bd21443802d1999ba16dca4501fae9"
+    },
+    "6": {
+      "text": "six",
+      "seconds": 0.2435,
+      "sha256": "736ae36f96480b26c63a215aba0da451afedf8c8071723612395580af8f21a20"
+    },
+    "7": {
+      "text": "sept",
+      "seconds": 0.335125,
+      "sha256": "284b93a01c57a4632b5030e639812eb94809527317a19d704dacbf8a0e0c1ce1"
+    },
+    "8": {
+      "text": "huit",
+      "seconds": 0.302875,
+      "sha256": "2bda35c7686ebd2288691f5002d6a5366b85f42f58476b29549b10e42ede10de"
+    },
+    "9": {
+      "text": "neuf",
+      "seconds": 0.360375,
+      "sha256": "e669651d380a671e97c1f87a60c780ee2d8fcadf274a338b2c69a9b442a326f6"
+    },
+    "-": {
+      "text": "tiret",
+      "seconds": 0.358875,
+      "sha256": "d2e024dade90afbf39c92066f20653a0bf2e1752ab26d2bac964f4d91ec6390e"
+    },
+    "_": {
+      "text": "tiret bas",
+      "seconds": 0.513875,
+      "sha256": "5437a9f5c53b99b4dca0a9412609fc534fb70c1392b0c1db54c247c76041b1e1"
+    },
+    " ": {
+      "text": "espace",
+      "seconds": 0.38,
+      "sha256": "6468504d1eef6c2e828b198d06a02eb947cfe96319654ba0327b1003b65dacf7"
+    },
+    "future": {
+      "text": "La lampe du poste va s’éteindre.",
+      "seconds": 1.547875,
+      "sha256": "e32709bba09af4af98bba38e3edf27ecec94eb197379a2508a3c2a273518eb76"
+    }
+  }
+}

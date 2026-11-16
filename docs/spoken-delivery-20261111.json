@@ -1,0 +1,42 @@
+[
+  [
+    "radio_future",
+    "Nouveau cas",
+    "Poste radio R9 inspectable ; un test partagé de relais éteint réellement sa lampe à 6 s et la rallume à 9 s. Une phrase privée annonce l’extinction avant elle.",
+    "Tests de phrase avant événement, même lampe A/B, cas normal silencieux, client tardif, reset, rayons de scène.",
+    "Annonce scénarisée du relais, pas prédiction des joueurs. Écoute humaine et rendu GPU à réceptionner.",
+    "src/game/spoken-state.ts ; src/game/spoken-world.ts"
+  ],
+  [
+    "vent_whisper",
+    "Nouveau cas",
+    "Bouche V9 physique ; approche à 2 m, lettres françaises embarquées épelant le pseudonyme propre explicitement autorisé.",
+    "Seuil, différentes cadences, pause, R, retrait, absence de données externes ; texte progressif sans donner le nom avant les lettres.",
+    "Alphabet A–Z, chiffres, espace et -/_ seulement ; autres noms permis pour jouer sans épellation. Timbre et intelligibilité non certifiés.",
+    "src/game/spoken-state.ts ; tests/spoken.test.mjs"
+  ],
+  [
+    "NAME-CONSENT",
+    "Protection",
+    "Choix explicite au lancement, refus par défaut, accord de tous les membres requis pour le tirage ; pas d’autorisation implicite sur reprise solo.",
+    "Handlers D1 et HTTP, retrait idempotent, aucun endpoint permettant une réactivation tardive, nouveau passage de référence sans pénalité ni fuite de sélection.",
+    "Le nom utilisé est seulement celui du joueur local, jamais celui d’un tiers non consenti.",
+    "src/game/session.ts ; app/game.tsx"
+  ],
+  [
+    "VOICE-BANK",
+    "Audio local",
+    "39 lettres/chiffres/séparateurs et une phrase : 40 entrées françaises synthétiques embarquées, μ-law 8 kHz, décodage et rééchantillonnage bornés.",
+    "Données et durées reliées, décodeur testé à 8/16/44,1/48 kHz, bornes et énergie ; empreintes et outil de génération documentés.",
+    "Synthèse eSpeak 1.48.15 hors ligne ; aucun enregistrement de personne, microphone ou service distant.",
+    "scripts/build-spoken-bank.py ; docs/spoken-bank-manifest.json"
+  ],
+  [
+    "AUDIO-EXPIRED",
+    "Correctif",
+    "Une source non bouclée expirée ne repart plus du début après un modulo de son offset.",
+    "Régression du vrai adaptateur audio : offset expiré, reprise partielle, NaN, arrêt exact.",
+    "Les fake AudioNodes testent le contrat, pas un rendu acoustique physique.",
+    "src/game/acoustic-audio.ts ; tests/acoustic.test.mjs"
+  ]
+]

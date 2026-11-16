@@ -1,0 +1,34 @@
+[
+  [
+    "shadow_points",
+    "Nouveau cas",
+    "La vraie hiérarchie articulée de l’inspecteur est projetée au sol ; seule l’ombre du bras droit peut pointer un équipier au repère C9.",
+    "15 tests dédiés : seuil, matrices, ressources, neutralité source, A/B, témoins, pause et sécurité des poses ; 3 tests de scène ajoutés.",
+    "Réception graphique physique non réalisée. Aucun responsable ni vote lié à la cible.",
+    "src/game/body-shadow.ts ; src/game/shadow-state.ts ; src/game/shadow-world.ts"
+  ],
+  [
+    "POSE-MONOTONE",
+    "Correctif",
+    "La péremption des poses utilise aussi le temps monotone réel, pas seulement le delta d’animation borné.",
+    "Gel de cinq secondes puis reprise à 1 ms : ombre et pas résiduels restent suspendus jusqu’à une nouvelle projection serveur.",
+    "Contrôle local du navigateur ; pas un test de latence physique de 4 appareils.",
+    "src/game/scene.ts ; tests/scene.geometry.test.mjs"
+  ],
+  [
+    "SHADOW-LIFECYCLE",
+    "Correctif",
+    "Retrait immédiat de la copie projetée à la sortie d’un pair et au remplacement du modèle ; restauration des flags de shadow-map/contact.",
+    "Tests des ressources : une seule libération ; aucune destruction de géométrie empruntée.",
+    "Partage de géométrie évite la duplication GPU ; des appels de dessin supplémentaires restent à mesurer.",
+    "src/game/scene.ts ; src/game/shadow-world.ts"
+  ],
+  [
+    "SHADOW-MIRROR",
+    "Non-régression",
+    "Les projections respectent la visibilité de leur corps pendant les captures de miroir, puis sont restaurées en finally.",
+    "Masque de visibilité testé même en cas d’exception de capture.",
+    "Pas de certification de rendu des reflets.",
+    "src/game/scene.ts ; tests/shadow.test.mjs"
+  ]
+]

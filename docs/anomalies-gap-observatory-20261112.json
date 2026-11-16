@@ -1,0 +1,38 @@
+{
+  "schema": "parallaxe-anomaly-gap-v1",
+  "date": "2026-11-12",
+  "source_branch": "continuation/observations-20261110",
+  "designed": 120,
+  "runtime": 119,
+  "remaining": 1,
+  "limits": [
+    "Fiches fidèles au texte de référence original, prolongées d'un plan de production; aucune n'est annoncée jouable.",
+    "Les nouvelles preuves purement sonores nécessitent un équivalent accessible et privé.",
+    "Aucune anomalie liée à un décor inexistant n'est proposée au tirage.",
+    "Observatoire O9 intégré dans le lot du 12 novembre. hall_stretch reste exclu par la condition de confort de sa fiche originale."
+  ],
+  "remaining_anomalies": [
+    {
+      "id": "hall_stretch",
+      "name": "Les mètres supplémentaires",
+      "family": "Architecture",
+      "place": "Couloir",
+      "intensity": 3,
+      "status": "Conçu — non implémenté",
+      "priority": "P1",
+      "target": "Couloir Saint-Clair; navigabilité/projection à préserver",
+      "baseline": "Le même nombre de panneaux sépare entrée et issue.",
+      "perceptionA": "Le couloir semble plus long.",
+      "perceptionB": "Les proportions normales persistent.",
+      "comparison": "Compter les panneaux visibles, puis comparer les positions des pairs.",
+      "trigger": "Entrer dans la zone centrale.",
+      "success": "Une longueur perçue incompatible avec les repères communs confirme.",
+      "assets": "Dilatation visuelle et ancrages de réseau distincts.",
+      "fairness": "À produire seulement après tests de locomotion et motion sickness.",
+      "requiredReference": "Distances visuelles étirées uniquement, positions de joueurs et collisions restent communes",
+      "technicalImplementation": "Effet optique local de perspective, aucune géométrie de collision serveur modifiée",
+      "qaAcceptance": "Même repères, seul un regard déformé; aucun saut ni masquage de sortie",
+      "statusReason": "Absente de src/game/catalog.ts et du rendu/selecteur; aucune recette nouvelle revendiquée."
+    }
+  ]
+}

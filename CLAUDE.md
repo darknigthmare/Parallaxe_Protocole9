@@ -14,3 +14,6 @@ Conserver les réglages, hooks, instructions et documents du projet ; intégrer
 seulement les outils nécessaires. Les plugins et commandes doivent être
 disponibles dans la session avant d'être invoqués.
 <!-- END:shared-ai-tooling-claude -->
+
+## Workflows locaux Parallaxe
+Consulter `.claude/skills/p9-reprise/SKILL.md`, puis le workflow ciblé p9-anomalies, p9-scene, p9-coop-radio ou p9-livraison. Les copies sous `.agents/skills` sont les miroirs Codex, pas d’autres règles. `npm run test:skills` contrôle leur intégrité. Aucun hook ni plugin global n’est activé par ces fichiers.

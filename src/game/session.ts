@@ -3,14 +3,18 @@ import {isLevelId,type LevelId,type GameMode} from './levels';
 
 export const PRESENCE_TIMEOUT=45_000;
 export const SESSION_TTL=12*60*60*1000;
-export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace'];
+export const TARGETS=['clock','portrait','door','plant','trolley','light','radio','mirror','exit','chair','ceiling','floor','phone','window','player','train','signal','tracks','bed','monitor','curtain','wheelchair','iv','assignment','luggage','document','newspaper','hourglass','cup','keys','guestbook','glove','weather-photo','team-photo','floor-map','regulations','occupancy','table','fireplace','coat','extinguisher','stars','aged-photo','landing','music-box','bell','vase','witness-door','listening-mannequin','lift','service-radio','vent','body-shadow','observatory-window','observatory-shutters'];
+export type PropTarget='bell'|'vase'|'witness-door'|'listening-mannequin'|'lift'|'service-radio'|'observatory-shutters';
+export type PropEvent={id:string;target:PropTarget;at:number;sequence:number;actorId:string;x:number;z:number};
+export const PROP_ANCHORS:Record<PropTarget,readonly [number,number]>={bell:[1.95,7.95],vase:[-3.30,-4.10],'witness-door':[3.22,11.10],'listening-mannequin':[3.20,-14.00],lift:[-2.45,-15.65],'service-radio':[-3.20,7.35],'observatory-shutters':[-3.35,-4.45]};
+const PROP_WAIT:Record<PropTarget,number>={bell:8000,vase:4000,'witness-door':8000,'listening-mannequin':2000,lift:14000,'service-radio':12000,'observatory-shutters':3000};
 export const SIGNAL_TTL=60_000;
 export type RadioSignal={id:string;from:string;to:string;fromEpoch:string;toEpoch:string;at:number;description?:{type:'offer'|'answer';sdp:string};candidate?:{candidate:string;sdpMid:string|null;sdpMLineIndex:number|null;usernameFragment?:string|null}|null;reset?:boolean};
 export type Pose={x:number;y:number;z:number;yaw:number;pitch:number};
-export type Player={id:string;name:string;slot:number;tokenHash:string;lastSeen:number;left:boolean;vote:boolean|null;pose:Pose;radioEnabled:boolean;radioEpoch:string;talking:boolean;radioTalkAt:number};
+export type Player={namedVoiceConsent?:boolean;id:string;name:string;slot:number;tokenHash:string;lastSeen:number;left:boolean;vote:boolean|null;pose:Pose;radioEnabled:boolean;radioEpoch:string;talking:boolean;radioTalkAt:number};
 export type RoomMessage={id:string;senderId:string;name:string;text:string;at:number};
 export type RoomPing={id:string;name:string;target:string;at:number};
-export type Room={code:string;hostId:string;started:boolean;run:Run;players:Player[];messages:RoomMessage[];pings:RoomPing[];createdAt:number;revision:number;decisionEpoch:number;decisionPaused:boolean;signals:RadioSignal[]};
+export type Room={code:string;hostId:string;started:boolean;run:Run;players:Player[];messages:RoomMessage[];pings:RoomPing[];createdAt:number;revision:number;decisionEpoch:number;decisionPaused:boolean;signals:RadioSignal[];propEvents?:PropEvent[]};
 export type DecisionRejection={code:'INVALID_DECISION_CONTEXT'|'STALE_DECISION_CONTEXT';message:string};
 
 export class SessionError extends Error {
@@ -64,14 +68,15 @@ export function cleanPose(value:unknown):Pose {
   if(values.some(v=>typeof v!=='number'||!Number.isFinite(v)))throw new SessionError('Position invalide.');
   return {x:Math.max(-3.8,Math.min(3.8,p.x as number)),y:Math.max(0,Math.min(4,p.y as number)),z:Math.max(-16,Math.min(12,p.z as number)),yaw:(p.yaw as number)%(Math.PI*2),pitch:Math.max(-1.5,Math.min(1.5,p.pitch as number))};
 }
-export function makePlayer(id:string,name:string,tokenHash:string,slot:number,now:number):Player {
-  return {id,name,tokenHash,slot,lastSeen:now,left:false,vote:null,pose:{x:(slot-1.5)*0.65,y:1.65,z:9,yaw:0,pitch:0},radioEnabled:false,radioEpoch:'',talking:false,radioTalkAt:0};
+export function makePlayer(id:string,name:string,tokenHash:string,slot:number,now:number,namedVoiceConsent=false):Player {
+  if(namedVoiceConsent===true&&!/^[A-Za-z0-9 _-]{1,24}$/.test(name))throw new SessionError("Pour l’épellation locale, utilisez un indicatif de 1 à 24 lettres A–Z, chiffres, espaces ou tirets.");
+  return {id,name,tokenHash,slot,namedVoiceConsent:namedVoiceConsent===true,lastSeen:now,left:false,vote:null,pose:{x:(slot-1.5)*0.65,y:1.65,z:9,yaw:0,pitch:0},radioEnabled:false,radioEpoch:'',talking:false,radioTalkAt:0};
 }
 export function createRoom(code:string,host:Player,difficulty:Difficulty,seed:string,now:number,options:{mode?:GameMode;levelId?:LevelId}={}):Room {
   return {code,hostId:host.id,started:false,run:createRun({seed,difficulty,players:2,...options}),players:[host],messages:[],pings:[],createdAt:now,revision:0,decisionEpoch:0,decisionPaused:false,signals:[]};
 }
 export function upgradeRoom(room:Room):Room {
-  return {...room,decisionEpoch:Number.isSafeInteger(room.decisionEpoch)&&room.decisionEpoch>=0?room.decisionEpoch:0,decisionPaused:room.decisionPaused===true,run:migrateRun(room.run)??createRun({seed:`recovered:${room.createdAt}`,mode:'single'}),signals:Array.isArray(room.signals)?room.signals:[],players:room.players.map(p=>({...p,radioEnabled:p.radioEnabled===true,radioEpoch:typeof p.radioEpoch==='string'?p.radioEpoch:'',talking:p.talking===true,radioTalkAt:p.radioTalkAt??0}))};
+  return {...room,propEvents:Array.isArray(room.propEvents)?room.propEvents.filter(e=>e&&Object.hasOwn(PROP_ANCHORS,e.target)&&typeof e.id==='string'&&Number.isFinite(e.at)&&Number.isSafeInteger(e.sequence)&&e.sequence>0&&Number.isFinite(e.x)&&Number.isFinite(e.z)).slice(-Object.keys(PROP_ANCHORS).length):[],decisionEpoch:Number.isSafeInteger(room.decisionEpoch)&&room.decisionEpoch>=0?room.decisionEpoch:0,decisionPaused:room.decisionPaused===true,run:{...(migrateRun(room.run)??createRun({seed:`recovered:${room.createdAt}`,mode:'single'})),namedVoiceAllowed:room.players.filter(p=>!p.left).length>=2&&room.players.filter(p=>!p.left).every(p=>p.namedVoiceConsent===true)},signals:Array.isArray(room.signals)?room.signals:[],players:room.players.map(p=>({...p,namedVoiceConsent:p.namedVoiceConsent===true,radioEnabled:p.radioEnabled===true,radioEpoch:typeof p.radioEpoch==='string'?p.radioEpoch:'',talking:p.talking===true,radioTalkAt:p.radioTalkAt??0}))};
 }
 
 export function validateSignal(room:Room,actor:Player,payload:Record<string,unknown>,now:number):RadioSignal {
@@ -97,6 +102,14 @@ export function validateSignal(room:Room,actor:Player,payload:Record<string,unkn
     }
   }else result.reset=true;
   return result;
+}
+function scheduleProp(room:Room,actor:Player,target:PropTarget,id:string,now:number):void {
+  const existing=room.propEvents?.find(e=>e.target===target);
+  if(existing?.id===id)return;
+  if(existing&&now<existing.at+PROP_WAIT[target])throw new SessionError('Laissez le geste se terminer avant de recommencer.',429);
+  if((existing?.sequence??0)>=1_000_000)throw new SessionError('Limite de gestes atteinte pour ce passage.',429);
+  const sequence=(existing?.sequence??0)+1;
+  room.propEvents=[...(room.propEvents??[]).filter(e=>e.target!==target),{id,target,at:now+650,sequence,actorId:actor.id,x:actor.pose.x,z:actor.pose.z}];
 }
 export function joinRoom(room:Room,player:Player):Room {
   if(room.started)throw new SessionError('Cette inspection a déjà commencé. Rejoignez une nouvelle équipe.',409);
@@ -145,7 +158,7 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
   if(!host||now-host.lastSeen>=PRESENCE_TIMEOUT)next.hostId=activePlayers(next,now).sort((a,b)=>a.slot-b.slot)[0]?.id??actor.id;
   actor.lastSeen=now;
   if(next.decisionPaused&&!next.players.some(p=>!p.left&&now-p.lastSeen>=PRESENCE_TIMEOUT))next.decisionPaused=false;
-  if(action==='start'||action==='next'||action==='vote'){
+  if(action==='start'||action==='next'||action==='vote'||action==='prop'){
     const expected=payload.decisionEpoch;
     if(typeof expected!=='number'||!Number.isSafeInteger(expected)||expected<0){
       onDecisionRejected?.({code:'INVALID_DECISION_CONTEXT',message:'Votre inspection doit être actualisée. Vérifiez le passage affiché avant de confirmer de nouveau.'});
@@ -162,8 +175,8 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
     const active=activePlayers(next,now).sort((a,b)=>a.slot-b.slot);
     if(active.length<2)throw new SessionError('Deux inspecteurs présents sont nécessaires. Le mode solo reste disponible.',409);
     next.players=active.map((p,slot)=>({...p,slot,vote:null}));
-    next.run=createRun({seed:`${next.run.seed}:start:${now}`,difficulty:next.run.difficulty,players:active.length,mode:next.run.mode,levelId:next.run.levelId});
-    next.started=true;
+    next.run=createRun({seed:`${next.run.seed}:start:${now}`,difficulty:next.run.difficulty,players:active.length,namedVoiceAllowed:active.every(p=>p.namedVoiceConsent===true),mode:next.run.mode,levelId:next.run.levelId});
+    next.started=true;next.propEvents=[];
     next.decisionEpoch++;
     next.decisionPaused=false;
     next.pings=[];
@@ -174,7 +187,7 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
     if(activePlayers(next,now).length!==next.players.filter(p=>!p.left).length)throw new SessionError('Un inspecteur est déconnecté. Le protocole attend son retour.',409);
     if(next.run.phase==='reference'||next.run.phase==='reveal'){
       const remaining=next.players.filter(p=>!p.left).sort((a,b)=>a.slot-b.slot);
-      next.run=advanceRun({...next.run,players:remaining.length});
+      next.run=advanceRun({...next.run,players:remaining.length,namedVoiceAllowed:remaining.every(p=>p.namedVoiceConsent===true)});next.propEvents=[];
       next.run.observerSlots=next.run.observerSlots.map(index=>remaining[index].slot);
       next.players.forEach(p=>p.vote=null);
       next.decisionEpoch++;
@@ -188,6 +201,29 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
     const active=activePlayers(next,now);
     if(active.length<2||active.length!==next.players.filter(p=>!p.left).length)return next;
     actor.vote=payload.vote;
+  }else if(action==='prop'){
+    if(!next.started||!['hotel','observatory'].includes(next.run.levelId)||!['reference','inspect'].includes(next.run.phase))throw new SessionError('Ce support est indisponible dans ce passage.',409);
+    if(typeof payload.target!=='string'||!Object.hasOwn(PROP_ANCHORS,payload.target))throw new SessionError('Support inconnu.');
+    if(typeof payload.requestId!=='string'||!/^[a-zA-Z0-9_-]{16,64}$/.test(payload.requestId))throw new SessionError('Identifiant du geste invalide.');
+    const target=payload.target as PropTarget,anchor=PROP_ANCHORS[target];
+    if((target==='observatory-shutters')!==(next.run.levelId==='observatory'))throw new SessionError('Support incompatible avec ce lieu.',409);
+    if(Math.hypot(actor.pose.x-anchor[0],actor.pose.z-anchor[1])>3.6)throw new SessionError('Approchez-vous du support avant de le manipuler.',403);
+    if(next.decisionPaused||activePlayers(next,now).length<2)throw new SessionError('Attendez le retour de votre équipe.',409);
+    const previous=next.propEvents?.find(e=>e.target===target),id=actor.id+':'+payload.requestId;
+    if(previous?.id===id)return next;
+    if(!Number.isSafeInteger(payload.expectedSequence)||payload.expectedSequence!==(previous?.sequence??0))throw new SessionError('Le support a déjà été manipulé. Vérifiez son état avant de recommencer.',409);
+    if(activePlayers(next,now).length!==next.players.filter(p=>!p.left).length)throw new SessionError('Attendez le retour de votre équipe.',409);
+    scheduleProp(next,actor,target,id,now);
+  }else if(action==='revoke-named-voice'){
+    // Irreversible for this membership: stale packets can never grant permission.
+    // Always reset a live observation, regardless of the hidden current case.
+    if(actor.namedVoiceConsent!==true)return next;
+    actor.namedVoiceConsent=false;next.run.namedVoiceAllowed=false;
+    if(next.started&&['reference','inspect'].includes(next.run.phase)){
+      next.run={...next.run,phase:'reference',loop:next.run.loop+1,currentAnomalyId:null,observerSlots:[],lastResult:null};
+      next.decisionEpoch++;next.propEvents=[];next.pings=[];next.players.forEach(p=>p.vote=null);
+      next.messages.push({id:crypto.randomUUID(),senderId:'control',name:'CONTRÔLE',text:'Autorisation d’épellation retirée. Retour à la référence sans pénalité ; aucune indication sur le cas précédent.',at:now});next.messages=next.messages.slice(-40);
+    }
   }else if(action==='pose'){
     actor.pose=cleanPose(payload.pose);
   }else if(action==='chat'){
@@ -197,6 +233,12 @@ export function actRoom(room:Room,playerId:string,action:string,payload:Record<s
     if(last&&now-last.at<600)throw new SessionError('Attendez un instant avant de transmettre.',429);
     next.messages.push({id:crypto.randomUUID(),senderId:actor.id,name:actor.name,text,at:now});
     next.messages=next.messages.slice(-40);
+    // A text message is a consented signal, never a microphone analysis. Only the
+    // public speaker location is shared; head orientation remains private.
+    if(next.started&&next.run.levelId==='hotel'&&['reference','inspect'].includes(next.run.phase)){
+      const old=next.propEvents?.find(e=>e.target==='listening-mannequin');
+      if(!old||now>=old.at+PROP_WAIT['listening-mannequin'])scheduleProp(next,actor,'listening-mannequin',next.messages.at(-1)!.id,now);
+    }
   }else if(action==='ping'){
     if(payload.target!==undefined){
       if(typeof payload.target!=='string'||!TARGETS.includes(payload.target))throw new SessionError('Repère inconnu.');
@@ -259,12 +301,13 @@ export function projectRoom(room:Room,playerId:string,now:number){
     difficulty:room.run.difficulty,correctTotal:room.run.correctTotal,
     mode:room.run.mode,levelId:room.run.levelId,stage:room.run.stage,stageProgress:room.run.stageProgress,schemaVersion:2,
     paused,
-    players:room.players.filter(p=>!p.left).map(p=>({id:p.id,name:p.name,slot:p.slot,connected:now-p.lastSeen<PRESENCE_TIMEOUT,vote:paused&&phase==='inspect'?null:p.vote,pose:p.pose,radioEnabled:p.radioEnabled,radioEpoch:p.radioEpoch,talking:p.radioEnabled&&p.talking&&now-p.lastSeen<PRESENCE_TIMEOUT&&p.radioTalkAt<=now&&now-p.radioTalkAt<10_000})),
+    players:room.players.filter(p=>!p.left).map(p=>({id:p.id,name:p.name,namedVoiceConsent:p.namedVoiceConsent===true,slot:p.slot,connected:now-p.lastSeen<PRESENCE_TIMEOUT,vote:paused&&phase==='inspect'?null:p.vote,pose:p.pose,radioEnabled:p.radioEnabled,radioEpoch:p.radioEpoch,talking:p.radioEnabled&&p.talking&&now-p.lastSeen<PRESENCE_TIMEOUT&&p.radioTalkAt<=now&&now-p.radioTalkAt<10_000})),
     view:room.started?getPersonalView(room.run,self.slot):{effects:[],variant:0,phase:'lobby' as const,loop:0,relayCode:'3142',levelId:room.run.levelId,arrowDirection:'left' as const,syncTime:'03:09'},
     radioInbox:currentRadioSignals(room,now).filter(s=>s.to===self.id),
     messages:room.messages,
     pings:room.pings.filter(p=>now-p.at<15_000),
     reveal:last?{correct:last.correct,hasAnomaly:last.hasAnomaly,title:last.title,description:last.description,anomalyId:last.anomalyId,observerNames:room.players.filter(p=>last.observerSlots.includes(p.slot)).map(p=>p.name)}:null,
+    propEvents:room.started&&['hotel','observatory'].includes(room.run.levelId)&&['reference','inspect'].includes(phase)?(room.propEvents??[]).filter(e=>(e.target==='observatory-shutters')===(room.run.levelId==='observatory')).map(e=>({id:e.id,target:e.target,at:e.at,sequence:e.sequence,actorId:e.actorId,x:e.x,z:e.z})):[],
     serverTime:now,
   };
 }

@@ -1,16 +1,17 @@
 "use client";
 
-import { ArrowRight, Building2, TrainFront, Hospital, House } from "lucide-react";
+import { ArrowRight, Building2, TrainFront, Hospital, House, Telescope } from "lucide-react";
 import { LEVEL_ORDER, type LevelId } from "@/src/game/levels";
 
 export type MissionChoice = { mode: "campaign" | "single"; levelId: LevelId };
 
 export const MISSION_LOCATIONS = [
+  { id: "observatory" as const, index: "05", name: "Observatoire 09", subtitle: "La galerie terrestre", detail: "Volets partagés, télescope immobile et ciel nocturne au-dessus du relief.", icon: Telescope },
   { id: "hotel" as const, index: "01", name: "Saint-Clair", subtitle: "L’hôtel sans neuvième étage", detail: "Bois sombre, réception silencieuse et reflets trop familiers.", icon: Building2 },
   { id: "metro" as const, index: "02", name: "Terminus 09", subtitle: "Le dernier quai", detail: "Quai vide, rails parallèles et tunnel sans départ.", icon: TrainFront },
   { id: "clinic" as const, index: "03", name: "Aile blanche", subtitle: "La clinique de nuit", detail: "Poste de soins, rideaux d’isolement et lits sous surveillance.", icon: Hospital },
   { id: "cabin" as const, index: "04", name: "Chalet de service", subtitle: "Le module témoin", detail: "Une table, une tasse, un carnet et un foyer froid dans un chalet de bois assemblé sous un hangar.", icon: House },
-];
+].sort((a,b)=>a.index.localeCompare(b.index));
 
 export function MissionSelector({ value, onChange, compact = false }: {
   value: MissionChoice; onChange: (value: MissionChoice) => void; compact?: boolean;

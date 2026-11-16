@@ -1,0 +1,42 @@
+[
+  [
+    "elevator_count",
+    "Nouveau cas",
+    "Cabine en profondeur dans une ouverture permanente du mur de fond ; afficheur 09 fixe ; un appel partagé produit 1 ou 9 carillons privés.",
+    "Séquences comptées à l’exécution, mêmes positions et portes pour A/B ; authentification et persistance du cinquième support.",
+    "Écoute humaine et rendu GPU non validés.",
+    "src/game/lift-world.ts ; src/game/temporal-state.ts"
+  ],
+  [
+    "visitor_one_frame",
+    "Nouveau cas",
+    "Passager original dans la cabine puis dans l’encadrement ; visibilité continue au-delà de dix secondes, jamais une seule image.",
+    "Persistance supérieure à 10 s, A/B, réinitialisation, cadence et accès hors cabine.",
+    "Les portes ne sont pas une route de progression et ne peuvent piéger l’inspecteur.",
+    "src/game/lift-world.ts ; tests/lift-footsteps.test.mjs"
+  ],
+  [
+    "footsteps_unowned",
+    "Nouveau cas",
+    "Après 3 s d’immobilité de tous les inspecteurs observés, pas spatialisés persistants ; compteur privé excluant les pas normaux.",
+    "Seuil à 10/30/60/144 fps, reprise du mouvement, pause, autres lieux, perte de positions récentes.",
+    "La fenêtre dépend des poses observées ; absence de mise à jour >1,75 s suspend la preuve.",
+    "src/game/footstep-state.ts"
+  ],
+  [
+    "STEP-COLLISION",
+    "Correctif",
+    "Les pas propres existants suivent le déplacement réel après collision, pas la touche de marche tenue contre un mur.",
+    "Régression de scène : immobilité / déplacement réel ; timbres par lieu conservés.",
+    "Aucun relevé sonore partagé ou capturé.",
+    "app/game.tsx"
+  ],
+  [
+    "LIFT-PROP",
+    "Coopération",
+    "Un cinquième support lift est authentifié, borné et conservé au rechargement ; même intention pour les deux témoins.",
+    "Tous les cinq supports survivent à la normalisation ; doublons sans rejeu, état privé non diffusé.",
+    "Tolérance de polling habituelle, pas une garantie réseau.",
+    "src/game/session.ts"
+  ]
+]

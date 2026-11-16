@@ -251,7 +251,7 @@ export function createCabinWorld(reflection: ReflectionFactory) {
   const terminalHead = new THREE.Group(); terminalHead.position.set(0, 1.08, .03); terminalHead.rotation.x = -.40; terminal.add(terminalHead);
   box(.72, .46, .06, 0, 0, 0, mats.iron, terminalHead, .025);
   panel(.64, .36, 0, 0, .034, textMap(['PROTOCOLE 09', 'DIAGNOSTIC']), terminalHead, .65);
-  tag(terminal, 'exit', 'Terminal de diagnostic — E'); obstacle(0, -12.90, .42, .32);
+  tag(terminal, 'exit', 'Terminal de diagnostic'); obstacle(0, -12.90, .42, .32);
   const entryDoor = new THREE.Group(); entryDoor.position.set(0, 0, 11.94); entryDoor.rotation.y = Math.PI; root.add(entryDoor);
   box(2.12, 2.91, .15, 0, 1.46, 0, mats.endgrain, entryDoor);
   box(1.90, 2.72, .08, 0, 1.37, .12, mats.green, entryDoor, .025);

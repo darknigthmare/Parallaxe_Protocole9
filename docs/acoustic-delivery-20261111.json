@@ -1,0 +1,34 @@
+[
+  [
+    "paired_knocks",
+    "Nouveau cas acoustique",
+    "Silence en référence. Trois ou quatre coups privés, cycles de 12 secondes et replay volontaire sur la porte 903.",
+    "Comptage de signal PCM et légende ; projection privée ; pauses ; cadences 10/30/60/144.",
+    "Écoute réelle et perception des rythmes à valider.",
+    "src/game/acoustic-state.ts ; tests/acoustic.test.mjs"
+  ],
+  [
+    "telephone_breath",
+    "Nouveau cas acoustique",
+    "E décroche le combiné. Souffle synthétique lent uniquement pour le témoin concerné ; R le repose.",
+    "Pas de souffle avant action ; inspiration/expiration ; A/B ; source localisée au combiné.",
+    "Pas d’accès au micro ; lecture écrite conservée en mode muet.",
+    "src/game/acoustic-audio.ts"
+  ],
+  [
+    "music_one_note",
+    "Nouveau cas acoustique",
+    "Nouvelle boîte mécanique, mélodie originale de huit notes. Dernière note retenue dans la perception affectée.",
+    "Fin silencieuse normale contre note maintenue ; reprise A/B ; replay ; arrêt.",
+    "Rendu du mécanisme et écoute physique à éprouver.",
+    "src/game/scene.ts ; src/game/acoustic-pcm.ts"
+  ],
+  [
+    "rain_inside",
+    "Nouveau cas acoustique",
+    "Pluie extérieure en référence. Après approche du centre, source déplacée au plafond pour le témoin affecté.",
+    "Position de la source, déclenchement, retour normal et légende de provenance.",
+    "Pas de diagnostic automatique dans la légende ; écoute spatiale à valider.",
+    "src/game/acoustic-state.ts"
+  ]
+]

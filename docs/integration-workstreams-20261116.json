@@ -1,0 +1,41 @@
+{
+  "schema": "parallaxe-integration-tracker-v1",
+  "date": "2026-11-16",
+  "source_commit": "d47bf43a4392c15fabc0ac53e8008efbc7e7e28d",
+  "source_workstreams": "docs/chantiers-20261112.json",
+  "source_workstreams_sha256": "bb898f6215c0d54dbf979c7185d77a6e66ef35715f851f9f0392567bb86e5c45",
+  "source_workbook": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Chantiers.xlsx",
+  "source_workbook_sha256": "ee40620ab6a4d4f269c91bbdde54094e72b36b31363afc123e123046fa4ca88b",
+  "updates": {
+    "W04": {
+      "etat": "Intégré aux adaptateurs — recette humaine ouverte",
+      "avance_ce_lot": true,
+      "preuves_disponibles": "test:vercel ; test:session-actions ; test:session-adapters ; test:resilience",
+      "prochaine_recette": "Rejouer unanimité, désaccord, succession et concurrence avec 2–4 personnes sur la révision Vercel réunifiée ; les clients HTTP automatisés ne sont pas des testeurs humains."
+    },
+    "W21": {
+      "etat": "Hébergement réconcilié — recette réseau ouverte",
+      "avance_ce_lot": true,
+      "preuves_disponibles": "test:vercel ; build:vercel ; docs/INTEGRATION_20261116.md",
+      "prochaine_recette": "Vérifier le commit de build-info.json sur la production, puis réceptionner une partie entre réseaux distincts. Les cinq lieux et les outils de la continuation sont conservés."
+    },
+    "W23": {
+      "etat": "Traçabilité renforcée — réception matérielle ouverte",
+      "avance_ce_lot": true,
+      "preuves_disponibles": "tests/build-info.test.mjs ; trois builds CI ; tests/package-archive.test.py",
+      "prochaine_recette": "Associer chaque essai humain au commit exact publié ou au COMMIT.txt du paquet ; ne pas confondre cible portable et cible Vercel."
+    },
+    "W24": {
+      "etat": "Frontières REST durcies — revue terrain ouverte",
+      "avance_ce_lot": true,
+      "preuves_disponibles": "tests/vercel-boundary.test.mjs : 8 cas, dont 5 régressions reproduites avant correction",
+      "prochaine_recette": "Revue des journaux expurgés, consentements et conservation sur un environnement réel ; aucun secret ni donnée de salon dans build-info.json."
+    }
+  },
+  "runtime_count": 119,
+  "tracked_items": 600,
+  "work_packages": 28,
+  "closed_by_this_delivery": 0,
+  "ci_url": "https://github.com/darknigthmare/Parallaxe_Protocole9/actions/runs/43914835981",
+  "scope": "Complément daté au registre historique ; les 600 clés et les anciens états source sont conservés. Un build réussi ne clôt pas une recette matérielle."
+}

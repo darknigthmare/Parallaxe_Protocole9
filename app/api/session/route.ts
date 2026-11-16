@@ -71,7 +71,7 @@ export async function POST(request:Request){
       const name=validateName(payload.name);
       const difficulty:Difficulty=payload.difficulty==='relaxed'?'relaxed':'standard';
       const token=secret();const hash=await tokenHash(token);const now=Date.now();
-      const player=makePlayer(crypto.randomUUID(),name,hash,0,now);
+      const player=makePlayer(crypto.randomUUID(),name,hash,0,now,payload.namedVoiceConsent===true);
       await db().prepare('DELETE FROM parallaxe_sessions WHERE code IN (SELECT code FROM parallaxe_sessions WHERE expires_at < ? LIMIT 25)').bind(now).run();
       for(let attempt=0;attempt<6;attempt++){
         const code=makeCode();const room=createRoom(code,player,difficulty,secret(),now,{mode:payload.mode==='single'?'single':'campaign',levelId:isLevelId(payload.levelId)?payload.levelId:'hotel'});
@@ -84,7 +84,7 @@ export async function POST(request:Request){
     if(action==='join'){
       const name=validateName(payload.name);
       const token=secret();const hash=await tokenHash(token);const now=Date.now();
-      const player=makePlayer(crypto.randomUUID(),name,hash,0,now);
+      const player=makePlayer(crypto.randomUUID(),name,hash,0,now,payload.namedVoiceConsent===true);
       const room=await mutate(code,current=>joinRoom(current,player));
       return Response.json({code,token,selfId:player.id,state:projectRoom(room,player.id,now)},{headers});
     }

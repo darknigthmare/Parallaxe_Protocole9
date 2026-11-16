@@ -1,0 +1,20 @@
+"use client";
+import {useEffect,useRef,useState} from 'react';
+import {BACKUP_LIMIT,createTrainingBackup,importTrainingBackup,previousTrainingBackup,readTrainingBackup,type TrainingBackup} from '@/src/game/training-backup';
+import type {Run} from '@/src/game/rules';
+import {getLevel} from '@/src/game/levels';
+export function downloadJson(name:string,value:unknown){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)+'\n'],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+export function TrainingStorage({saved,known,active,onImported}:{saved:Run|null;known:string[];active:boolean;onImported:(run:Run|null,known:string[])=>void}){
+ const [preview,setPreview]=useState<TrainingBackup|null>(null),[message,setMessage]=useState('');
+ const ticket=useRef(0),input=useRef<HTMLInputElement>(null);const current=useRef({active});current.current={active};
+ useEffect(()=>()=>{ticket.current++;},[]);
+ useEffect(()=>{ticket.current++;setPreview(null);},[active]);
+ const exportSave=()=>{try{downloadJson('PARALLAXE_sauvegarde_solo.json',createTrainingBackup(saved,known));setMessage('Sauvegarde exportée : reprise à une référence propre, sans solution du passage courant.');}catch(e){setMessage((e as Error).message);}};
+ const readFile=async(file?:File)=>{const mine=++ticket.current;setPreview(null);if(!file)return;try{if(file.size>BACKUP_LIMIT)throw new Error('Fichier trop volumineux (64 Ko maximum).');const parsed=readTrainingBackup(await file.text());if(mine===ticket.current&&!current.current.active){setPreview(parsed);setMessage('Vérifiez le contenu puis confirmez. Votre partie actuelle n’a pas été remplacée.');}}catch(e){if(mine===ticket.current)setMessage((e as Error).message);}finally{if(input.current)input.current.value='';}};
+ const confirm=()=>{if(!preview||active)return;try{const result=importTrainingBackup(localStorage,preview,crypto.randomUUID());onImported(result.run,result.known);setPreview(null);setMessage('Import enregistré. Utilisez « Reprendre l’inspection » à l’accueil. Les autorisations vocales restent désactivées.');}catch(e){setMessage((e as Error).message);}};
+ return <section className="utility-settings"><h3>Sauvegarde solo et découvertes</h3><p>Le fichier conserve votre palier et vos dossiers découverts. Il ne contient ni réponse cachée, ni graine, ni jeton de salon, ni autorisation vocale. La reprise commence par une nouvelle référence ; une session coopérative n’est jamais exportée.</p>
+ <div className="utility-actions"><button type="button" className="outline-button" onClick={exportSave}>Exporter la sauvegarde solo</button><label className="outline-button">Choisir un fichier<input ref={input} type="file" accept="application/json,.json" disabled={active} aria-label="Importer une sauvegarde solo" onChange={e=>void readFile(e.target.files?.[0])}/></label><button type="button" className="text-button" disabled={active} onClick={()=>{ticket.current++;try{const previous=previousTrainingBackup(localStorage);setPreview(previous);setMessage(previous?'Copie précédant le dernier import prête à vérifier.':'Aucune copie précédente disponible.');}catch{setMessage('Le stockage local est indisponible. Aucun import effectué.');}}}>Récupérer la copie précédente</button></div>
+ {active&&<p>Revenez à l’accueil avant d’importer pour ne pas remplacer une inspection en cours.</p>}
+ {preview&&!active&&<div className="backup-preview"><strong>{preview.progress?`${getLevel(preview.progress.levelId).name} · ${preview.progress.streak}/9 validations`:'Découvertes seules — aucune inspection à reprendre'}</strong><p>{preview.archives.length} dossier(s). Vos découvertes existantes seront conservées. La progression solo sera remplacée après confirmation.</p><button type="button" className="solid-button" onClick={confirm}>Confirmer cet import</button><button type="button" className="text-button" onClick={()=>{ticket.current++;setPreview(null);}}>Annuler</button></div>}
+ <p className="utility-status" role="status">{message}</p></section>;
+}
