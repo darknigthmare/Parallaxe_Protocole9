@@ -1,4 +1,4 @@
-name: Vérifier et appliquer la reprise scènes et téléchargements
+name: Terminer la lisibilité du classeur scènes
 on:
   push:
     branches: [continuation/scenes-livraison-20261116]
@@ -9,46 +9,21 @@ concurrency:
   group: apply-parallaxe-scenes-release
   cancel-in-progress: false
 jobs:
-  apply-reviewed-lot:
+  reviewed-format:
     if: github.repository == 'darknigthmare/Parallaxe_Protocole9' && github.ref == 'refs/heads/continuation/scenes-livraison-20261116'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - name: Restaurer les sources et le classeur relus
+      - name: Restaurer l’export visuellement relu et vérifier les cellules
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/reprise-proof"
-          git merge-base --is-ancestor 820d57c0f9888937c16db48becd7e51c6d74e1e8 HEAD
-          python3 .delivery/reprise/apply.py | tee "$RUNNER_TEMP/reprise-proof/restoration.json"
-          python3 scripts/validate-open-workbook.py | tee "$RUNNER_TEMP/reprise-proof/historical-workbook.log"
-          python3 scripts/validate-reprise-scenes-workbook.py | tee "$RUNNER_TEMP/reprise-proof/reprise-workbook.log"
-      - name: Installer les dépendances verrouillées
-        run: npm ci
-      - name: Vérifier le typage et les suites complètes
-        run: |
-          set -euo pipefail
-          npx tsc --noEmit 2>&1 | tee "$RUNNER_TEMP/reprise-proof/typecheck.log"
-          npm test 2>&1 | tee "$RUNNER_TEMP/reprise-proof/domain.log"
-          for suite in skills downloads vercel workstreams accessibility scene cabin inspection observation acoustic temporal lift spoken shadow observatory radio radio-ui radio-config; do
-            npm run "test:$suite" 2>&1 | tee "$RUNNER_TEMP/reprise-proof/$suite.log"
-          done
-      - name: Compiler les trois éditions sans publier de site
-        run: |
-          set -euo pipefail
-          npm run build 2>&1 | tee "$RUNNER_TEMP/reprise-proof/hosted-build.log"
-          npm run build:vercel 2>&1 | tee "$RUNNER_TEMP/reprise-proof/vercel-build.log"
-          node tests/build-output.test.mjs vercel 2>&1 | tee "$RUNNER_TEMP/reprise-proof/vercel-output.log"
-          npm run build:local 2>&1 | tee "$RUNNER_TEMP/reprise-proof/local-build.log"
-          node tests/build-output.test.mjs portable 2>&1 | tee "$RUNNER_TEMP/reprise-proof/portable-output.log"
-      - name: Enregistrer uniquement le lot validé sur sa branche
+          python3 .delivery/format-scenes.py
+          python3 scripts/validate-open-workbook.py
+          python3 scripts/validate-reprise-scenes-workbook.py
+      - name: Enregistrer les deux fichiers de documentation contrôlés
         env:
           EXPECTED_SHA: ${{ github.sha }}
         run: |
@@ -56,24 +31,7 @@ jobs:
           test "$(git ls-remote origin refs/heads/continuation/scenes-livraison-20261116 | cut -f1)" = "$EXPECTED_SHA"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add README.md package.json app docs scripts src/game tests
-          git rm -r .delivery/reprise
-          if git diff --cached --name-only | grep -q '^.github/'; then echo 'Unexpected workflow modification'; exit 1; fi
-          git commit -m 'feat: construct secondary scenes on first visit and bind downloads to the running revision'
+          git add docs/PARALLAXE_Suivi_Reprise_2026-11-16_Scenes.xlsx scripts/build-reprise-scenes-workbook.py
+          git rm .delivery/format-scenes.py
+          git commit -m 'docs: retain complete wrapped labels in the reviewed workbook metrics'
           git push origin HEAD:refs/heads/continuation/scenes-livraison-20261116
-          git rev-parse HEAD > "$RUNNER_TEMP/reprise-proof/COMMIT.txt"
-      - name: Reconstruire les identités et lancer le ZIP de la révision exacte
-        run: |
-          set -euo pipefail
-          npm run build:local 2>&1 | tee "$RUNNER_TEMP/reprise-proof/exact-build.log"
-          node tests/build-output.test.mjs portable 2>&1 | tee "$RUNNER_TEMP/reprise-proof/exact-output.log"
-          npm run package:release 2>&1 | tee "$RUNNER_TEMP/reprise-proof/package.log"
-          python3 tests/package-archive.test.py 2>&1 | tee "$RUNNER_TEMP/reprise-proof/archive.log"
-          cp outputs/release-v*/*.zip outputs/release-v*/release-manifest.json "$RUNNER_TEMP/reprise-proof/"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: scenes-release-proof-${{ github.run_id }}
-          path: ${{ runner.temp }}/reprise-proof/
-          if-no-files-found: error
-          retention-days: 14
