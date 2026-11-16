@@ -3,7 +3,7 @@
   "version": "0.4.1",
   "private": true,
   "engines": {
-    "node": ">=22.13.0"
+    "node": "24.x"
   },
   "scripts": {
     "install:ci": "node scripts/install-ci.mjs",
@@ -31,7 +31,7 @@
     "test:session-adapters": "node tests/session-adapters.test.mjs",
     "test:session-client": "node tests/session-scope.test.mjs",
     "test:movement": "node tests/movement-input.test.mjs",
-    "build:vercel": "vite build --config standalone/vite.config.ts",
+    "build:vercel": "node scripts/build-vercel.mjs",
     "test:vercel": "node tests/vercel-session.test.mjs"
   },
   "dependencies": {

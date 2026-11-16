@@ -8,7 +8,11 @@ privées de cette révision. Aucun contenu ni moteur n’est remplacé.
 ## Architecture
 
 `npm run build:vercel` compile l’interface Vite dans `standalone-dist`.
-`api/session.ts` adapte les requêtes HTTP Vercel au contrat existant
+`api/session.js` charge un bundle CommonJS de `src/vercel/entry.ts` et du domaine
+dans `build-server/session.cjs`, explicitement inclus dans la fonction. Ainsi
+aucun import TypeScript sans extension ne parvient au chargeur ESM natif de Node.
+La commande construit ce bundle avec Vite SSR après l’interface.
+Cette entrée adapte les requêtes HTTP Vercel au contrat existant
 `GET/POST /api/session`. `src/vercel/session-handler.ts` conserve les décisions,
 les projections `projectRoom()`, l’authentification individuelle, les signaux
 radio et les réessais CAS des handlers D1. Le domaine `src/game/session.ts`
@@ -85,6 +89,37 @@ déployé, l’identifiant du déploiement et les vérifications observées. Les
 captures et rapports historiques 0.4.1 ne sont pas réétiquetés comme preuves
 du nouveau backend. Les microphones physiques, l’intelligibilité et les
 réseaux nécessitant TURN demandent toujours leurs essais séparés.
+
+## État observé le 13 novembre 2026
+
+Le premier déploiement Git `23fd9cdbe297cad1d3962c9fa33adb6683899793` est
+accessible sur `https://parallaxe-protocole-9.vercel.app/` (titre natif et HTTP
+200), mais `/api/session` échoue en 500 `FUNCTION_INVOCATION_FAILED`.
+Les journaux identifient `ERR_MODULE_NOT_FOUND` : les imports TypeScript sans
+extension atteignaient le chargeur ESM de Node. Le bundle CommonJS de cette
+révision corrige cette frontière et le test local charge maintenant exactement
+`api/session.js` et `build-server/session.cjs` au lieu de réécrire les imports
+dans un chargeur TypeScript de test. Node 24 est épinglé pour la construction,
+la fonction et la CI. L’édition portable précompilée conserve son lanceur existant.
+
+Le bundle corrigé a aussi été exécuté localement contre le **vrai stockage
+Supabase** : quatre clients et neuf consensus concurrents, signalisation privée,
+contrôles de capacité et autorisations, trois lieux, victoire et départ réussis.
+Deux profils Chrome indépendants ont créé et rejoint un salon par l’interface,
+affiché les scènes natives, ouvert référence puis inspection et résolu un vote
+unanime. Un redémarrage du processus a conservé le salon et les deux identités.
+Les trois RPC réels refusent un mauvais jeton serveur (401, SQLSTATE 42501).
+Ces essais portent sur le backend compilé local et Supabase distant ; ils ne
+valident pas encore la publication Vercel corrigée. Le traitement facultatif
+de `request.body` préanalysé est en plus couvert par le test HTTP local.
+
+La nouvelle publication reste bloquée par la limite quotidienne Vercel :
+HTTP 402 `api-deployments-free-per-day`, « Resource is limited - try again in
+24 hours (more than 100) », délai annoncé 86400 secondes, observé le
+13 novembre à 08:10:59 UTC. Le contrôle Git automatique indique également
+« Deployment rate limited — retry in 24 hours ». Aucun abonnement ni quota
+n’est modifié. La cible publique ne doit pas être déclarée jouable en
+coopération tant que le correctif n’est pas publié et vérifié sur cette URL.
 
 Les consignes de [GAMEDEV_GUIDANCE.md](GAMEDEV_GUIDANCE.md),
 [RADIO.md](RADIO.md) et les contrats du domaine guident cette cible. Le catalogue

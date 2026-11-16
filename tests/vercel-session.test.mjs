@@ -4,7 +4,7 @@ import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {stripTypeScriptTypes} from 'node:module';
+import {stripTypeScriptTypes,createRequire} from 'node:module';
 import {createServer} from 'node:http';
 import {spawn} from 'node:child_process';
 
@@ -12,8 +12,7 @@ import {spawn} from 'node:child_process';
 // service is a CAS double; production persistence is verified separately.
 const project=dirname(dirname(fileURLToPath(import.meta.url)));
 const temporary=await mkdtemp(join(tmpdir(),'parallaxe-vercel-'));
-for(const file of ['src/game/levels','src/game/catalog','src/game/rules','src/game/session','src/game/radio-config',
-  'src/vercel/session-handler','src/vercel/supabase-store','api/session']){
+for(const file of ['src/vercel/supabase-store']){
   const target=join(temporary,`${file}.mjs`);
   await mkdir(dirname(target),{recursive:true});
   const source=stripTypeScriptTypes(await readFile(join(project,`${file}.ts`),'utf8'))
@@ -22,7 +21,14 @@ for(const file of ['src/game/levels','src/game/catalog','src/game/rules','src/ga
 }
 test.after(()=>rm(temporary,{recursive:true,force:true}));
 const {createSupabaseSessionStore}=await import(pathToFileURL(join(temporary,'src/vercel/supabase-store.mjs')));
-const {default:handler}=await import(pathToFileURL(join(temporary,'api/session.mjs')));
+await new Promise((resolve,reject)=>{
+  const child=spawn(process.execPath,['scripts/build-vercel.mjs','--server-only'],{cwd:project,stdio:['ignore','pipe','pipe']});
+  let output='';child.stdout.on('data',chunk=>output+=chunk);child.stderr.on('data',chunk=>output+=chunk);
+  child.on('error',reject);child.on('close',code=>code===0?resolve():reject(new Error(output)));
+});
+// Load exactly the CommonJS entry and compiled artifact packaged by Vercel.
+// The earlier source-only fixture did not detect native ESM import failures.
+const handler=createRequire(import.meta.url)('../api/session.js');
 const token='a'.repeat(64),key='sb_publishable_fixture',url='https://fixture.supabase.co';
 
 function rpcDouble({injectConflict=false}={}){
@@ -76,12 +82,20 @@ test('real Vercel HTTP adapter preserves four-player concurrent campaign and rad
   const before=names.map(name=>process.env[name]);
   process.env.SUPABASE_URL=url;process.env.SUPABASE_PUBLISHABLE_KEY=key;process.env.PARALLAXE_STORE_TOKEN=token;
   globalThis.fetch=async(input,options)=>new URL(input).origin===url?fixture.request(input,options):originalFetch(input,options);
-  const server=createServer((request,response)=>handler(request,response));
+  const server=createServer(async(request,response)=>{
+    if(request.url.endsWith('?parsed=1')){
+      let raw='';for await(const chunk of request)raw+=chunk;
+      request.body=JSON.parse(raw); // Vercel's documented request.body helper.
+    }
+    return handler(request,response);
+  });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const origin=`http://127.0.0.1:${server.address().port}`;
   try{
     assert.equal((await originalFetch(`${origin}/api/session`,{method:'DELETE'})).status,405);
     assert.equal((await originalFetch(`${origin}/api/session`,{method:'POST',body:'x'.repeat(16385)})).status,413);
+    const parsed=await originalFetch(`${origin}/api/session?parsed=1`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',name:'Parsed request'})});
+    assert.equal(parsed.status,201,'preparsed Node request helper remains compatible');
     const output=await new Promise((resolve,reject)=>{
       const child=spawn(process.execPath,['tests/network.integration.mjs'],{
         cwd:project,env:{...process.env,PARALLAXE_TEST_URL:origin,PARALLAXE_TEST_BACKEND:'Vercel adapter with REST CAS double'},stdio:['ignore','pipe','pipe'],

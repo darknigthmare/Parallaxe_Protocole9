@@ -49,4 +49,5 @@ yarn-error.log*
 
 # Portable build and temporary local multiplayer rooms
 /standalone-dist/
+/build-server/
 /.parallaxe-data/
