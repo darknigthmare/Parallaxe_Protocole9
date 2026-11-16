@@ -40,7 +40,9 @@ async function collect(folder,prefix,entries,filter=()=>true){
 
 await stat(join(root,'standalone-dist/index.html'));
 const portable=new Map();
-await collect(join(root,'standalone-dist'),'standalone-dist',portable,name=>!name.endsWith('.zip'));
+// Keep compiled runtime and design workbooks, not stale publication metadata.
+await collect(join(root,'standalone-dist'),'standalone-dist',portable,name=>
+  !name.endsWith('.zip') && (!name.startsWith('standalone-dist/downloads/') || name.endsWith('.xlsx')));
 portable.set('scripts/start-local.mjs',await readFile(join(root,'scripts/start-local.mjs')));
 portable.set('package.json',JSON.stringify({name:'parallaxe-protocole-9-portable',version,private:true,type:'module',engines:{node:'>=22.13.0'},scripts:{start:'node scripts/start-local.mjs'}},null,2)+'\n');
 portable.set('LANCER_JEU_WINDOWS.cmd','@echo off\r\ncd /d "%~dp0"\r\nnode scripts/start-local.mjs\r\npause\r\n');
@@ -56,16 +58,26 @@ const portablePath=join(output,`PARALLAXE_Jeu_PC_LAN_v${version}.zip`);
 const names=execFileSync('git',['ls-files','--cached','--others','--exclude-standard','-z'],{cwd:root,encoding:'utf8'}).split('\0').filter(Boolean);
 const sources=new Map();
 for(const name of new Set(names)){
-  if(name.startsWith('public/downloads/')&&name.endsWith('.zip'))continue;
+  if(name.startsWith('public/downloads/')&&!name.endsWith('.xlsx'))continue;
   if(/(^|\/)(\.env[^/]*|\.dev\.vars[^/]*|\.parallaxe-data|node_modules|dist|outputs|standalone-dist)(\/|$)|\.(pem|key|p12|pfx)$/i.test(name))continue;
   const absolute=resolve(root,name);if(!absolute.startsWith(root+sep))throw new Error('Invalid source path');
   try{if((await stat(absolute)).isFile())sources.set(name,await readFile(absolute));}catch(error){if(error.code!=='ENOENT')throw error;}
 }
+sources.set('COMMIT.txt',commit+'\n');
 const sourcePath=join(output,`PARALLAXE_Sources_v${version}.zip`);
 const sourceResult=await archive(sourcePath,sources);
 // The portable edition includes its source download, but never embeds its own ZIP.
 portable.set(`standalone-dist/downloads/PARALLAXE_Sources_v${version}.zip`,await readFile(sourcePath));
 portable.set('COMMIT.txt',commit+'\n');
+const downloadPrefix='standalone-dist/downloads/';
+const sourceName=relative(output,sourcePath);
+portable.set(`${downloadPrefix}PARALLAXE_v${version}_COMMIT.txt`,commit+'\n');
+portable.set(`${downloadPrefix}PARALLAXE_v${version}_SHA256SUMS.txt`,`${sourceResult.sha256}  ${sourceName}\n`);
+portable.set(`${downloadPrefix}PARALLAXE_v${version}_manifest.json`,JSON.stringify({
+  schema:'parallaxe-embedded-sources-v1',version,commit,dirty,
+  scope:'Embedded source download only. The enclosing portable ZIP hash is in the external release manifest.',
+  sources:{file:sourceName,files:sourceResult.files,bytes:sourceResult.bytes,sha256:sourceResult.sha256},
+},null,2)+'\n');
 const portableResult=await archive(portablePath,portable);
 await mkdir(join(root,'public/downloads'),{recursive:true});
 for(const item of await readdir(join(root,'public/downloads')))if(/^PARALLAXE_(Jeu_PC_LAN|Sources)_v.*\.zip$/.test(item))await rm(join(root,'public/downloads',item));

@@ -38,6 +38,10 @@ for kind in ("portable", "sources"):
     with zipfile.ZipFile(archive_path) as archive:
         assert len(archive.infolist()) == item["files"]
         assert archive.testzip() is None, f"Corrupted {kind} ZIP"
+        assert archive.read("COMMIT.txt").decode().strip() == commit
+        if kind == "sources":
+            assert not any(name.startswith("public/downloads/") and not name.endswith(".xlsx")
+                           for name in archive.namelist()), "Source ZIP must not claim a historical publication"
     archives[kind] = archive_path
 
 assert (output / "SHA256SUMS.txt").read_text().splitlines() == checksums
@@ -78,10 +82,13 @@ with tempfile.TemporaryDirectory(prefix="parallaxe-zip-") as temporary:
             "standalone-dist/" + item.relative_to(built).as_posix(): item
             for item in built.rglob("*")
             if item.is_file() and not item.name.endswith(".zip")
+            and (not item.relative_to(built).as_posix().startswith("downloads/")
+                 or item.suffix == ".xlsx")
         }
         actual = {
             name for name in names
             if name.startswith("standalone-dist/") and not name.endswith(".zip")
+            and (not name.startswith("standalone-dist/downloads/") or name.endswith(".xlsx"))
         }
         assert actual == set(expected), "The ZIP must contain the complete compiled build"
         for name, item in expected.items():
@@ -89,6 +96,24 @@ with tempfile.TemporaryDirectory(prefix="parallaxe-zip-") as temporary:
 
         embedded = "standalone-dist/downloads/" + archives["sources"].name
         assert archive.read(embedded) == archives["sources"].read_bytes()
+        prefix = "standalone-dist/downloads/"
+        assert archive.read(f"{prefix}PARALLAXE_v{version}_COMMIT.txt").decode().strip() == commit
+        embedded_manifest = json.loads(archive.read(f"{prefix}PARALLAXE_v{version}_manifest.json"))
+        assert embedded_manifest["schema"] == "parallaxe-embedded-sources-v1"
+        assert embedded_manifest["commit"] == commit and embedded_manifest["version"] == version
+        assert embedded_manifest["dirty"] is False
+        assert set(embedded_manifest) == {"schema", "version", "commit", "dirty", "scope", "sources"}
+        assert embedded_manifest["sources"] == {
+            **report["sources"], "file": archives["sources"].name,
+        }
+        assert archive.read(f"{prefix}PARALLAXE_v{version}_SHA256SUMS.txt").decode().splitlines() == [
+            f'{report["sources"]["sha256"]}  {archives["sources"].name}'
+        ]
+        release_files = {embedded,
+            f"{prefix}PARALLAXE_v{version}_COMMIT.txt",
+            f"{prefix}PARALLAXE_v{version}_SHA256SUMS.txt",
+            f"{prefix}PARALLAXE_v{version}_manifest.json"}
+        assert {name for name in names if name.startswith(prefix) and not name.endswith(".xlsx")} == release_files
         archive.extractall(extracted)
 
     subprocess.run(
@@ -106,6 +131,7 @@ print(json.dumps({
         "ZIP CRC and SHA256",
         "complete compiled build",
         "embedded source archive",
+        "root, source ZIP and embedded download provenance agree",
         "server with two clients and a four-player Chalet run launched from ZIP extraction",
     ],
     "webgl": "unverified",
