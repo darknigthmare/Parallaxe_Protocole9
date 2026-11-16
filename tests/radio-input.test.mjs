@@ -19,7 +19,8 @@ const inputHarnessSource=`
 export function bindInputs(HoldToTalkGate){
   const target=()=>({handlers:new Map(),addEventListener(type,callback){this.handlers.set(type,callback);}});
   const window=target(),document={...target(),hidden:false};
-  const padTalk={current:new HoldToTalkGate()},state={talking:false,audioStops:0};
+  const padTalk={current:new HoldToTalkGate()},state={talking:false,audioStops:0,padResets:0,measurePauses:0};
+  const gameplayPad={current:{reset:()=>state.padResets++}},performanceCapture={current:{pause:()=>state.measurePauses++}};
   const audio={current:{stopObservations:()=>state.audioStops++}};
   const radio={current:{setTalking:value=>state.talking=value}},keys={current:new Set()},touchMove={current:{forward:0,strafe:0}};
   const joystickOrigin={current:null},touchLook={current:null};
@@ -98,7 +99,7 @@ test('an uninterrupted held button cannot reopen a transmission after its time l
 for(const event of ['blur','gamepadconnected','gamepaddisconnected']){
   test(`the real ${event} listener disarms LB even when no animation frame observes the interruption`,()=>{
     const h=bindInputs(HoldToTalkGate);h.frame(false);h.frame(true);assert.equal(h.state.talking,true);
-    h.emit(event);assert.equal(h.state.talking,false);
+    h.emit(event);assert.equal(h.state.talking,false);assert.equal(h.state.padResets,1);assert.equal(h.state.measurePauses,1);
     assert.equal(h.frame(true),null);h.frame(false);assert.equal(h.frame(true),true);
   });
 }

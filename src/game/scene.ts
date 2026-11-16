@@ -42,6 +42,8 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   onInteract?: (target: string) => void; onReady?: () => void;
 } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+  // One counter epoch covers the main view AND nested planar reflections.
+  renderer.info.autoReset = false;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.35;
@@ -1246,6 +1248,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
         if (visible && found) { target = found; break; }
       }
     } else if (!active) target = null;
+    renderer.info.reset?.();
     renderer.render(scene, camera);
     if (!shaderCompiled) { shaderCompiled = true; opts.onReady?.(); }
   }
@@ -1357,6 +1360,10 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     },
     stopListening() { acoustics.stop(); temporalWorld.clearFocus(); spokenWorld.stop(); },
     dispose,
+    canMeasureReference: () => phase==='reference'&&effects.size===0,
+    getFrameStats: () => ({drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,
+      geometries:renderer.info.memory?.geometries??0,textures:renderer.info.memory?.textures??0,
+      width:canvas.width||canvas.clientWidth,height:canvas.height||canvas.clientHeight,quality}),
     getStats,
   };
 }

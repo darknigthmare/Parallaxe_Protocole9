@@ -39,7 +39,8 @@
     "test:shadow": "node tests/shadow.test.mjs",
     "test:skills": "python3 .ai-tools/validate_project_skills.py && python3 -m unittest discover -s .ai-tools/tests",
     "test:observatory": "node tests/observatory.test.mjs",
-    "test:accessibility": "node tests/accessibility.test.mjs"
+    "test:accessibility": "node tests/accessibility.test.mjs",
+    "test:workstreams": "node tests/gamepad-menu.test.mjs && node tests/training-backup.test.mjs && node tests/performance-capture.test.mjs && node tests/utility-ui.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

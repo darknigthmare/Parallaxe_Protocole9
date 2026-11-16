@@ -42,6 +42,16 @@ def main():
     require(len(csvrows)==len(pending) and {r['ID'] for r in csvrows}==pending,'CSV not synchronized')
     for name in ['PARALLAXE_Design_Complet.xlsx','PARALLAXE_Suivi_Reprise_2026-10-28.xlsx','PARALLAXE_Suivi_Sessions_2026-10-29.xlsx','PARALLAXE_Registre_Ouverts_2026-11-01.xlsx','PARALLAXE_Registre_Ouverts_2026-11-01_v2.xlsx']:
         require((D/name).is_file(),f'Historical workbook missing: {name}')
+    review=load('chantiers-20261112.json')
+    review_rows=review['work_packages']
+    require(len(review_rows)==28 and {r['lot'] for r in review_rows}=={r['id'] for r in lots},'Work-package review differs from tracker')
+    require(all(not r['cloture'] and r['prochaine_recette'] for r in review_rows),'Unjustified closure or missing next acceptance')
+    with (D/'CHANTIERS_20261112.csv').open(encoding='utf-8-sig',newline='') as f:
+        review_csv=list(csv.DictReader(f,delimiter=';'))
+    require(len(review_csv)==28 and {r['lot'] for r in review_csv}=={r['id'] for r in lots},'Work-package CSV not synchronized')
+    for line in review_rows:
+        lot=next(r for r in lots if r['id']==line['lot'])
+        require(line['etat']==lot['etat'],'Work-package state differs from audit')
     workbook=ROOT/source['classeur_courant']
     with zipfile.ZipFile(workbook) as z:
         require(z.testzip() is None,'Broken XLSX ZIP CRC')
@@ -67,9 +77,12 @@ def main():
         for address,value in {'B7':120,'B8':len(live),'B9':len(pending),'B11':600,'B12':28,'B13':124}.items():require(float(summary[address])==value,f'Stale cached formula: {address}')
         for i,row in enumerate(items,6):
             for col,key in [('A','cle'),('C','id'),('F','statut_source'),('H','action'),('I','critere')]:require(tables['Registre ouvert'].get(f'{col}{i}')==str(row[key]),f'XLSX/source mismatch {col}{i}')
+        for i,row in enumerate(lots,6):
+            for col,key in zip('ABCDEFGH',['id','priorite','domaine','action','criteres','preuve','liens','etat']):
+                require(tables['Lots prioritaires'].get(f'{col}{i}')==str(row[key]),f'Work-package cell mismatch {col}{i}')
         for i,row in enumerate(design['anomalies'],6):
             cells=tables['Anomalies'];require(cells.get(f'A{i}')==row[0],'Anomaly ID not preserved')
             require(cells.get(f'D{i}')==('Oui' if row[0] in live else 'Non'),'Runtime presence differs in workbook')
             for col,index in [('G',5),('H',6),('I',7),('J',9)]:require(cells.get(f'{col}{i}')==str(row[index]),f'Original clue changed in workbook {col}{i}')
-    print(json.dumps({'result':'PASS','runtime':len(live),'remaining':len(pending),'items':len(items),'original_design':120,'workbook':source['classeur_courant'],'checks':'CRC/XML, cached formulas, 600 keys/criteria/statuses, 120 original A/B rows, remaining CSV and JSON','limits':'No physical GPU, microphone or TURN validation'},ensure_ascii=False))
+    print(json.dumps({'result':'PASS','runtime':len(live),'remaining':len(pending),'items':len(items),'original_design':120,'workbook':source['classeur_courant'],'checks':'CRC/XML, cached formulas, 600 keys/criteria/statuses, 28 package states/CSV, 120 original A/B rows, remaining CSV and JSON','limits':'No physical GPU, microphone or TURN validation'},ensure_ascii=False))
 if __name__=='__main__':main()

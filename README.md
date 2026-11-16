@@ -1,3 +1,10 @@
+## Reprise chantiers — 12 novembre 2026
+Catalogue conservé à **119/120**. Le nouveau lot ajoute la navigation des menus au **pad standard**, un **clavier virtuel**, l’**export/import de paliers solo** (aperçu, confirmation et copie précédente) et un **capteur de performances local** utilisable seulement pendant une référence solo. Voir [recette et limites](docs/QA_CHANTIERS_20261112.md) et [revue des 28 lots](docs/CHANTIERS_20261112.md). Le chemin du classeur courant est donné par `docs/parallaxe-open-work-20261101.json`.
+
+Manette : croix/stick parcourir, A/× choisir, B/○/Menu revenir, gauche/droite ajuster les réglages. Au retour d’une interruption, relâcher sticks/boutons avant de reprendre. Le clavier virtuel remplit un champ sans envoyer le message. Les boîtes système peuvent toujours demander un clic/touche physique.
+
+Paramètres → Sauvegarde solo : exporter votre palier ; importer depuis l’accueil après aperçu. Les découvertes sont fusionnées, la reprise crée une référence sans solution/consentement hérités. Paramètres → Mesure technique : préparer 30 s/60 s/30 min actives puis fermer le panneau ; export JSON local. Ce capteur n’annonce aucun FPS garanti ni temps GPU. `npm run test:workstreams` protège ces ajouts.
+
 ## Commandes et lisibilité — 12 novembre 2026
 Dans **Paramètres** : douze actions clavier remappables (conflits refusés), disposition AZERTY/QWERTY affichée, FOV vertical 50–95°, inversion verticale souris/tactile/stick et relevés écrits 100–150 %. Les flèches et Échap restent réservés. Une affectation réinitialise les appuis et le talkie ; refaire un appui volontaire après un menu ou une perte de focus. Les réglages existants sont migrés localement.
 

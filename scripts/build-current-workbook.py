@@ -47,7 +47,7 @@ summary = wb.worksheets.add("Synthèse"); sheets["Synthèse"] = summary
 summary.get_range("A1:H30").format.font={"name":"Arial","size":10,"color":"#162733"}
 summary.merge_cells("A1:H2");summary.get_range("A1").values=[["PARALLAXE — PROTOCOLE 9"]]
 summary.get_range("A1:H2").format={"fill":navy,"font":{"name":"Arial","size":21,"bold":True,"color":"#FFFFFF"},"row_height":24,"vertical_alignment":"center"}
-summary.merge_cells("A3:H3");summary.get_range("A3").values=[["12 novembre 2026 · accessibilité des commandes et de la caméra · état courant 119 / 120"]]
+summary.merge_cells("A3:H3");summary.get_range("A3").values=[["12 novembre 2026 · manette, sauvegardes et mesures locales · état courant 119 / 120"]]
 for c,w in zip("ABCDEFGH",[34,17,4,19,19,19,17,17]):summary.get_range(f"{c}1:{c}30").format.column_width=w
 summary.get_range("A6:B6").values=[["CATALOGUE","TOTAL"]]
 summary.get_range("A7:A13").values=[["Concepts originaux"],["Présents dans le code"],["Encore non intégrés"],["Part implémentée"],["Entrées de suivi"],["Lots prioritaires"],["Recettes QA encore ouvertes"]]
@@ -84,6 +84,7 @@ changes.extend(json.loads((root/"docs/spoken-delivery-20261111.json").read_text(
 changes.extend(json.loads((root/"docs/shadow-delivery-20261112.json").read_text()))
 changes.extend(json.loads((root/"docs/observatory-delivery-20261112.json").read_text()))
 changes.extend(json.loads((root/"docs/accessibility-delivery-20261112.json").read_text()))
+changes.extend(json.loads((root/"docs/workstreams-delivery-20261112.json").read_text()))
 add_table("Livraison",["ID","Type","Modification appliquée","Vérification prévue ou exécutée","Limites","Source"],changes,[29,21,40,40,40,38])
 sources=[["Base de développement","https://github.com/darknigthmare/Parallaxe_Protocole9/commit/a1774830149d485af800133f688e94b208940883","Branche main examinée ; code de jeu identique à l’archive edbeab61."],
 ["Fiches originales","https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/anomalies-design.json","120 fiches originales conservées sans réécriture de leurs A/B."],
@@ -102,12 +103,12 @@ summary.get_range("B7:B13").formulas=[
 ["=COUNTA('Lots prioritaires'!$A$6:$A$33)"],
 ["=COUNTA('Recette QA'!$A$6:$A$129)"]]
 summary.get_range("B10").format.number_format="0.0%"
-summary.merge_cells("A16:H16");summary.get_range("A16").values=[["REPRISE : COMMANDES, CONFORT ET RELEVÉS LISIBLES"]]
+summary.merge_cells("A16:H16");summary.get_range("A16").values=[["REPRISE : MANETTE, SAUVEGARDES ET MESURES"]]
 summary.get_range("A16:H16").format={"fill":navy,"font":{"bold":True,"color":"#FFFFFF"},"row_height":27}
 notes=[
 "Les 119 anomalies sont conservées ; le couloir étiré reste hors production.",
-"Douze actions clavier remappables ; FOV 50–95°, inversion du regard et relevés 100–150 %.",
-"Cinq lignes de production actualisées ; les 600 clés et les réceptions humaines restent conservées.",
+"Menus au pad et clavier virtuel ; sauvegardes portables ; mesure locale en référence solo.",
+"28 lots relus, 5 lignes de production corrigées ; 600 clés conservées sans clôture artificielle.",
 f"{len(runtime)} cas sont intégrés au code ; {len(gap['remaining_anomalies'])} concept reste à développer. La réception humaine n’est pas clôturée.",
 "Les recettes GPU, microphones, TURN et 2–4 appareils physiques restent à effectuer.",
 "La campagne reste Saint-Clair → Terminus 09 → Aile blanche ; Chalet et Observatoire sont optionnels.",

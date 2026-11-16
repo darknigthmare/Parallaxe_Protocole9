@@ -1,3 +1,6 @@
+## Lot chantiers — manette, sauvegardes, mesures (12 novembre 2026)
+Base `a73add4`. Lire `docs/QA_CHANTIERS_20261112.md` et `docs/CHANTIERS_20261112.md`. Trois modules originaux sans dépendance : `gamepad-menu.ts`, `training-backup.ts`, `performance-capture.ts`. Garder le neutre après interruption, le contexte de session/PTT et le focus du panneau courant. L’export ne contient jamais une réponse, seed, consentement, identité ou jeton ; preview/confirmation/rollback ne doivent pas être contournés. La mesure doit rester en référence solo **et** référence réelle de scène, jamais une inspection coopérative. Le reset des compteurs Three.js ne doit pas effacer les captures de miroir. `npm run test:workstreams`, suites existantes et validateur Excel sont requis. Aucune mesure hardware ou réception humaine inventée ; 119/120 et 600 lignes ouvertes restent distincts.
+
 ## Lot accessibilité — 12 novembre 2026
 Base `a78c651`. Catalogue inchangé : 119/120. Lire `docs/QA_ACCESSIBILITE_20261112.md`. Réglages caméra et clavier locaux dans `src/game/accessibility.ts` ; `npm run test:accessibility` protège migration, touches réservées, saisie et PTT. Le FOV ne modifie jamais positions/collisions ; ne pas confondre réglages de confort et recette humaine de hall_stretch. La caméra ne comporte toujours pas de head-bob forcé.
 

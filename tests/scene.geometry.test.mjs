@@ -57,7 +57,7 @@ try {
         constructor() {
           this.shadowMap = {};
           this.capabilities = { getMaxAnisotropy: () => 8 };
-          this.info = { render: { calls: 0, triangles: 0 } };
+          this.info = { render: { calls: 0, triangles: 0 }, memory:{geometries:14,textures:7}, reset:()=>{this.info.render.calls=0;this.info.render.triangles=0;this.resets=(this.resets||0)+1;} };
           this.xr = { enabled: false }; this.autoClear = true; this.renderTarget = null;
           this.state = { buffers: { depth: { setMask() {} } }, viewport() {} };
           this.captures = [];
@@ -69,6 +69,7 @@ try {
         getRenderTarget() { return this.renderTarget; }
         setRenderTarget(value) { this.renderTarget = value; }
         render(scene, camera) {
+          this.info.render.calls+=3;this.info.render.triangles+=60;
           this.scene = scene; this.camera = camera;
           scene.updateMatrixWorld(true); camera.updateMatrixWorld(true);
           if (this.renderTarget) this.captures.push({
@@ -112,6 +113,20 @@ try {
   scene.traverse(object => allObjects.push(object));
   const roots = id => allObjects.filter(object => object.userData.inspect?.id === id);
   const rootByLabel = label => allObjects.find(object => object.userData.inspect?.label === label);
+  check('reference-only profiler resets per displayed frame and exposes no object or player identifiers',()=>{
+    assert.equal(renderer.info.autoReset,false);
+    game.setView({phase:'reference',effects:[],levelId:'hotel'});assert.equal(game.canMeasureReference(),true);
+    const before=renderer.resets;game.update(.016);assert.equal(renderer.resets,before+1);
+    assert.equal(game.getFrameStats().drawCalls,3);assert.equal(game.getFrameStats().triangles,60);
+    // Nested render calls accumulate until the next outer-frame reset.
+    renderer.render(scene,renderer.camera);assert.equal(game.getFrameStats().drawCalls,6);
+    game.update(.016);assert.equal(game.getFrameStats().drawCalls,3);
+    assert.deepEqual(Object.keys(game.getFrameStats()).sort(),['drawCalls','geometries','height','quality','textures','triangles','width']);
+    game.setView({phase:'inspect',effects:[],levelId:'hotel'});assert.equal(game.canMeasureReference(),false);
+    game.setView({phase:'reference',effects:['clock_reverse'],levelId:'hotel'});assert.equal(game.canMeasureReference(),true,'Reference sanitizes effects before becoming measurable');
+    game.setView({phase:'reference',effects:[],levelId:'hotel'});
+  });
+
 
   for (const [name, previous, current] of [
     ['talkie to idle', { time: 2, speed: 0, talking: true }, { time: 3, speed: 0 }],

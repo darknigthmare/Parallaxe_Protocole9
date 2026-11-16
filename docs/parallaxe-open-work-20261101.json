@@ -93,7 +93,7 @@
       "id": "W03",
       "priorite": "P0",
       "domaine": "GPU / reflets",
-      "action": "Recetter toutes les surfaces et anomalies de reflet des 4 lieux",
+      "action": "Recetter toutes les surfaces et anomalies de reflet des 5 lieux",
       "criteres": "Même corps normal et gestes cohérents hors effet ciblé ; aucune récursion du miroir, aucune fuite de témoin",
       "preuve": "Captures normal/affecté par lieu, GPU et profil",
       "liens": "P09,QA09,H05-H11",
@@ -133,10 +133,10 @@
       "id": "W07",
       "priorite": "P0",
       "domaine": "Équité des anomalies",
-      "action": "Tester 104 effets runtime visuellement selon vrai lieu et vraie perception",
+      "action": "Tester 119 effets runtime visuellement selon vrai lieu et vraie perception",
       "criteres": "Pour chaque effet : état normal, A/B, reset, preuve et option silencieuse le cas échéant",
       "preuve": "Tableau par id, lieu, profil, capture et verdict",
-      "liens": "QA02,QA04,104 runtime",
+      "liens": "QA02,QA04,119 runtime",
       "etat": "À traiter / vérifier"
     },
     {
@@ -183,11 +183,11 @@
       "id": "W12",
       "priorite": "P1",
       "domaine": "Performance",
-      "action": "Mesurer frame-time, GPU, CPU et consommation 30 minutes",
+      "action": "Utiliser le capteur local de référence solo pour établir les mesures 30 s/60 s/30 min ; compléter avec temps GPU et consommation sur appareils physiques.",
       "criteres": "Budgets définis par appareils mesurés ; LOD ne masque pas les indices",
-      "preuve": "Profil des 4 lieux avant/après",
+      "preuve": "Rapports JSON des 5 lieux avant/après, même parcours/résolution/qualité/appareil ; capture externe GPU et consommation.",
       "liens": "P12,QA34-QA35",
-      "etat": "À traiter / vérifier"
+      "etat": "Instrumenté — mesures matérielles ouvertes"
     },
     {
       "id": "W13",
@@ -195,7 +195,7 @@
       "domaine": "Effets entre tours",
       "action": "Tester retour normal après chaque anomalie",
       "criteres": "Aucun effet d'une manche précédente ne survit au reset ; mêmes références pour les joueurs non affectés",
-      "preuve": "104 cycles A→normal, sauvegardes et reload",
+      "preuve": "119 cycles A→normal, sauvegardes et reload",
       "liens": "QA04,P09",
       "etat": "À traiter / vérifier"
     },
@@ -223,21 +223,21 @@
       "id": "W16",
       "priorite": "P1",
       "domaine": "Sauvegardes",
-      "action": "Tester migration v0.1/v0.2, reprise et reset après erreur",
+      "action": "Réceptionner sauvegardes portables solo : export sans réponse, aperçu/confirmation, copie précédente, fusion découvertes et rollback ; compléter la recette de migration réelle.",
       "criteres": "Corruption isolée sans crash ; progression secteur et lieu unique distinctes",
-      "preuve": "Fichiers de test fictifs et captures",
+      "preuve": "Tests fictifs et callbacks UI ; fichiers exportés/importés sur navigateurs physiques, quotas, interruption et récupération.",
       "liens": "P49,QA44",
-      "etat": "À traiter / vérifier"
+      "etat": "Implémenté — réception stockage ouverte"
     },
     {
       "id": "W17",
       "priorite": "P1",
       "domaine": "Menu / manette",
-      "action": "Achever navigation de salon, réglages, votes et debrief à la manette",
+      "action": "Réceptionner navigation pad standard, focus, clavier virtuel et réglages ; conserver jeu/PTT et retour au neutre.",
       "criteres": "Parcours sans souris et pas d'action maintenue après fermeture modale",
-      "preuve": "Recette XInput et clavier",
+      "preuve": "Garde et DOM testés ; parcours réel XInput/PlayStation, connexions/déconnexions, saisie et lecteur d’écran ; dialogues système séparés.",
       "liens": "P52,P44",
-      "etat": "À traiter / vérifier"
+      "etat": "Implémenté — réception manette ouverte"
     },
     {
       "id": "W18",
@@ -293,11 +293,11 @@
       "id": "W23",
       "priorite": "P1",
       "domaine": "Traçabilité Excel",
-      "action": "Conserver les 3 originaux et centraliser chaque ligne ouverte",
+      "action": "Conserver tous les classeurs historiques et centraliser chaque ligne ouverte dans le classeur courant ; vérifier les liens et compteurs.",
       "criteres": "Aucun statut inventé ni anomalie marquée jouable avant code et preuve ; lien source + critère pour chaque ligne",
-      "preuve": "Registre 2026-11-01 + script de régénération",
+      "preuve": "JSON source, 600 clés, classeur courant daté, validation de chaque cellule source et du catalogue.",
       "liens": "3 classeurs existants",
-      "etat": "À traiter / vérifier"
+      "etat": "Automatisé — audit humain ouvert"
     },
     {
       "id": "W24",
@@ -313,7 +313,7 @@
       "id": "W25",
       "priorite": "P1",
       "domaine": "Collisions / lisibilité",
-      "action": "Auditer zones étroites, props et caméra des quatre lieux",
+      "action": "Auditer zones étroites, props et caméra des cinq lieux",
       "criteres": "Aucun blocage irréversible ; parcours inspectable avec manette et souris",
       "preuve": "Tests géométrie + recettes GPU",
       "liens": "QA05-QA06,QA01",
@@ -3701,15 +3701,22 @@
       "id": "P28",
       "nom": "Observatoire",
       "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Créer annexe vitrée et extérieur cosmique.",
-      "critere": "Ciel et météo liés aux témoignages.",
-      "details": "Z12",
-      "verification": "npm test ; test utilisateur documenté",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Réceptionner Observatoire 09 optionnel réellement visitable : baie, volets communs, horizon privé, terminal et huit cas compatibles.",
+      "critere": "Volets fermés occultants et baie ouverte inspectable ; ciel normal/A/B, sauvegarde lieu unique et absence de modification de la campagne à trois secteurs.",
+      "details": "Z12 | Reprise chantiers du 12/11 : voir QA_CHANTIERS_20261112.md ; aucune réception physique déduite de la CI.",
+      "verification": "npm run test:observatory ; npm run test:scene ; captures GPU et parcours humain à faire",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait",
+      "etat_avant_lot_20261112_chantiers": {
+        "statut_source": "Conçu — non implémenté",
+        "action": "Créer annexe vitrée et extérieur cosmique.",
+        "critere": "Ciel et météo liés aux témoignages.",
+        "details": "Z12",
+        "verification": "npm test ; test utilisateur documenté"
+      }
     },
     {
       "cle": "DESIGN/Production/P29",
@@ -3959,13 +3966,20 @@
       "priorite": "P1",
       "statut_source": "Implémenté — QA partielle",
       "nature": "Validation restante",
-      "action": "Actions de jeu : A, X, Y, LB, View et Menu en plus des sticks.",
-      "critere": "Essais physiques ; navigation complète du menu reste un lot ultérieur.",
-      "details": "K15",
-      "verification": "npm test ; test utilisateur documenté",
+      "action": "Actions de jeu conservées ; pad standard choisi indépendamment du slot ; neutralisation après interruption et navigation des menus intégrée.",
+      "critere": "Pas de touche maintenue qui confirme le menu suivant ou réactive la marche/PTT ; clavier/souris/tactile conservés. Réception pads réels toujours ouverte.",
+      "details": "K15 | Reprise chantiers du 12/11 : voir QA_CHANTIERS_20261112.md ; aucune réception physique déduite de la CI.",
+      "verification": "npm run test:workstreams ; npm run test:movement ; npm run test:radio-ui ; contrôleur physique",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait",
+      "etat_avant_lot_20261112_chantiers": {
+        "statut_source": "Implémenté — QA partielle",
+        "action": "Actions de jeu : A, X, Y, LB, View et Menu en plus des sticks.",
+        "critere": "Essais physiques ; navigation complète du menu reste un lot ultérieur.",
+        "details": "K15",
+        "verification": "npm test ; test utilisateur documenté"
+      }
     },
     {
       "cle": "DESIGN/Production/P45",
@@ -4039,13 +4053,20 @@
       "priorite": "P1",
       "statut_source": "Implémenté — QA partielle",
       "nature": "Validation restante",
-      "action": "Migrer v0.1 ; reprendre v0.2 et rejeter les données invalides.",
-      "critere": "Aucune sauvegarde ne contourne le mode ou le lieu autorisé.",
-      "details": "L26",
-      "verification": "npm test ; test utilisateur documenté",
+      "action": "Conserver migration et reprise ; exporter un palier solo sans réponse cachée ; importer après aperçu/confirmation avec copie précédente et fusion des découvertes.",
+      "critere": "Format strict limité à 64 Ko, lieu/palier cohérents, refus des champs inconnus, rollback si écriture partielle ; reprise à la référence sans consentement vocal.",
+      "details": "L26 | Reprise chantiers du 12/11 : voir QA_CHANTIERS_20261112.md ; aucune réception physique déduite de la CI.",
+      "verification": "npm run test:workstreams ; npm test ; stockage réel/navigateur à réceptionner",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait",
+      "etat_avant_lot_20261112_chantiers": {
+        "statut_source": "Implémenté — QA partielle",
+        "action": "Migrer v0.1 ; reprendre v0.2 et rejeter les données invalides.",
+        "critere": "Aucune sauvegarde ne contourne le mode ou le lieu autorisé.",
+        "details": "L26",
+        "verification": "npm test ; test utilisateur documenté"
+      }
     },
     {
       "cle": "DESIGN/Production/P50",
@@ -4071,13 +4092,20 @@
       "priorite": "P2",
       "statut_source": "Conçu — non implémenté",
       "nature": "Production / exécution",
-      "action": "Prioriser les 16 fiches encore conçues selon valeur de coopération et coût.",
-      "critere": "Promouvoir seulement après code, preuve, assets, accessibilité et vérifications.",
-      "details": "Filtre Statut dans Anomalies",
-      "verification": "npm test ; npm run test:network ; 2–4 navigateurs",
+      "action": "Seul hall_stretch reste hors catalogue ; produire sa locomotion uniquement après la recette humaine de confort exigée par la fiche.",
+      "critere": "Aucun changement de collisions ou d’ancrages publics et aucune promotion à 120/120 sans les preuves originales ; les 119 autres concepts restent disponibles.",
+      "details": "Filtre Statut dans Anomalies | Reprise chantiers du 12/11 : voir QA_CHANTIERS_20261112.md ; aucune réception physique déduite de la CI.",
+      "verification": "npm test ; protocole locomotion/confort humain restant",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait",
+      "etat_avant_lot_20261112_chantiers": {
+        "statut_source": "Conçu — non implémenté",
+        "action": "Prioriser les 16 fiches encore conçues selon valeur de coopération et coût.",
+        "critere": "Promouvoir seulement après code, preuve, assets, accessibilité et vérifications.",
+        "details": "Filtre Statut dans Anomalies",
+        "verification": "npm test ; npm run test:network ; 2–4 navigateurs"
+      }
     },
     {
       "cle": "DESIGN/Production/P52",
@@ -4085,15 +4113,22 @@
       "id": "P52",
       "nom": "Navigation manette",
       "priorite": "P2",
-      "statut_source": "Conçu — non implémenté",
-      "nature": "Production / exécution",
-      "action": "Menus, sélection de salle, clavier virtuel et réglages au contrôleur.",
-      "critere": "Parcours complet sans souris, avec focus visible et retour cohérent.",
-      "details": "K15",
-      "verification": "npm run test:movement ; essais manette et tactile réels",
+      "statut_source": "Implémenté — QA partielle",
+      "nature": "Validation restante",
+      "action": "Menus, sélection de lieu/salon, réglages, vote et débrief navigables au pad standard ; clavier virtuel local avec validation et annulation.",
+      "critere": "Focus dans le panneau actif, aucune confirmation maintenue d’un écran à l’autre, ajustement des curseurs/listes et absence d’envoi automatique du texte. Dialogues système non garantis au pad.",
+      "details": "K15 | Reprise chantiers du 12/11 : voir QA_CHANTIERS_20261112.md ; aucune réception physique déduite de la CI.",
+      "verification": "npm run test:workstreams ; npm run test:movement ; parcours physique XInput/PlayStation à recevoir",
       "source": "https://github.com/darknigthmare/Parallaxe_Protocole9/blob/main/docs/workbook-v02.json",
       "statut_de_suivi": "Ouvert — non clôturé",
-      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
+      "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait",
+      "etat_avant_lot_20261112_chantiers": {
+        "statut_source": "Conçu — non implémenté",
+        "action": "Menus, sélection de salle, clavier virtuel et réglages au contrôleur.",
+        "critere": "Parcours complet sans souris, avec focus visible et retour cohérent.",
+        "details": "K15",
+        "verification": "npm run test:movement ; essais manette et tactile réels"
+      }
     },
     {
       "cle": "DESIGN/Production/P53",
@@ -9952,14 +9987,14 @@
       "preuve_exigee": "Résultat daté, environnement identifié, lien ou capture et critère satisfait"
     }
   ],
-  "version_suivi": "119 / accessibilité clavier, caméra et relevés",
+  "version_suivi": "v10 / 119-anomalies / manette-sauvegardes-mesures",
   "snapshot_initial": {
     "path": "docs/PARALLAXE_Registre_Ouverts_2026-11-01.xlsx",
     "runtime_at_creation": 96,
     "planned_at_creation": 24,
     "note": "Premier XLSX conservé comme image figée de la reprise ; ne reflète pas les quatre nouvelles implémentations."
   },
-  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Accessibilite.xlsx",
+  "classeur_courant": "docs/PARALLAXE_Suivi_Courant_2026-11-12_Chantiers.xlsx",
   "source_revision": "continuation/observations-20261110",
   "date_revision": "2026-11-12",
   "gap_json": "docs/anomalies-gap-observatory-20261112.json",
@@ -9973,7 +10008,8 @@
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Ascenseur.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-11_Voix.xlsx",
     "docs/PARALLAXE_Suivi_Courant_2026-11-12_Ombre.xlsx",
-    "docs/PARALLAXE_Suivi_Courant_2026-11-12_Observatoire.xlsx"
+    "docs/PARALLAXE_Suivi_Courant_2026-11-12_Observatoire.xlsx",
+    "docs/PARALLAXE_Suivi_Courant_2026-11-12_Accessibilite.xlsx"
   ],
   "audit_20261110": {
     "criteria_remapped": 446,
@@ -9995,7 +10031,7 @@
     "local_observation_state_tests": 10,
     "pending": "CI géométrie, typage et builds ; GPU physique, micro et TURN non réalisés"
   },
-  "code_base_revision": "a78c6511112ad55b4dc5bc31c35b7e89c304cc3a",
+  "code_base_revision": "a73add4b2cd56524f07f2034505deb44dbf8f5cf",
   "skills_audit": {
     "date": "2026-11-12",
     "local_skills": 5,
@@ -10017,5 +10053,22 @@
     "catalog_unchanged": true,
     "physical_device_tested": false,
     "source": "src/game/accessibility.ts"
+  },
+  "workstreams_audit": {
+    "source": "docs/chantiers-20261112.json",
+    "qa": "docs/QA_CHANTIERS_20261112.md",
+    "items_changed": [
+      "DESIGN/Production/P28",
+      "DESIGN/Production/P44",
+      "DESIGN/Production/P49",
+      "DESIGN/Production/P51",
+      "DESIGN/Production/P52"
+    ],
+    "packages_developed": [
+      "W12",
+      "W16",
+      "W17"
+    ],
+    "closure": "Aucune clôture globale ; réception humaine et matériel à suivre."
   }
 }

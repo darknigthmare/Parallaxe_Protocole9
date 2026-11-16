@@ -62,3 +62,24 @@
 .observation-reading p{font-size:clamp(calc(15px * var(--caption-scale,1)),calc(2.5vw * var(--caption-scale,1)),calc(21px * var(--caption-scale,1)))}
 .calibration-caption p,.calibration-reference{font-size:calc(11px * var(--caption-scale,1))}
 @media(max-width:600px){.binding-grid{grid-template-columns:1fr}.accessibility-settings .setting-row{flex-wrap:wrap}.binding-row button{min-width:110px}.acoustic-caption p{font-size:calc(.75rem * var(--caption-scale,1))}}
+
+/* Controller-first menus: same authored buttons and visible focus, no parallel UI. */
+.game-root:has(.pad-hint) :is(button,input,select,textarea,a,summary):focus {outline:3px solid #bce8d1;outline-offset:4px;}
+.pad-hint {position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:150;max-width:95vw;background:#11221f;color:#e1eee8;padding:7px 14px;border:1px solid #496c5a;font-size:11px;text-align:center;pointer-events:none;}
+.pad-keyboard-backdrop {position:fixed;inset:0;z-index:200;background:rgba(3,10,12,.9);display:grid;place-items:center;padding:20px;}
+.pad-keyboard {width:min(720px,100%);max-height:90dvh;overflow:auto;background:#12232a;border:1px solid #658175;padding:24px;color:#edf1ec;}
+.pad-keyboard h2 {font-size:21px;margin-bottom:12px;}
+.pad-draft {display:block;min-height:60px;padding:12px;background:#071216;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:10px;}
+.pad-keys {display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:7px;margin:18px 0;}
+.pad-keyboard button {border:1px solid #688076;background:#223b3e;color:#f6f5df;padding:10px 5px;min-height:42px;font-size:14px;}
+.pad-key-actions,.utility-actions {display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+.utility-settings {border-top:1px solid #3b4b48;margin-top:26px;padding-top:24px;}
+.utility-settings h3 {font-size:17px;margin-bottom:10px;color:#e5ebe7;}
+.utility-settings p {font-size:13px;line-height:1.7;color:#b4c4c0;}
+.utility-settings input[type=file] {max-width:260px;display:block;font-size:12px;margin-top:8px;}
+.utility-settings select {background:#17282b;color:#e5ebe7;border:1px solid #556962;padding:8px;}
+.backup-preview {padding:16px;background:#1b3030;border:1px solid #718679;}
+.utility-status {min-height:24px;}
+.performance-values {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0;}
+.performance-values dt {font-size:12px;color:#aebfb9;}.performance-values dd {font-size:20px;color:#e4eee9;}
+@media(max-width:600px){.pad-keys {grid-template-columns:repeat(7,minmax(0,1fr));}.pad-keyboard {padding:15px;}.performance-values {grid-template-columns:1fr;}}

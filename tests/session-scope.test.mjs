@@ -9,7 +9,7 @@ import {stripTypeScriptTypes} from 'node:module';
 // Compile real modules and real Game callbacks. No copied transport implementation.
 const temp=await mkdtemp(join(tmpdir(),'parallaxe-session-client-'));
 test.after(()=>rm(temp,{recursive:true,force:true}));
-for(const name of ['session-scope','radio-input','radio-actions','levels','catalog','rules']){
+for(const name of ['session-scope','gamepad-menu','radio-input','radio-actions','levels','catalog','rules']){
   const source=await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8');
   await writeFile(join(temp,`${name}.mjs`),stripTypeScriptTypes(source,{mode:'transform'}).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'"));
 }
@@ -31,6 +31,7 @@ const controllerSample=between('        const focused=','        if(s.playing&&!
 const harnessSource=`
 import {SessionScope} from './session-scope.mjs';
 import {HoldToTalkGate} from './radio-input.mjs';
+import {GameplayPadGate,selectMenuPad} from './gamepad-menu.mjs';
 import {RadioActionGate} from './radio-actions.mjs';
 import {createRun,advanceRun,evaluateRun} from './rules.mjs';
 export function harness(fetch){
@@ -58,6 +59,7 @@ export function harness(fetch){
   const setSlot=()=>{},setNotes=()=>{},setConfirmLeave=()=>{},notify=v=>notices.push(v),safeWrite=()=>{};
   const touchMove={current:{forward:0,strafe:0}},joystickOrigin={current:null},touchLook={current:null};
   const setTouchStick=()=>{};
+  const gameplayPad={current:new GameplayPadGate()},performanceCapture={current:{pause(){}}};
   const keys={current:new Set()},document={exitPointerLock(){}},sessionStorage={setItem:(k,v)=>storage.set(k,v),getItem:k=>storage.get(k),removeItem:k=>storage.delete(k)};
   const useCallback=fn=>fn,useEffect=fn=>{cleanups.push(fn());};
   const setInterval=fn=>{const id=++timer;intervals.set(id,fn);return id;},clearInterval=id=>intervals.delete(id);
@@ -83,7 +85,7 @@ export function harness(fetch){
   function capturePadFrame(){
     const s={playing:true,blocked:false,radioInput:true,sessionTicket:sessionScope.current.ticket()};
     return pressed=>{
-      const document={hidden:false,hasFocus:()=>true},navigator={getGamepads:()=>[{buttons:Array.from({length:5},(_,i)=>({pressed:i===4&&pressed}))}]};
+      const document={hidden:false,hasFocus:()=>true},navigator={getGamepads:()=>[{index:1,id:'standard test',mapping:'standard',connected:true,axes:[0,0,0,0],buttons:Array.from({length:5},(_,i)=>({pressed:i===4&&pressed}))}]};
       ${controllerSample}
       return talkEdge;
     };
