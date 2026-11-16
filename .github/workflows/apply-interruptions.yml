@@ -28,6 +28,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/interruptions-proof"
           git merge-base --is-ancestor 712e886d40350eef21d7b310d11cd2af2f972eea HEAD
           python3 .delivery/interruptions/apply.py | tee "$RUNNER_TEMP/interruptions-proof/restoration.json"
+          python3 .delivery/interruptions/overlay.py | tee "$RUNNER_TEMP/interruptions-proof/browser-correction.log"
           python3 scripts/validate-open-workbook.py
           python3 scripts/validate-reprise-scenes-workbook.py
           python3 scripts/validate-interruptions-workbook.py
