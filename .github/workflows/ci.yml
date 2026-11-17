@@ -35,7 +35,7 @@ jobs:
   game:
     name: Règles, scène, radio et édition portable
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,6 +61,8 @@ jobs:
         run: npm run test:vercel
       - name: Vérifier les menus manette, sauvegardes portables et mesures privées
         run: npm run test:workstreams
+      - name: Vérifier le focus modal clavier et les cibles de navigation
+        run: npm run test:menus
       - name: Vérifier les commandes accessibles, la migration et les événements clavier
         run: npm run test:accessibility
       - name: Vérifier les interruptions graphiques et la reprise volontaire
@@ -92,6 +94,7 @@ jobs:
           python3 scripts/validate-interruptions-workbook.py
           python3 scripts/validate-records-workbook.py
           python3 scripts/validate-collectibles-workbook.py
+          python3 scripts/validate-navigation-workbook.py
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
@@ -109,6 +112,8 @@ jobs:
         run: |
           npm run build:local
           node tests/build-output.test.mjs portable
+      - name: Vérifier le clavier, les menus imbriqués et la manette simulée
+        run: npm run test:browser-menus
       - name: Éprouver le jeu compilé dans Chromium et WebGL logiciel
         run: npm run test:browser-runtime
       - name: Parcourir les cinq lieux, conserver les consignes et lire les débriefs
@@ -138,5 +143,13 @@ jobs:
         with:
           name: parallaxe-records-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: outputs/browser-records/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Conserver les preuves de navigation, y compris en échec
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallaxe-menus-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: outputs/browser-menus/
           if-no-files-found: warn
           retention-days: 14

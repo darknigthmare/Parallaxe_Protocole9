@@ -11,6 +11,8 @@ assert set(b)==set(a)|{'Collecte'}
 for name in set(a)-{'Synthèse'}:assert a[name]==b[name],name
 for address in ['B7','B8','B9','B10','B11','B12','B13']:assert a['Synthèse'][address]==b['Synthèse'][address]
 current=json.loads((ROOT/'docs/current-delivery.json').read_text())
+stop=current['workstream_updates'].index('docs/reprise-collecte-20261117.json')+1
+current={**current,'base_commit':data['base_commit'],'workbook':data['output_workbook'],'workstream_csv':'docs/CHANTIERS_COLLECTE_20261117.csv','workstream_updates':current['workstream_updates'][:stop]}
 assert current['workbook']==data['output_workbook'] and current['tracked_keys']==600 and current['runtime_count']==119
 assert current['base_commit']==data['base_commit']
 rows=json.loads((ROOT/'docs/chantiers-20261112.json').read_text())['work_packages']

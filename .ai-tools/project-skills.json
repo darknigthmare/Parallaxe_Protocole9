@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "date": "2026-11-12",
+  "date": "2026-11-17",
   "scope": "project_local",
   "runtime_verified": false,
   "upstream_plugins_installed": false,
@@ -11,7 +11,7 @@
         ".agents/skills/p9-reprise/SKILL.md",
         ".claude/skills/p9-reprise/SKILL.md"
       ],
-      "sha256": "fef2c8e7c4960d3e33bdd2217170882792e0a90fe3bcf0d92f85a132fab9f4f7",
+      "sha256": "ea6a11102ec9d7b9c4dada07deded2b1824cc2f89ce03d006cc7000732eaa2ee",
       "source": "Parallaxe — adaptation originale du workflow du dépôt"
     },
     {

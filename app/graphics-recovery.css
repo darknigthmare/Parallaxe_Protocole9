@@ -10,3 +10,12 @@
   z-index: 211;
   max-width: calc(100vw - 40px);
 }
+
+/* Keep the technical reminder inside the active modal's keyboard scope. */
+.game-root .modal-panel .graphics-notice {
+  position:relative;
+  inset:auto;
+  width:100%;
+  max-width:none;
+  margin:0 0 16px;
+}
