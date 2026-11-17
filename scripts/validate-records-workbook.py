@@ -12,6 +12,9 @@ for name in set(a)-{'Synthèse'}:assert a[name]==b[name],name
 for address in ['B7','B8','B9','B10','B11','B12','B13']:assert a['Synthèse'][address]==b['Synthèse'][address]
 rows=json.loads((ROOT/'docs/chantiers-20261112.json').read_text())['work_packages']
 current=json.loads((ROOT/'docs/current-delivery.json').read_text())
+# A later cumulative edition must not invalidate this historical workbook.
+stop=current['workstream_updates'].index('docs/reprise-dossiers-20261117.json')+1
+current={**current,'workbook':data['output_workbook'],'workstream_csv':'docs/CHANTIERS_DOSSIERS_20261117.csv','workstream_updates':current['workstream_updates'][:stop]}
 assert current['workbook']==data['output_workbook'] and current['tracked_keys']==600 and current['runtime_count']==119
 for filename in current['workstream_updates']:
     path=ROOT/filename;assert path.resolve().is_relative_to(ROOT)

@@ -10,6 +10,7 @@ import { CABIN_EFFECTS } from './cabin';
 import { createObservationWorld } from './observation-world';
 import { OBSERVATION_EFFECTS, type StarMask } from './observation-state';
 import { isLevelId, type LevelId } from './levels';
+import { missionNote } from './mission-records';
 import { createAcousticState, ACOUSTIC_EFFECTS } from './acoustic-state';
 import { createSpokenWorld } from './spoken-world';
 import { SPOKEN_EFFECTS } from './spoken-state';
@@ -960,6 +961,48 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     };
   }
   configureReflector(mirror); configureReflector(hotelWindowGlass);
+  // Public correspondence: one physical clipboard, reused across locations.
+  // Its backing reaches the existing end wall; its face stays outside the
+  // walkable bound z=11.3. No new obstacle, light or hidden-case dependency.
+  const missionDocument = new THREE.Group();
+  missionDocument.name = 'Consigne de relève — support physique';
+  missionDocument.position.set(-1.8, 1.62, 11.98);
+  missionDocument.rotation.y = Math.PI;
+  commonWorld.add(missionDocument);
+  box(.56, .76, .12, 0, 0, 0, mats.wood, missionDocument);
+  const documentMaterial = new THREE.MeshStandardMaterial({ roughness: .93, metalness: 0,
+    emissive: 0xffffff, emissiveIntensity: .08 });
+  const documentPage = mesh(new THREE.PlaneGeometry(.44, .61), documentMaterial, missionDocument);
+  documentPage.name = 'Feuillet public — copie à conserver';
+  documentPage.position.set(0, -.025, .067);
+  box(.16, .045, .018, 0, .297, .078, mats.brass, missionDocument);
+  for(const x of [-.21,.21])box(.024, .024, .018, x, .32, .071, mats.brass, missionDocument);
+  tag(missionDocument, 'mission-note', 'Consigne de relève · lire et conserver une copie');
+  const documentMaps = new Map<string, THREE.Texture>();
+  let documentId = '';
+  function updateMissionDocument() {
+    const note = missionNote(levelId);
+    if(!note || note.id === documentId)return;
+    documentId = note.id;
+    let map = documentMaps.get(note.id);
+    if(!map){
+      map = texture((ctx,s)=>{
+        ctx.fillStyle='#d7c9a7';ctx.fillRect(0,0,s,s);
+        ctx.strokeStyle='#75664f';ctx.lineWidth=3;ctx.strokeRect(22,22,s-44,s-44);
+        ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#243b3b';
+        ctx.font=`bold ${s*.058}px monospace`;ctx.fillText('PROTOCOLE 09',s/2,s*.13);
+        ctx.font=`bold ${s*.12}px monospace`;ctx.fillText(note.id,s/2,s*.28);
+        ctx.font=`${s*.046}px sans-serif`;ctx.fillText('CONSIGNE DE RELÈVE',s/2,s*.43);
+        ctx.strokeStyle='#8e8067';ctx.lineWidth=2;
+        for(let line=0;line<5;line++){ctx.beginPath();ctx.moveTo(s*.16,s*(.54+line*.042));ctx.lineTo(s*(line===4?.64:.84),s*(.54+line*.042));ctx.stroke();}
+        ctx.font=`${s*.038}px sans-serif`;ctx.fillText('LIRE · CONSERVER UNE COPIE',s/2,s*.87);
+      },512);
+      documentMaps.set(note.id,map);
+    }
+    documentMaterial.map=map;documentMaterial.emissiveMap=map;documentMaterial.needsUpdate=true;
+    missionDocument.userData.inspect.label=`Consigne ${note.id} · lire et conserver une copie`;
+    missionDocument.userData.noteId=note.id;
+  }
   function ensureLocation(id: Exclude<LevelId, 'hotel'>): LocationWorld {
     const existing = extraWorlds[id];
     if (existing) return existing;
@@ -1017,6 +1060,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
       clockMotionTime = elapsed;
       clockGazeSeconds = 0;
     }
+    updateMissionDocument();
     world.visible = levelId === 'hotel'; hotelLights.visible = levelId === 'hotel';
     inspectionProps.setView({ ...view, effects: [...effects], levelId });
     observationWorld.setView({ ...view, phase, loop, effects: [...effects], levelId });
@@ -1400,6 +1444,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     setObservationActive(next: boolean) { observationActive = next === true;if(!observationActive)shadowWorld.interrupt(); },
     getShadowFrame: shadowWorld.snapshot,
     getTarget: () => target,
+    getMissionDocument: () => !disposed && graphicsAvailable && active && observationActive
+      && (phase==='reference'||phase==='inspect') && target?.id==='mission-note'
+      ? {id:documentId,levelId} : null,
     getInspection,
     getAcousticFrame: () => {
       if(isPropTarget(target?.id))temporalWorld.focus(target!.id as import('./temporal-state').PropTarget);

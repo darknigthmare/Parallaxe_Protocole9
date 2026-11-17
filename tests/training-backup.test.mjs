@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';import test from 'node:test';
 import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {pathToFileURL} from 'node:url';import {stripTypeScriptTypes} from 'node:module';
 const temp=await mkdtemp(join(tmpdir(),'p9-backup-'));
-for(const name of ['levels','catalog','rules','training-backup']){const s=await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8');await writeFile(join(temp,name+'.mjs'),stripTypeScriptTypes(s).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'"));}
+for(const name of ['levels','catalog','rules','mission-records','training-backup']){const s=await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8');await writeFile(join(temp,name+'.mjs'),stripTypeScriptTypes(s).replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'"));}
 const {createTrainingBackup,readTrainingBackup,restoreTrainingBackup,importTrainingBackup,previousTrainingBackup}=await import(pathToFileURL(join(temp,'training-backup.mjs')));
 const {createRun,advanceRun,evaluateRun}=await import(pathToFileURL(join(temp,'rules.mjs')));
 const {ANOMALIES}=await import(pathToFileURL(join(temp,'catalog.mjs')));
@@ -47,4 +47,54 @@ test('the 64 KiB parser limit counts UTF-8 bytes, not only code units',()=>{
   const text=JSON.stringify({format:'é'.repeat(40000),progress:null,archives:[]});
   assert.ok(text.length<65536);
   assert.throws(()=>readTrainingBackup(text),/trop volumineux/);
+});
+
+
+test('v2 exports kept note IDs without prose, hidden results or any new personal data',()=>{
+ const b=createTrainingBackup(null,[discovered],['O9-01','SC-01']);
+ assert.equal(b.format,'parallaxe-training-backup-v2');assert.deepEqual(b.fieldNotes,['SC-01','O9-01']);
+ assert.deepEqual(readTrainingBackup(encode(b)),b);assert.deepEqual(Object.keys(b).sort(),['archives','fieldNotes','format','progress']);
+ assert.doesNotMatch(encode(b),/paragraphs|source|token|consent|observer|seed/);
+});
+test('all legacy v1 files still migrate to v2 and keep notes already on the device',()=>{
+ const legacy={format:'parallaxe-training-backup-v1',progress:backup().progress,archives:[discovered]};
+ const s=storage();s.setItem('parallaxe-field-notes',encode({format:'parallaxe-field-notes-v1',ids:['T9-01']}));
+ const b=readTrainingBackup(encode(legacy));assert.deepEqual(b.fieldNotes,[]);
+ const result=importTrainingBackup(s,b,'fresh');assert.deepEqual(result.fieldNotes,['T9-01']);
+ assert.equal(result.run.namedVoiceAllowed,false);assert.equal(result.run.phase,'reference');
+});
+test('v2 rejects missing, unknown, repeated, coerced or excessive note IDs before writes',()=>{
+ for(const fieldNotes of [undefined,null,'SC-01',[['SC-01']],['SC-01','SC-01'],['constructor'],['toString'],['unknown'],Array(6).fill('SC-01')]){
+  const s=storage();const before=[...s.values];
+  assert.throws(()=>importTrainingBackup(s,{...backup(),fieldNotes},'fresh'));assert.deepEqual([...s.values],before);
+ }
+});
+test('note import merges in canonical order and its previous snapshot is portable',()=>{
+ const s=storage();s.setItem('parallaxe-field-notes',encode({format:'parallaxe-field-notes-v1',ids:['O9-01','SC-01']}));
+ const b=createTrainingBackup(null,[],['CH-01','SC-01']);const result=importTrainingBackup(s,b,'fresh');
+ assert.deepEqual(result.fieldNotes,['SC-01','CH-01','O9-01']);assert.deepEqual(previousTrainingBackup(s).fieldNotes,['SC-01','O9-01']);
+ assert.deepEqual(JSON.parse(s.getItem('parallaxe-field-notes')).ids,result.fieldNotes);
+});
+test('failure of the third data write rolls back progression, anomaly discoveries and notes exactly',()=>{
+ const s=storage(solved(2),[discovered]);s.setItem('parallaxe-field-notes',encode({format:'parallaxe-field-notes-v1',ids:['SC-01']}));
+ const before=new Map(s.values),base=s.setItem;let failed=false;
+ s.setItem=(key,v)=>{if(key==='parallaxe-field-notes'&&!failed){failed=true;throw Error('quota');}return base(key,v);};
+ assert.throws(()=>importTrainingBackup(s,createTrainingBackup(null,[],['CH-01']),'fresh'),/Ancienne progression conservée/);
+ for(const [key,v]of before)assert.equal(s.getItem(key),v);assert.deepEqual(previousTrainingBackup(s).fieldNotes,['SC-01']);
+});
+test('failed rollback of field notes is reported, not presented as atomic success',()=>{
+ const s=storage();s.setItem('parallaxe-field-notes',encode({format:'parallaxe-field-notes-v1',ids:['SC-01']}));
+ const base=s.setItem;s.setItem=(key,v)=>{if(key==='parallaxe-field-notes')throw Error('denied');return base(key,v);};
+ assert.throws(()=>importTrainingBackup(s,backup(),'fresh'),/récupération automatique incomplète/);
+ assert.ok(s.getItem('parallaxe-before-import'));
+});
+test('note read failure aborts before snapshot or writes and does not echo provider details',()=>{
+ const s=storage(),base=s.getItem,before=[...s.values];
+ s.getItem=key=>{if(key==='parallaxe-field-notes')throw Error('PRIVATE_PROVIDER_DETAIL');return base(key);};
+ assert.throws(()=>importTrainingBackup(s,backup(),'fresh'),e=>e.message.includes('avant toute modification')&&!e.message.includes('PRIVATE'));
+ assert.deepEqual([...s.values],before);
+});
+test('pre-v2 recovery snapshots without notes stay recoverable',()=>{
+ const s=storage();s.setItem('parallaxe-before-import',encode({run:s.getItem('parallaxe-training'),archives:s.getItem('parallaxe-archives')}));
+ const b=previousTrainingBackup(s);assert.equal(b.format,'parallaxe-training-backup-v2');assert.deepEqual(b.fieldNotes,[]);
 });

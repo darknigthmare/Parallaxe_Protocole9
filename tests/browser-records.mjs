@@ -47,7 +47,20 @@ try{
   assert.equal(await browser.evaluate("JSON.parse(localStorage.getItem('parallaxe-field-notes')||'{\"ids\":[]}').ids.length"),index,'Entering a location must not silently collect its note');
   await browser.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))');
   await capture(`${index+1}-${levelId}-reference.png`);
-  await click('.field-actions .icon-button');await browser.waitFor(`document.querySelector('.modal-journal [data-note-id="${id}"]')`);
+  // Rotate through the real drag-to-look path, then use the actual interaction key.
+  // Coordinates derive from the common entry document, not from a private anomaly.
+  const yaw=Math.atan2(1.8,-(11.913-9)),pitch=Math.atan2(-.05,Math.hypot(1.8,11.913-9));
+  const start={x:1210,y:400},end={x:1210-yaw/.0022,y:400-pitch/.0022};
+  assert.equal(await browser.evaluate(`document.elementFromPoint(${start.x},${start.y})?.classList.contains('world-canvas')`),true);
+  await browser.call('Input.dispatchMouseEvent',{type:'mouseMoved',...start});
+  await browser.call('Input.dispatchMouseEvent',{type:'mousePressed',...start,button:'left',clickCount:1});
+  await browser.call('Input.dispatchMouseEvent',{type:'mouseMoved',...end,buttons:1});
+  await browser.call('Input.dispatchMouseEvent',{type:'mouseReleased',...end,button:'left',clickCount:1});
+  await browser.waitFor(`document.querySelector('.target-label')?.textContent.includes(${JSON.stringify('Consigne '+id)})`);
+  await capture(`${index+1}-${levelId}-physical-document.png`);
+  for(const type of ['keyDown','keyUp'])await browser.call('Input.dispatchKeyEvent',{type,key:'e',code:'KeyE',windowsVirtualKeyCode:69});
+  await browser.waitFor(`document.querySelector('.modal-fieldDocument [data-note-id="${id}"]')`);
+  if(levelId==='hotel')await capture('field-document-reader.png');
   assert.equal(await browser.evaluate("!!document.querySelector('.mission-debrief')"),false);
   if(levelId==='metro'){
    await browser.evaluate("window.__recordsQA.originalSet=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='parallaxe-field-notes')throw new DOMException('quota','QuotaExceededError');return __recordsQA.originalSet.call(this,k,v);};");
@@ -58,7 +71,7 @@ try{
   }
   await click('.mission-record button');await browser.waitFor("document.querySelector('.mission-record button')?.disabled");
   assert.equal(await browser.evaluate(`JSON.parse(localStorage.getItem('parallaxe-field-notes')).ids.includes(${JSON.stringify(id)})`),true);
-  report.checks.push(`${levelId}: actual menu selection, rendered reference, matching dossier and explicit local collection`);
+  report.checks.push(`${levelId}: actual menu selection, physical sheet targeted by real drag and interaction key, explicit local copy`);
   await click('.modal-top .icon-button');await click('.game-header .icon-button');await browser.waitFor("document.querySelector('.modal-pause')");
   await click('.quit-button');await click('.leave-confirm .danger-button');await browser.waitFor("document.querySelector('.in-menu')&&!document.querySelector('.modal-panel')");
  }
@@ -69,6 +82,46 @@ try{
  await capture('6-notes-after-reload.png');
  report.checks.push('five notes survive a real page reload while all undiscovered anomaly dossiers stay locked');
  await click('.modal-top .icon-button');
+ // Inspect the Blob produced by the actual export button, without changing its contents.
+ await click('.menu-secondary button','Paramètres');await browser.waitFor("document.querySelector('.modal-settings')");
+ await browser.evaluate("__recordsQA.createURL=URL.createObjectURL;URL.createObjectURL=function(blob){__recordsQA.exported=blob;return __recordsQA.createURL.call(this,blob);};");
+ await click('.utility-settings button','Exporter la sauvegarde solo');
+ await browser.waitFor('__recordsQA.exported instanceof Blob');
+ const exportedText=await browser.evaluate('__recordsQA.exported.text()'),exported=JSON.parse(exportedText);
+ await browser.evaluate('URL.createObjectURL=__recordsQA.createURL');
+ assert.equal(exported.format,'parallaxe-training-backup-v2');
+ assert.deepEqual(exported.fieldNotes,['SC-01','T9-01','AB-01','CH-01','O9-01']);
+ assert.doesNotMatch(exportedText,/seed|token|observer|paragraphs|namedVoiceAllowed/);
+ report.checks.push('actual export button produces v2 JSON with five note IDs and no hidden state');
+ // A disposable local-storage fixture models another device with just one kept note.
+ await browser.evaluate("localStorage.setItem('parallaxe-field-notes',JSON.stringify({format:'parallaxe-field-notes-v1',ids:['SC-01']}))");
+ await browser.call('Page.reload',{ignoreCache:true});await ready();
+ async function importFile(value,name){
+  await click('.menu-secondary button','Paramètres');await browser.waitFor("document.querySelector('.modal-settings')");
+  const file=join(temp,name);await writeFile(file,JSON.stringify(value));
+  const {root:document}=await browser.call('DOM.getDocument');
+  const {nodeId}=await browser.call('DOM.querySelector',{nodeId:document.nodeId,selector:'input[aria-label="Importer une sauvegarde solo"]'});
+  assert.ok(nodeId);await browser.call('DOM.setFileInputFiles',{nodeId,files:[file]});
+  await browser.waitFor("document.querySelector('.backup-preview')");
+ }
+ await importFile(exported,'notes-v2.json');
+ assert.deepEqual(await browser.evaluate("JSON.parse(localStorage.getItem('parallaxe-field-notes')).ids"),['SC-01'],'Preview is read-only');
+ // A present preview can still be below the settings fold. Capture its actual viewport.
+ await browser.evaluate("document.querySelector('.backup-preview').scrollIntoView({block:'center'})");
+ assert.equal(await browser.evaluate("(()=>{const n=document.querySelector('.backup-preview .solid-button'),r=n.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&n.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));})()"),true);
+ await capture('backup-notes-preview.png');
+ await click('.backup-preview .solid-button');await browser.waitFor("!document.querySelector('.backup-preview')");
+ await click('.modal-top .icon-button');await click('.menu-secondary button','Archives');
+ await browser.waitFor("document.querySelectorAll('.mission-record-archive [data-note-id]').length===5");
+ assert.equal(await browser.evaluate("document.querySelectorAll('.archive-grid .unlocked').length"),0);
+ report.checks.push('v2 confirmed import merges notes and immediately refreshes Archives without unlocking anomalies');
+ await click('.modal-top .icon-button');
+ const {fieldNotes,...legacy}=exported;legacy.format='parallaxe-training-backup-v1';
+ await importFile(legacy,'notes-legacy-v1.json');await click('.backup-preview .solid-button');
+ await browser.waitFor("!document.querySelector('.backup-preview')");
+ assert.deepEqual(await browser.evaluate("JSON.parse(localStorage.getItem('parallaxe-field-notes')).ids"),exported.fieldNotes);
+ await click('.modal-top .icon-button');
+ report.checks.push('legacy v1 import keeps the five existing notes and requires the same explicit confirmation');
  // Start from a documented local reference checkpoint, then resolve the last case through actual UI.
  // The fixture computes its expected answer outside the page; no oracle ships in the game.
  for(const victory of [true,false]){

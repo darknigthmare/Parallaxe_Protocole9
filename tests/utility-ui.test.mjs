@@ -5,7 +5,7 @@ import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';import {tmpdir} f
 const temp=await mkdtemp(join(tmpdir(),'p9-utility-ui-'));
 const hooks=`let cells=[],index=0,effects=[],cleanup=[];export function reset(){for(const c of cleanup)c?.();cells=[];index=0;effects=[];cleanup=[];}export function begin(){index=0;}export function flush(){for(const f of effects.splice(0))f();}export function unmount(){for(const c of cleanup)c?.();cleanup=[];}export function useState(v){const n=index++;if(!(n in cells))cells[n]=typeof v==='function'?v():v;return [cells[n],v=>{cells[n]=typeof v==='function'?v(cells[n]):v;}];}export function useRef(v){const n=index++;if(!(n in cells))cells[n]={current:v};return cells[n];}export function useEffect(fn,deps){const n=index++,old=cells[n];if(!old||deps?.some((v,i)=>v!==old[i])){cells[n]=deps;effects.push(()=>{cleanup[n]?.();cleanup[n]=fn();});}}export function h(type,props,...children){return {type,props:{...props,children}};}`;
 await writeFile(join(temp,'hooks.mjs'),hooks);
-for(const name of ['levels','catalog','rules','training-backup','performance-capture','release-downloads']){let s=(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'));s=ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(temp,name+'.mjs'),s);}
+for(const name of ['levels','catalog','rules','mission-records','training-backup','performance-capture','release-downloads']){let s=(await readFile(new URL(`../src/game/${name}.ts`,import.meta.url),'utf8'));s=ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace(/from '(\.\/[^']+)'/g,"from '$1.mjs'");await writeFile(join(temp,name+'.mjs'),s);}
 for(const name of ['training-storage','performance-settings','release-downloads']){let s=ts.transpileModule(await readFile(new URL(`../app/${name}.tsx`,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React,jsxFactory:'h'}}).outputText.replace(/from ['"]react['"]/g,"from './hooks.mjs'").replace(/from ['"]@\/src\/game\/([^'"]+)['"]/g,"from './$1.mjs'").replace(/from ['"]\.\/training-storage['"]/g,"from './training-storage.mjs'");await writeFile(join(temp,name==='release-downloads'?'release-downloads-ui.mjs':name+'.mjs'),"import {h} from './hooks.mjs';\n"+s);}
 const hook=await import(pathToFileURL(join(temp,'hooks.mjs'))),{TrainingStorage}=await import(pathToFileURL(join(temp,'training-storage.mjs'))),{PerformanceSettings}=await import(pathToFileURL(join(temp,'performance-settings.mjs')));
 const {PerformanceCapture}=await import(pathToFileURL(join(temp,'performance-capture.mjs'))),{createTrainingBackup}=await import(pathToFileURL(join(temp,'training-backup.mjs'))),{createRun}=await import(pathToFileURL(join(temp,'rules.mjs')));
@@ -52,4 +52,14 @@ test('actual downloads panel displays only the matching build and drops response
     for(let i=0;i<30;i++)await Promise.resolve();
     tree=render();assert.ok(!all(tree).some(n=>n.type==='a'&&n.props.href.includes('/archive/')));
   }finally{hook.reset();globalThis.fetch=previous;}
+});
+
+
+test('actual import preview displays note count and persists notes only on confirmation',async()=>{
+ const h=harness();const value={...JSON.parse(h.data),fieldNotes:['SC-01','O9-01']};
+ let tree=await choose(h,{size:100,text:async()=>JSON.stringify(value)});
+ assert.equal(h.values.size,0);assert.ok(all(tree).some(n=>n.type==='p'&&n.props.children.flat(3).includes(2)));
+ button(tree,'Confirmer cet import').props.onClick();
+ assert.deepEqual(JSON.parse(h.values.get('parallaxe-field-notes')).ids,['SC-01','O9-01']);
+ assert.equal(h.changes.length,1);assert.equal(h.changes[0][0].namedVoiceAllowed,false);
 });

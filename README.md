@@ -1,3 +1,8 @@
+## Consignes physiques et sauvegarde v2 — 17 novembre 2026
+Dans chacun des cinq lieux, retournez-vous vers l’entrée : le feuillet est fixé à gauche de la porte. Visez-le et utilisez votre commande d’interaction pour lire et conserver une copie. L’original reste disponible pour l’équipe ; le carnet propose toujours la même consigne accessible.
+Les nouveaux exports solo emportent les consignes conservées. Les imports v1 restent acceptés et ne suppriment pas les notes présentes. Aperçu et confirmation sont requis ; progression remplacée, découvertes/consignes fusionnées. Ni session coopérative ni autorisation de microphone n’est transférée.
+Suivi : `docs/current-delivery.json` → classeur Collecte, douze onglets. Les scènes finales et les réceptions humaines/matérielles restent ouvertes. Détails et commandes de vérification : `docs/QA_COLLECTE_20261117.md`.
+
 # État courant — dossiers et parcours du 17 novembre 2026
 
 Le point de reprise est `docs/current-delivery.json` : classeur cumulatif, CSV des 28 lots, sources et recette. Les sections datées ci-dessous restent des archives, même lorsqu’elles contiennent les mots « courant » ou « dernière version ».

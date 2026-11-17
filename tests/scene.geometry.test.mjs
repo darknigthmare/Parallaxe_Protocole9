@@ -96,11 +96,11 @@ try {
     };
   `);
   source = source.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-  for (const name of ['levels', 'avatar', 'observatory', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'shadow-state','body-shadow','shadow-world','footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
+  for (const name of ['levels', 'mission-records', 'avatar', 'observatory', 'cabin', 'location-clues', 'locations', 'inspection-data', 'inspection-props', 'observation-state', 'observation-world', 'acoustic-state','spoken-timing','spoken-state','spoken-world', 'shadow-state','body-shadow','shadow-world','footstep-state', 'temporal-state', 'lift-world', 'temporal-world']) {
     let module = ts.transpileModule(fs.readFileSync(path.join(project, `src/game/${name}.ts`), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
     module = module.replace("from 'three'", `from ${JSON.stringify(threeModule)}`);
     module = module.replace(/from '(three\/addons\/[^']+)'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(require.resolve(specifier)).href)}`);
-    module = module.replace(/from '(\.\/(?:levels|avatar|observatory|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|shadow-state|body-shadow|shadow-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
+    module = module.replace(/from '(\.\/(?:levels|mission-records|avatar|observatory|cabin|location-clues|locations|inspection-data|inspection-props|observation-state|observation-world|acoustic-state|spoken-timing|spoken-state|spoken-world|shadow-state|body-shadow|shadow-world|footstep-state|temporal-state|lift-world|temporal-world))'/g, (_, specifier) => `from ${JSON.stringify(pathToFileURL(path.join(directory, specifier + '.mjs')).href)}`);
     const compiledModule = path.join(directory, `${name}.mjs`); fs.writeFileSync(compiledModule, module);
     source = source.replace(`from './${name}'`, `from ${JSON.stringify(pathToFileURL(compiledModule).href)}`);
   }
@@ -1187,6 +1187,47 @@ try {
     assert.equal(local.isGraphicsAvailable(),false);
   });
   globalThis.__parallaxeGeometryRenderer=renderer;
+  function aimFieldDocument(id='hotel',phase='reference',effects=[]) {
+    game.setView({phase,levelId:id,effects,contextKey:'field-document-'+id,loop:1});
+    game.setActive(true);game.setObservationActive(true);game.setInput({forward:0,strafe:0});
+    const dz=11.913-9;
+    game.setPose({x:0,y:1.67,z:9,yaw:Math.atan2(1.8,-dz),pitch:Math.atan2(-.05,Math.hypot(1.8,dz))});
+    for(let i=0;i<8;i++)game.update(0);
+  }
+  for(const [id,noteId]of [['hotel','SC-01'],['metro','T9-01'],['clinic','AB-01'],['cabin','CH-01'],['observatory','O9-01']])check('physical field document is reachable by the actual scene Raycaster in '+id,()=>{
+    aimFieldDocument(id);
+    assert.equal(game.getTarget()?.id,'mission-note');assert.deepEqual(game.getMissionDocument(),{id:noteId,levelId:id});
+    const board=scene.getObjectByName('Consigne de relève — support physique');
+    const page=scene.getObjectByName('Feuillet public — copie à conserver');
+    assert.equal(board.userData.noteId,noteId);assert.ok(page.material.map.image.__text.includes(noteId));
+    const box=new THREE.Box3().setFromObject(board);assert.ok(box.min.z>11.3,'Outside all walking space');
+    assert.ok(box.max.z>=12.03,'Backing meets the innermost end wall in every location');
+    // Check the real scene, not only the list of selectable targets: no wall hides the sheet.
+    const ray=new THREE.Raycaster(new THREE.Vector3(-1.8,1.595,10.9),new THREE.Vector3(0,0,1),0,2);
+    const solid=[];scene.traverse(o=>{
+      if(!o.isMesh||!o.material||o.material.visible===false)return;
+      let visible=true;for(let n=o;n;n=n.parent)if(!n.visible)visible=false;
+      if(visible)solid.push(o);
+    });
+    const hit=ray.intersectObjects(solid,false)[0];assert.ok(hit);assert.equal(hit.object,page,'Visible paper is before the wall');
+  });
+  check('document uses the same sheet under normal/A/B and every quality without extra allocation',()=>{
+    aimFieldDocument();const sheet=scene.getObjectByName('Feuillet public — copie à conserver');
+    const map=sheet.material.map,stats=game.getStats();
+    for(const q of ['low','medium','high']){
+      game.setQuality(q);aimFieldDocument('hotel','inspect',['portrait_empty','blackout']);
+      assert.equal(game.getMissionDocument()?.id,'SC-01');assert.equal(sheet.material.map,map);
+      assert.equal(game.getStats().meshes,stats.meshes);assert.equal(game.getStats().sceneTriangles,stats.sceneTriangles);
+    }
+  });
+  check('document reading rejects paused, inactive, terminal and stale-context selection',()=>{
+    aimFieldDocument();game.setObservationActive(false);assert.equal(game.getMissionDocument(),null);
+    game.setObservationActive(true);game.setActive(false);assert.equal(game.getMissionDocument(),null);
+    aimFieldDocument();game.setView({phase:'reference',levelId:'hotel',contextKey:'replacement',loop:1});assert.equal(game.getMissionDocument(),null);
+    for(const phase of ['reveal','won','lost','menu','lobby']){aimFieldDocument('hotel',phase);assert.equal(game.getMissionDocument(),null);}
+    aimFieldDocument('hotel');game.setView({phase:'reference',levelId:'metro',contextKey:'replacement',loop:2});assert.equal(game.getMissionDocument(),null);
+  });
+  game.setView({phase:'reference',levelId:'hotel',effects:[]});game.setActive(false);game.update(0);
   check('quality caps, peer cleanup and ready callback are consistent', () => {
     game.setQuality('medium'); assert.equal(renderer.pixelRatio, 1.25);
     game.setQuality('low'); assert.equal(renderer.pixelRatio, 1);
