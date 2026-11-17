@@ -1,3 +1,7 @@
+## Point de reprise Collecte — 17 novembre 2026
+Base c0c55ac. Lire `docs/current-delivery.json`, `docs/QA_COLLECTE_20261117.md` et l’onglet Collecte. Les supports de consigne restent au mur : conservation d’une copie locale, pas retrait de l’original. Leur lecture n’est pas une anomalie ni une action serveur. Le lecteur se ferme au changement de passage et les anciens callbacks ne doivent pas conserver une autre consigne.
+La sauvegarde v2 inclut les cinq identifiants publics ; v1 reste compatible. Fusionner les consignes existantes, ne pas les effacer. Tester refus de lecture, échec de troisième écriture, rollback incomplet et récupération ancienne. La copie dans le carnet reste accessible. Ne pas confondre ce lot avec les cinématiques finales non implémentées.
+
 ## Point de reprise cumulatif — 17 novembre 2026
 Lire d’abord `docs/current-delivery.json` : il désigne le dernier classeur et le registre cumulé des 28 lots. `docs/parallaxe-open-work-20261101.json` reste le registre historique des 600 clés, pas le pointeur du dernier complément. Ne pas écraser les anciennes éditions.
 

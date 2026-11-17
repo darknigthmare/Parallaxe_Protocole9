@@ -1,0 +1,44 @@
+{
+  "schema": "parallaxe-reprise-collecte-v1",
+  "date": "2026-11-17",
+  "base_commit": "c0c55acdea6246d4c5d118775b300e64c487434a",
+  "source_workbook": "docs/PARALLAXE_Suivi_Dossiers_2026-11-17.xlsx",
+  "source_workbook_sha256": "2e8411ae5b6a5d0c429a61561a54f2aa04cb0e4159f768487fe53ab8c449a0f5",
+  "output_workbook": "docs/PARALLAXE_Suivi_Collecte_2026-11-17.xlsx",
+  "runtime": 119,
+  "remaining": 1,
+  "items": 600,
+  "updates": {
+    "W16": {
+      "etat": "Export v2 incluant les consignes ; v1 préservé — recette appareils ouverte",
+      "preuves_disponibles": "test:workstreams ; 8 régressions backup + 1 UI ; test:browser-records",
+      "prochaine_recette": "Transfert réel entre appareils, quota et onglets concurrents. Le rollback des trois clés est tenté, pas présenté comme transactionnel ; aucun cloud."
+    },
+    "W25": {
+      "etat": "Supports muraux ciblables hors du passage — réception physique ouverte",
+      "preuves_disponibles": "test:scene : 5 raycasts de scène entière ; contrôle du mur, des qualités et ressources",
+      "prochaine_recette": "Lire les cinq supports au pad et sur téléphone ; vérifier accessibilité du retour vers le mur d’entrée, éclairage et contraste sur GPU réel."
+    },
+    "W26": {
+      "etat": "5 supports 3D de consignes et conservation de copies — cinématiques ouvertes",
+      "preuves_disponibles": "src/game/scene.ts ; app/game.tsx ; test:browser-records ; textes originaux inchangés",
+      "prochaine_recette": "Revue éditoriale et artistique des feuillets. Les copies ne retirent pas les originaux des équipiers ; N07–N09 et les autres objets narratifs restent à produire."
+    },
+    "W23": {
+      "etat": "Recette liée à la collecte physique et au transfert v1/v2",
+      "preuves_disponibles": "CI du SHA exact ; capturer le support puis lire via les vrais événements souris/clavier",
+      "prochaine_recette": "Associer les captures et fichiers exportés au commit testé ; ne pas confondre rendu logiciel, test physique et site public."
+    },
+    "W28": {
+      "etat": "Classeur Collecte cumulatif à 12 onglets et pointeur actualisé",
+      "preuves_disponibles": "scripts/validate-collectibles-workbook.py ; docs/current-delivery.json",
+      "prochaine_recette": "Conserver les anciennes éditions, 600 clés et textes A/B ; rééditions des maîtres historiques toujours distinctes des nouveaux compléments."
+    }
+  },
+  "closed_by_this_delivery": 0,
+  "limits": [
+    "Software browser test is not physical GPU or mobile acceptance",
+    "Wall originals remain available; collection means a personal copy",
+    "N07–N09 and hall_stretch remain open"
+  ]
+}
