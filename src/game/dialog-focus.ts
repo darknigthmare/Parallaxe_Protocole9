@@ -1,7 +1,9 @@
 import {menuElements} from './gamepad-menu';
 
 /** Same topmost surface for keyboard and controller; a graphics failure wins over editing. */
-export function topDialog(root:ParentNode):HTMLElement|null {
+// Only selector lookup is required. The combined browser/Worker globals give
+// HTMLElement.append an incompatible HTMLRewriter signature; no append is used here.
+export function topDialog(root:Pick<ParentNode,'querySelector'>):HTMLElement|null {
   for(const selector of ['.graphics-error','.pad-keyboard','.modal-panel']){
     const panel=root.querySelector<HTMLElement>(selector);
     if(panel&&panel.getClientRects().length&&!panel.hidden)return panel;
