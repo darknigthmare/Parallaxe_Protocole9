@@ -84,7 +84,10 @@ try{
   assert.match(await browser.evaluate("document.querySelector('.mission-debrief').dataset.debriefId"),victory?/campaign-clinic-clear$/:/single-cabin-interrupted$/);
   await browser.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await browser.waitFor('innerWidth===390');
   assert.equal(await browser.evaluate('document.documentElement.scrollWidth<=390'),true);
+  await browser.waitFor("!document.querySelector('.toast')");
   await capture(victory?'7-victory-mobile.png':'8-defeat-mobile.png',390,844);
+  await browser.evaluate("document.querySelector('.result-panel .solid-button').scrollIntoView({block:'center'})");
+  await capture(victory?'9-victory-exit-mobile.png':'10-defeat-exit-mobile.png',390,844);
   await click('.result-panel .solid-button');await browser.waitFor("document.querySelector('.in-menu')&&!document.querySelector('.result-overlay')");
   await browser.call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
   report.checks.push(`${victory?'Victory':'Defeat'}: resolved from a local reference fixture via actual controls; correct debrief and reachable exit at 390x844`);
