@@ -1,0 +1,9 @@
+/* Extend the existing notebook and result panels; no new modal or input owner. */
+.mission-record,.mission-debrief{margin:24px 0;padding:20px;border:1px solid #a1b78e40;background:#c7bc8e07;text-align:left;overflow-wrap:anywhere}
+.mission-record h3,.mission-debrief h3{font-size:16px;line-height:1.5;color:#dbe4cf;margin:9px 0}
+.mission-record .mission-record-text,.mission-debrief>p:not(.fine-print){font-size:calc(13px * var(--caption-scale,1));line-height:1.85;color:#b5c4a6;margin:12px 0}
+.mission-record .outline-button{margin-top:18px;white-space:normal}
+.mission-record-archive{border-bottom:1px solid #9eae8630;padding-bottom:18px;margin:24px 0}
+.result-panel:has(.mission-debrief){margin-block:auto;padding-block:24px;max-height:none}
+.result-overlay:has(.mission-debrief){align-items:flex-start;overscroll-behavior:contain}
+@media(max-width:600px){.mission-record,.mission-debrief{padding:16px}.mission-record-text{font-size:13px}}

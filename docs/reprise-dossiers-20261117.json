@@ -1,0 +1,57 @@
+{
+  "schema": "parallaxe-reprise-records-v1",
+  "date": "2026-11-17",
+  "base_commit": "5d56c3a894a7639537d3cde028185bbc9c60d883",
+  "source_workbook": "docs/PARALLAXE_Suivi_Interruptions_2026-11-16.xlsx",
+  "source_workbook_sha256": "92a0cb836f22aebea02bd3783c4485e4211250be29e35c163b3414c13c4fb97e",
+  "output_workbook": "docs/PARALLAXE_Suivi_Dossiers_2026-11-17.xlsx",
+  "runtime": 119,
+  "remaining": 1,
+  "items": 600,
+  "updates": {
+    "W05": {
+      "etat": "Parcours HTTP complet renforcé — réception humaine ouverte",
+      "preuves_disponibles": "tests/http-journey.mjs ; adaptateur Vercel compilé ; paquet extrait",
+      "prochaine_recette": "Campagne entière à 2 puis 4 personnes sur la révision publiée : références imposées, désaccord, erreur au deuxième secteur, conservation du premier et sortie."
+    },
+    "W06": {
+      "etat": "Série complète et reset du Chalet éprouvés par HTTP — réception humaine ouverte",
+      "preuves_disponibles": "tests/http-journey.mjs ; test:vercel ; tests/package-archive.test.py",
+      "prochaine_recette": "Réceptionner au casque/pad le Chalet à neuf validations ; erreur puis nouvelle série, sans ajouter le Chalet à la campagne."
+    },
+    "W16": {
+      "etat": "Migration locale stricte ; consignes séparées — stockage réel à réceptionner",
+      "preuves_disponibles": "tests/rules.test.mjs (2 régressions) ; test:records ; test:browser-records",
+      "prochaine_recette": "Sur navigateurs/appareils réels : corruption, quota, récupération et onglets concurrents. Les consignes locales ne sont pas incluses dans l’export solo."
+    },
+    "W23": {
+      "etat": "Registre cumulatif et référence de livraison centralisés",
+      "preuves_disponibles": "scripts/validate-records-workbook.py ; docs/current-delivery.json ; rapports CI du commit exact",
+      "prochaine_recette": "Rattacher chaque recette humaine au SHA publié et vérifier les liens de livraison ; ne pas confondre base de développement, paquet et production."
+    },
+    "W26": {
+      "etat": "5 consignes relisibles et débriefs textuels intégrés — cinéma et collecte 3D ouverts",
+      "preuves_disponibles": "src/game/mission-records.ts ; test:records ; test:browser-records ; N05/N06/N10",
+      "prochaine_recette": "Revue éditoriale française et lisibilité sur appareils ; produire ensuite les documents physiques et les trois salles/cinématiques N07–N09 sans les remplacer par du texte."
+    },
+    "W28": {
+      "etat": "Classeur cumulatif actualisé avec pointeur unique — rééditions historiques ouvertes",
+      "preuves_disponibles": "docs/current-delivery.json ; classeur Dossiers ; générateur/validateur ; conservation des neuf onglets historiques",
+      "prochaine_recette": "Rééditer les maîtres historiques dans de nouveaux fichiers si nécessaire, sans écraser les archives ni modifier les 600 clés ; utiliser le pointeur courant pour les reprises."
+    }
+  },
+  "closed_by_this_delivery": 0,
+  "original_narrative_rows": {
+    "N05": "Débrief textuel enrichi ; pas une cinématique",
+    "N06": "Débrief textuel enrichi",
+    "N07": "Conçu — non implémenté",
+    "N08": "Conçu — non implémenté",
+    "N09": "Conçu — non implémenté",
+    "N10": "Partiel — consignes dans le carnet ; objets 3D à collecter non produits"
+  },
+  "limits": [
+    "No human or physical hardware acceptance",
+    "Five reference scenes in software WebGL are not reception of all anomalies",
+    "Field-note storage is local and separate from training export"
+  ]
+}

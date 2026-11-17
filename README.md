@@ -1,3 +1,17 @@
+# État courant — dossiers et parcours du 17 novembre 2026
+
+Le point de reprise est `docs/current-delivery.json` : classeur cumulatif, CSV des 28 lots, sources et recette. Les sections datées ci-dessous restent des archives, même lorsqu’elles contiennent les mots « courant » ou « dernière version ».
+
+Dans le **Carnet**, chaque lieu possède une consigne originale : **Conserver cette consigne** permet de la relire dans **Archives**, même après rechargement. Cette action ne déverrouille pas d’anomalie. Les consignes restent sur cet appareil et ne sont pas incluses dans l’export de progression solo. La victoire et la défaite possèdent maintenant un bilan textuel propre au parcours ; les trois cinématiques futures ne sont pas réalisées par ce lot.
+
+Les campagnes complètes à deux/quatre clients HTTP et les cinq lieux autonomes sont contrôlés depuis le paquet extrait ; le test navigateur parcourt les cinq références et la persistance des notes. Consulter la CI du SHA exact pour les résultats. **119/120 concepts, 600 clés, 28 lots ; réceptions matérielles/humaines ouvertes.**
+
+Jeu : https://parallaxe-protocole-9.vercel.app/ · Launcher : https://launcher-applications.vercel.app/ . Un lien correct ne prouve pas qu’un nouveau commit est déjà publié.
+
+Voir `docs/QA_DOSSIERS_PARCOURS_20261117.md`. Aucun changement de moteur, dépendance, modèle, probabilité ou règle de victoire.
+
+---
+
 # État courant — reprise du 16 novembre 2026
 
 Le jeu et son hébergement persistant sont réunis sur **main** (PR #5 fusionnée). **119/120 concepts, cinq lieux, 600 entrées de suivi ; recettes matérielles toujours ouvertes.**

@@ -1,3 +1,8 @@
+## Point de reprise cumulatif — 17 novembre 2026
+Lire d’abord `docs/current-delivery.json` : il désigne le dernier classeur et le registre cumulé des 28 lots. `docs/parallaxe-open-work-20261101.json` reste le registre historique des 600 clés, pas le pointeur du dernier complément. Ne pas écraser les anciennes éditions.
+
+Lot dossiers : `src/game/mission-records.ts`, `app/mission-records.tsx`, `docs/QA_DOSSIERS_PARCOURS_20261117.md`. Les consignes sont communes, conservées explicitement et séparées des anomalies. Aucun bilan avant fin ; utiliser uniquement les compteurs publics. Ne pas appeler ces textes des cinématiques ou des objets 3D collectés. Tests : `test:records`, `test:browser-records`, règles, parcours HTTP et `validate-records-workbook.py`. Les preuves navigateur logiciel ne remplacent pas les réceptions physiques.
+
 ## Lot chantiers — manette, sauvegardes, mesures (12 novembre 2026)
 Base `a73add4`. Lire `docs/QA_CHANTIERS_20261112.md` et `docs/CHANTIERS_20261112.md`. Trois modules originaux sans dépendance : `gamepad-menu.ts`, `training-backup.ts`, `performance-capture.ts`. Garder le neutre après interruption, le contexte de session/PTT et le focus du panneau courant. L’export ne contient jamais une réponse, seed, consentement, identité ou jeton ; preview/confirmation/rollback ne doivent pas être contournés. La mesure doit rester en référence solo **et** référence réelle de scène, jamais une inspection coopérative. Le reset des compteurs Three.js ne doit pas effacer les captures de miroir. `npm run test:workstreams`, suites existantes et validateur Excel sont requis. Aucune mesure hardware ou réception humaine inventée ; 119/120 et 600 lignes ouvertes restent distincts.
 

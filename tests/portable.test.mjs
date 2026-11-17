@@ -1,3 +1,4 @@
+import {verifyHTTPJourney} from './http-journey.mjs';
 import assert from 'node:assert/strict';
 import {mkdtemp,cp,mkdir,rm,stat,readFile,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -197,6 +198,10 @@ try{
   assert.equal(revoked.state.phase,'reference');assert.equal(revoked.state.players.find(p=>p.id===voiceHost.selfId).namedVoiceConsent,false);
   await action({action:'grant-named-voice',code:voiceHost.code},voiceHost.token,400);
   for(const c of [voicePeer,voiceHost])await action({action:'leave',code:voiceHost.code},c.token);
+  const journeys=[];
+  for(const players of [2,4])journeys.push(await verifyHTTPJourney(origin,{mode:'campaign',players,exerciseMistake:true}));
+  for(const [index,levelId] of ['hotel','metro','clinic','cabin','observatory'].entries())journeys.push(await verifyHTTPJourney(origin,{mode:'single',levelId,players:2+index%3,exerciseMistake:levelId==='cabin'}));
+  console.log(JSON.stringify({fullJourneys:journeys},null,2));
   console.log(JSON.stringify({portable:'passed',checks:[
     'precompiled package starts without node_modules',
     'HTML served',

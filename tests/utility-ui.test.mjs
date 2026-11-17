@@ -29,7 +29,7 @@ test('real performance panel disables capture outside reference and only exports
 
 
 test('all new UI modules and Game have no TypeScript/JSX syntax diagnostics',async()=>{
-  for(const name of ['controller-navigation','training-storage','performance-settings','release-downloads','game']){
+  for(const name of ['controller-navigation','training-storage','performance-settings','release-downloads','mission-records','game']){
     const source=await readFile(new URL(`../app/${name}.tsx`,import.meta.url),'utf8');
     const result=ts.transpileModule(source,{fileName:name+'.tsx',reportDiagnostics:true,compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}});
     const errors=(result.diagnostics??[]).filter(d=>d.category===ts.DiagnosticCategory.Error);

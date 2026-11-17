@@ -30,9 +30,9 @@ export function createRun({seed,difficulty='standard',players=2,mode='campaign',
 
 /** v0.1 saves keep their original single-hotel semantics; malformed saves are rejected. */
 export function migrateRun(value:unknown):Run|null {
-  if(!value||typeof value!=='object')return null;
+  if(!value||typeof value!=='object'||Array.isArray(value))return null;
   const old=value as Partial<Run>;
-  if(typeof old.seed!=='string'||!['reference','inspect','reveal','won','lost'].includes(String(old.phase)))return null;
+  if(typeof old.seed!=='string'||typeof old.phase!=='string'||!['reference','inspect','reveal','won','lost'].includes(old.phase))return null;
   const integer=(v:unknown,min:number,max:number,fallback=0)=>typeof v==='number'&&Number.isFinite(v)?Math.min(max,Math.max(min,Math.floor(v))):fallback;
   const modern=old.schemaVersion===2;
   const mode:GameMode=modern&&old.mode==='campaign'?'campaign':'single';
@@ -42,8 +42,8 @@ export function migrateRun(value:unknown):Run|null {
   const streak=integer(old.streak,0,9);
   const id=typeof old.currentAnomalyId==='string'&&ANOMALY_BY_ID[old.currentAnomalyId]?.levels?.includes(levelId)?old.currentAnomalyId:null;
   const last=old.lastResult;
-  const lastResult=last&&typeof last.correct==='boolean'&&typeof last.hasAnomaly==='boolean'&&typeof last.title==='string'&&typeof last.description==='string'?{...last,observerSlots:Array.isArray(last.observerSlots)?last.observerSlots.filter(s=>Number.isInteger(s)&&s>=0&&s<4):[],anomalyId:typeof last.anomalyId==='string'&&ANOMALY_BY_ID[last.anomalyId]?last.anomalyId:null}:null;
-  return {...run,namedVoiceAllowed:old.namedVoiceAllowed===true,phase:old.phase as Phase,levelId,stage,streak,stageProgress:mode==='campaign'?integer(old.stageProgress,0,3,Math.max(0,streak-stage*3)):streak,pendingLevel:mode==='campaign'&&stage<2&&old.pendingLevel===true,loop:integer(old.loop,0,100000),strikes:integer(old.strikes,0,100000),correctTotal:integer(old.correctTotal,0,100000),currentAnomalyId:id,observerSlots:Array.isArray(old.observerSlots)?old.observerSlots.filter(s=>Number.isInteger(s)&&s>=0&&s<4):[],lastResult,history:Array.isArray(old.history)?old.history.filter(id=>typeof id==='string'&&ANOMALY_BY_ID[id]).slice(-16):[]};
+  const lastResult=last&&typeof last.correct==='boolean'&&typeof last.hasAnomaly==='boolean'&&typeof last.title==='string'&&typeof last.description==='string'?{correct:last.correct,hasAnomaly:last.hasAnomaly,title:last.title,description:last.description,observerSlots:Array.isArray(last.observerSlots)?last.observerSlots.filter(s=>Number.isInteger(s)&&s>=0&&s<4):[],anomalyId:typeof last.anomalyId==='string'&&Object.hasOwn(ANOMALY_BY_ID,last.anomalyId)?last.anomalyId:null}:null;
+  return {...run,namedVoiceAllowed:old.namedVoiceAllowed===true,phase:old.phase as Phase,levelId,stage,streak,stageProgress:mode==='campaign'?integer(old.stageProgress,0,3,Math.max(0,streak-stage*3)):streak,pendingLevel:mode==='campaign'&&stage<2&&old.pendingLevel===true,loop:integer(old.loop,0,100000),strikes:integer(old.strikes,0,100000),correctTotal:integer(old.correctTotal,0,100000),currentAnomalyId:id,observerSlots:Array.isArray(old.observerSlots)?old.observerSlots.filter(s=>Number.isInteger(s)&&s>=0&&s<4):[],lastResult,history:Array.isArray(old.history)?old.history.filter(id=>typeof id==='string'&&Object.hasOwn(ANOMALY_BY_ID,id)).slice(-16):[]};
 }
 
 /** The first traversal is always a clean reference; only explicit next deals a case. */
