@@ -1,0 +1,92 @@
+name: Vérifier et appliquer les consignes physiques et leur transfert
+on:
+  push:
+    branches: [continuation/collecte-transfert-20261117]
+    paths: ['.github/workflows/apply-collecte.yml']
+permissions:
+  contents: write
+concurrency:
+  group: apply-parallaxe-collecte
+  cancel-in-progress: false
+jobs:
+  apply-reviewed-lot:
+    if: github.repository == 'darknigthmare/Parallaxe_Protocole9' && github.ref == 'refs/heads/continuation/collecte-transfert-20261117'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Restaurer les fichiers relus sans toucher aux autres lots
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/collecte-proof"
+          git merge-base --is-ancestor c0c55acdea6246d4c5d118775b300e64c487434a HEAD
+          python3 .delivery/collecte/apply.py | tee "$RUNNER_TEMP/collecte-proof/restoration.json"
+          for script in validate-open-workbook validate-reprise-scenes-workbook validate-interruptions-workbook validate-records-workbook validate-collectibles-workbook; do
+            python3 "scripts/$script.py" | tee "$RUNNER_TEMP/collecte-proof/$script.log"
+          done
+      - run: npm ci
+      - name: Vérifier le typage et les régressions complètes
+        run: |
+          set -euo pipefail
+          npx tsc --noEmit 2>&1 | tee "$RUNNER_TEMP/collecte-proof/typecheck.log"
+          npm test 2>&1 | tee "$RUNNER_TEMP/collecte-proof/domain.log"
+          for suite in skills records downloads vercel workstreams accessibility interruptions scene cabin inspection observation acoustic temporal lift spoken shadow observatory radio radio-ui radio-config; do
+            npm run "test:$suite" 2>&1 | tee "$RUNNER_TEMP/collecte-proof/$suite.log"
+          done
+      - name: Compiler les trois éditions
+        run: |
+          set -euo pipefail
+          npm run build 2>&1 | tee "$RUNNER_TEMP/collecte-proof/hosted-build.log"
+          npm run build:vercel 2>&1 | tee "$RUNNER_TEMP/collecte-proof/vercel-build.log"
+          node tests/build-output.test.mjs vercel
+          npm run build:local 2>&1 | tee "$RUNNER_TEMP/collecte-proof/local-build.log"
+          node tests/build-output.test.mjs portable
+      - name: Éprouver les interruptions, la collecte et le transfert dans le jeu compilé
+        run: |
+          set -euo pipefail
+          npm run test:browser-runtime 2>&1 | tee "$RUNNER_TEMP/collecte-proof/browser-interruptions.log"
+          npm run test:browser-records 2>&1 | tee "$RUNNER_TEMP/collecte-proof/browser-collecte.log"
+      - name: Enregistrer les sources sur la branche de travail seulement
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test "$(git ls-remote origin refs/heads/continuation/collecte-transfert-20261117 | cut -f1)" = "$EXPECTED_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AGENTS.md README.md app docs scripts src/game tests
+          git rm -r .delivery/collecte
+          if git diff --cached --name-only | grep -q '^.github/'; then exit 1; fi
+          git commit -m 'feat: add physical field-note supports and backwards-compatible portable note backups'
+          git push origin HEAD:refs/heads/continuation/collecte-transfert-20261117
+          git rev-parse HEAD > "$RUNNER_TEMP/collecte-proof/COMMIT.txt"
+          git archive --format=tar.gz --output="$RUNNER_TEMP/collecte-proof/PARALLAXE_sources.tar.gz" HEAD
+      - name: Vérifier le paquet du commit exact et ses parcours HTTP complets
+        run: |
+          set -euo pipefail
+          npm run build:local
+          node tests/build-output.test.mjs portable
+          npm run package:release 2>&1 | tee "$RUNNER_TEMP/collecte-proof/package.log"
+          python3 tests/package-archive.test.py 2>&1 | tee "$RUNNER_TEMP/collecte-proof/archive.log"
+          cp outputs/release-v*/*.zip outputs/release-v*/release-manifest.json "$RUNNER_TEMP/collecte-proof/"
+      - name: Conserver les captures et journaux de diagnostic
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/collecte-proof"
+          for folder in browser-interruptions browser-records; do
+            if test -d "outputs/$folder"; then cp -r "outputs/$folder" "$RUNNER_TEMP/collecte-proof/"; fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: collecte-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/collecte-proof/
+          if-no-files-found: error
+          retention-days: 14
