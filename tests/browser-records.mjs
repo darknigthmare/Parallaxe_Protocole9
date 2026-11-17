@@ -106,6 +106,9 @@ try{
  }
  await importFile(exported,'notes-v2.json');
  assert.deepEqual(await browser.evaluate("JSON.parse(localStorage.getItem('parallaxe-field-notes')).ids"),['SC-01'],'Preview is read-only');
+ // A present preview can still be below the settings fold. Capture its actual viewport.
+ await browser.evaluate("document.querySelector('.backup-preview').scrollIntoView({block:'center'})");
+ assert.equal(await browser.evaluate("(()=>{const n=document.querySelector('.backup-preview .solid-button'),r=n.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&n.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));})()"),true);
  await capture('backup-notes-preview.png');
  await click('.backup-preview .solid-button');await browser.waitFor("!document.querySelector('.backup-preview')");
  await click('.modal-top .icon-button');await click('.menu-secondary button','Archives');
