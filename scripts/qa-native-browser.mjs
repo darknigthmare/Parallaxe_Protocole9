@@ -12,7 +12,10 @@ export async function openQABrowser(){
  const profile=await mkdtemp(join(tmpdir(),'p9-browser-'));
  const child=spawn(executable,['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
   '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--window-size=1280,800','--force-device-scale-factor=1',
-  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
+  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});
+ let launchError=null,launchOutput='';
+ child.once('error',error=>{launchError=error;});
+ child.stderr.on('data',chunk=>{launchOutput=(launchOutput+String(chunk)).slice(-8192);});
  let socket,seq=0,closed=false;const pending=new Map();
  const close=async()=>{
   if(closed)return;closed=true;
@@ -21,12 +24,15 @@ export async function openQABrowser(){
  };
  try{
   let port;
-  for(let n=0;n<100;n++){
-   if(child.exitCode!==null)throw new Error('Browser exited before CDP was available');
+  // One bounded launch, not a retry of a failed scenario. No user profile is accessed.
+  const launchDeadline=performance.now()+30000;
+  while(performance.now()<launchDeadline){
+   if(launchError)throw new Error('Browser launch failed: '+launchError.message);
+   if(child.exitCode!==null||child.signalCode!==null)throw new Error('Browser exited before CDP was available: '+(child.exitCode??child.signalCode)+' / '+launchOutput);
    try{port=Number((await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0]);if(port)break;}catch{}
    await sleep(100);
   }
-  if(!port)throw new Error('Browser startup timed out');
+  if(!port)throw new Error('Browser startup timed out after 30 seconds: '+launchOutput);
   const tabs=await (await fetch(`http://127.0.0.1:${port}/json/list`,{signal:AbortSignal.timeout(5000)})).json();
   const target=tabs.find(x=>x.type==='page');if(!target)throw new Error('No browser page');
   socket=new WebSocket(target.webSocketDebuggerUrl);

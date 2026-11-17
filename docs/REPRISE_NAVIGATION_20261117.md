@@ -13,3 +13,9 @@ Le workflow temporaire d’écriture est supprimé. La CI habituelle doit contr�
 La recette navigateur utilise les vrais événements clavier et le vrai DOM du jeu compilé, avec un contrôleur standard simulé. Elle ne certifie ni une manette physique, ni un lecteur d’écran, ni le confort ou les performances d’un appareil réel. La compilation seule n’est pas la recette du lot ; consulter la CI du commit final.
 
 Références : https://www.typescriptlang.org/docs/handbook/utility-types.html#picktype-keys et https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/ .
+
+## Reprise après l’échec du lanceur navigateur
+
+Le run 44052680376 (`26a7670`) passe le typage, les suites de données, les six validateurs et les trois compilations. Il échoue avant toute étape navigateur : aucun port CDP détecté au bout des 10 secondes prévues. Ce résultat n’est pas présenté comme un succès du scénario. Le lanceur utilise désormais un seul délai monotone borné à 30 secondes, conserve les 8 Kio finaux du stderr de son processus jetable about:blank et signale les échecs de lancement/sortie. Aucune relance automatique, réduction graphique ou assertion retirée.
+
+Le lancement local du navigateur fonctionne ; cela ne démontre pas encore le comportement du jeu compilé. Le résultat de la CI du nouveau commit reste requis.
