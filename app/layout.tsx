@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./graphics-recovery.css";
 
 export const metadata: Metadata = {
   title: "PARALLAXE — Protocole 9",

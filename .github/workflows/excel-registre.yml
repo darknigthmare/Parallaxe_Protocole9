@@ -13,7 +13,9 @@ on:
       - 'scripts/build-design-workbook.mjs'
       - 'scripts/build-open-workbook.mjs'
       - 'scripts/build-current-workbook.py'
-      - 'scripts/validate-open-workbook.py'
+      - 'docs/reprise-*.json'
+      - 'docs/CHANTIERS_*.csv'
+      - 'scripts/validate-*-workbook.py'
       - '.github/workflows/excel-registre.yml'
   pull_request:
     paths:
@@ -26,7 +28,9 @@ on:
       - 'scripts/build-design-workbook.mjs'
       - 'scripts/build-open-workbook.mjs'
       - 'scripts/build-current-workbook.py'
-      - 'scripts/validate-open-workbook.py'
+      - 'docs/reprise-*.json'
+      - 'docs/CHANTIERS_*.csv'
+      - 'scripts/validate-*-workbook.py'
       - '.github/workflows/excel-registre.yml'
 
 permissions:
@@ -37,8 +41,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Contrôler les sources, le CSV et le classeur
-        run: python3 scripts/validate-open-workbook.py
+        run: |
+          python3 scripts/validate-open-workbook.py
+          python3 scripts/validate-reprise-scenes-workbook.py
+          python3 scripts/validate-interruptions-workbook.py
       - name: Vérifier la syntaxe des deux générateurs Excel
         run: |
           node --check scripts/build-design-workbook.mjs

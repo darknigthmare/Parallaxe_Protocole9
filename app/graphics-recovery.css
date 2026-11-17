@@ -1,0 +1,12 @@
+/* Loaded after the shared theme in both hosted and standalone entry points.
+   The graphics fault is technical UI, never a hidden clue or a game modal. */
+.game-root .graphics-error {
+  z-index: 210;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.game-root .graphics-notice {
+  z-index: 211;
+  max-width: calc(100vw - 40px);
+}

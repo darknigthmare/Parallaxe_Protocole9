@@ -40,8 +40,29 @@ try{
  await browser.waitFor("document.querySelector('.graphics-error h2')?.textContent.includes('interrompu')");
  assert.equal(await browser.evaluate("document.querySelector('.modal-pause button.solid-button')?.disabled"),true);
  assert.equal(await browser.evaluate("document.querySelector('.graphics-error')?.contains(document.activeElement)"),true);
- report.checks.push('context loss displays technical warning, disables resume and focuses top overlay');
+ // Presence in the DOM is not visibility: the old z-index placed this warning
+ // below Pause. Check the actual hit-tested button, then click through CDP.
+ const point=async selector=>browser.evaluate(`(()=>{const node=document.querySelector(${JSON.stringify(selector)});if(!node)return null;node.scrollIntoView({block:'center'});const r=node.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;return {x,y,hit:node.contains(document.elementFromPoint(x,y))};})()`);
+ const requireHit=async selector=>{const p=await point(selector);assert.ok(p?.hit,'Visible pointer target: '+selector);return p;};
+ const click=async selector=>{const p=await requireHit(selector);await browser.call('Input.dispatchMouseEvent',{type:'mousePressed',x:p.x,y:p.y,button:'left',clickCount:1});await browser.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:p.x,y:p.y,button:'left',clickCount:1});};
+ await requireHit('.graphics-error .solid-button');
+ await requireHit('.graphics-error .outline-button');
+ report.checks.push('context loss shows a hit-testable technical warning above Pause, disables resume and focuses the warning');
  await capture('02-context-lost.png');
+ await browser.call('Emulation.setDeviceMetricsOverride',{width:390,height:400,deviceScaleFactor:1,mobile:true});
+ await browser.waitFor('innerWidth===390&&innerHeight===400');
+ assert.equal(await browser.evaluate("(()=>{const r=document.querySelector('.graphics-error').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;})()"),true);
+ await requireHit('.graphics-error .outline-button');
+ report.checks.push('technical warning stays inside a 390x400 emulated viewport with reachable scrolling actions');
+ await browser.call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
+ await browser.waitFor('innerWidth===1280&&innerHeight===800');
+ await click('.graphics-error .outline-button');
+ await browser.waitFor("!document.querySelector('.graphics-error')&&document.querySelector('.graphics-notice')");
+ assert.equal(await browser.evaluate("document.querySelector('.modal-pause button.solid-button')?.disabled"),true);
+ await click('.graphics-notice');
+ await browser.waitFor("document.querySelector('.graphics-error')?.contains(document.activeElement)");
+ await requireHit('.graphics-error .solid-button');
+ report.checks.push('real pointer clicks dismiss and reopen the warning without resuming a lost context');
  await sleep(500);await browser.evaluate('__p9qa.extension.restoreContext()');
  await browser.waitFor("!document.querySelector('.graphics-error')&&document.querySelector('.modal-pause .solid-button:not([disabled])')",30000);
  assert.equal(await browser.evaluate("__p9qa.checkpoint===localStorage.getItem('parallaxe-training')"),true);
