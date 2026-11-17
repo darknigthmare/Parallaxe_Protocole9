@@ -1,0 +1,90 @@
+name: Vérifier la navigation clavier et manette
+on:
+  push:
+    branches: [continuation/navigation-20261117]
+    paths: ['.github/workflows/apply-navigation.yml']
+permissions:
+  contents: write
+concurrency:
+  group: apply-parallaxe-navigation
+  cancel-in-progress: false
+jobs:
+  reviewed-navigation:
+    if: github.repository == 'darknigthmare/Parallaxe_Protocole9' && github.ref == 'refs/heads/continuation/navigation-20261117'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Restaurer les sources contrôlées et le classeur
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/navigation-proof"
+          git merge-base --is-ancestor 112e4969e3d6ab71947ad5391bb87e7d43126476 HEAD
+          python3 .delivery/navigation/apply.py | tee "$RUNNER_TEMP/navigation-proof/restoration.json"
+          for file in open reprise-scenes interruptions records collectibles navigation; do python3 "scripts/validate-$file-workbook.py"; done
+      - name: Enregistrer le lot lisible sur sa branche de travail
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test "$(git ls-remote origin refs/heads/continuation/navigation-20261117 | cut -f1)" = "$EXPECTED_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .ai-tools/project-skills.json AGENTS.md README.md app docs scripts src/game tests package.json
+          git add -f .agents/skills/p9-reprise/SKILL.md .claude/skills/p9-reprise/SKILL.md
+          git rm -r .delivery/navigation
+          if git diff --cached --name-only | grep -q '^.github/'; then exit 1; fi
+          git commit -m 'fix: unify modal focus, reject malformed controller axes and preserve nested keyboard return'
+          git push origin HEAD:refs/heads/continuation/navigation-20261117
+          git rev-parse HEAD > "$RUNNER_TEMP/navigation-proof/COMMIT.txt"
+          git archive --format=tar.gz --output="$RUNNER_TEMP/navigation-proof/PARALLAXE_sources.tar.gz" HEAD
+      - run: npm ci
+      - name: Vérifier typage et suites de régression
+        run: |
+          set -euo pipefail
+          npx tsc --noEmit 2>&1 | tee "$RUNNER_TEMP/navigation-proof/typecheck.log"
+          npm test 2>&1 | tee "$RUNNER_TEMP/navigation-proof/domain.log"
+          for suite in skills records downloads vercel workstreams accessibility interruptions scene cabin inspection observation acoustic temporal lift spoken shadow observatory radio radio-ui radio-config menus; do
+            npm run "test:$suite" 2>&1 | tee "$RUNNER_TEMP/navigation-proof/$suite.log"
+          done
+      - name: Compiler les trois éditions
+        run: |
+          set -euo pipefail
+          npm run build 2>&1 | tee "$RUNNER_TEMP/navigation-proof/hosted.log"
+          npm run build:vercel 2>&1 | tee "$RUNNER_TEMP/navigation-proof/vercel.log"
+          node tests/build-output.test.mjs vercel
+          npm run build:local 2>&1 | tee "$RUNNER_TEMP/navigation-proof/portable-build.log"
+          node tests/build-output.test.mjs portable
+      - name: Éprouver le jeu compilé dans Chromium
+        run: |
+          set -euo pipefail
+          npm run test:browser-menus 2>&1 | tee "$RUNNER_TEMP/navigation-proof/browser-menus.log"
+          npm run test:browser-runtime 2>&1 | tee "$RUNNER_TEMP/navigation-proof/browser-runtime.log"
+          npm run test:browser-records 2>&1 | tee "$RUNNER_TEMP/navigation-proof/browser-records.log"
+      - name: Construire et lancer le paquet extrait
+        run: |
+          set -euo pipefail
+          npm run package:release 2>&1 | tee "$RUNNER_TEMP/navigation-proof/package.log"
+          python3 tests/package-archive.test.py 2>&1 | tee "$RUNNER_TEMP/navigation-proof/archive.log"
+          cp outputs/release-v*/*.zip outputs/release-v*/release-manifest.json "$RUNNER_TEMP/navigation-proof/"
+      - name: Conserver les captures même en échec
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/navigation-proof"
+          for dir in browser-menus browser-interruptions browser-records; do
+            if test -d "outputs/$dir"; then cp -r "outputs/$dir" "$RUNNER_TEMP/navigation-proof/"; fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: navigation-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/navigation-proof/
+          if-no-files-found: error
+          retention-days: 14
