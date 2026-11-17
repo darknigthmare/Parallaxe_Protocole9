@@ -1,3 +1,4 @@
+import {verifyHTTPJourney} from './http-journey.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
@@ -106,6 +107,8 @@ test('real Vercel HTTP adapter preserves four-player concurrent campaign and rad
     assert.match(output,/PASS: concurrent rooms/);
     assert.ok(fixture.conflicts>0,'an intervening writer exercised storage CAS retry');
     assert.ok(fixture.calls.some(call=>call.name.endsWith('_cas')));
+    for(const players of [2,4]){const result=await verifyHTTPJourney(origin,{mode:'campaign',players,exerciseMistake:true,request:originalFetch});assert.equal(result.completed,true);}
+    const cabin=await verifyHTTPJourney(origin,{mode:'single',levelId:'cabin',players:3,exerciseMistake:true,request:originalFetch});assert.equal(cabin.completed,true);
   }finally{
     globalThis.fetch=originalFetch;
     names.forEach((name,index)=>before[index]===undefined?delete process.env[name]:process.env[name]=before[index]);

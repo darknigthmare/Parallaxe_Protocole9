@@ -14,6 +14,7 @@ on:
       - 'scripts/build-open-workbook.mjs'
       - 'scripts/build-current-workbook.py'
       - 'docs/reprise-*.json'
+      - 'docs/current-delivery.json'
       - 'docs/CHANTIERS_*.csv'
       - 'scripts/validate-*-workbook.py'
       - '.github/workflows/excel-registre.yml'
@@ -29,6 +30,7 @@ on:
       - 'scripts/build-open-workbook.mjs'
       - 'scripts/build-current-workbook.py'
       - 'docs/reprise-*.json'
+      - 'docs/current-delivery.json'
       - 'docs/CHANTIERS_*.csv'
       - 'scripts/validate-*-workbook.py'
       - '.github/workflows/excel-registre.yml'
@@ -49,6 +51,7 @@ jobs:
           python3 scripts/validate-open-workbook.py
           python3 scripts/validate-reprise-scenes-workbook.py
           python3 scripts/validate-interruptions-workbook.py
+          python3 scripts/validate-records-workbook.py
       - name: Vérifier la syntaxe des deux générateurs Excel
         run: |
           node --check scripts/build-design-workbook.mjs

@@ -35,7 +35,7 @@ jobs:
   game:
     name: Règles, scène, radio et édition portable
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,6 +49,8 @@ jobs:
         run: npm ci
       - name: Vérifier les workflows locaux et le préparateur IA
         run: npm run test:skills
+      - name: Vérifier les consignes et débriefs sans spoiler
+        run: npm run test:records
       - name: Vérifier les téléchargements liés au commit
         run: npm run test:downloads
       - name: Vérifier TypeScript
@@ -88,6 +90,7 @@ jobs:
           python3 scripts/validate-open-workbook.py
           python3 scripts/validate-reprise-scenes-workbook.py
           python3 scripts/validate-interruptions-workbook.py
+          python3 scripts/validate-records-workbook.py
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
@@ -107,6 +110,8 @@ jobs:
           node tests/build-output.test.mjs portable
       - name: Éprouver le jeu compilé dans Chromium et WebGL logiciel
         run: npm run test:browser-runtime
+      - name: Parcourir les cinq lieux, conserver les consignes et lire les débriefs
+        run: npm run test:browser-records
       - name: Construire les ZIP PC et sources de cette révision
         run: npm run package:release
       - name: Vérifier et lancer le paquet PC depuis son ZIP extrait
@@ -124,5 +129,13 @@ jobs:
         with:
           name: parallaxe-browser-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: outputs/browser-interruptions/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Conserver les captures des dossiers et parcours, y compris en échec
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallaxe-records-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: outputs/browser-records/
           if-no-files-found: warn
           retention-days: 14

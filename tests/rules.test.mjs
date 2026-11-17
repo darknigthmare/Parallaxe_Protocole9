@@ -275,3 +275,16 @@ test('old and new observation landmarks are accepted as public pings without pub
   assert.deepEqual(Object.keys(visible.pings.at(-1)).sort(),['at','id','name','target']);
  }
 });
+
+
+test('local save migration rejects arrays and coerced phases',()=>{
+  for(const phase of [['reference'],['inspect'],['won'],{},7])assert.equal(migrateRun({...createRun({seed:'save'}),phase}),null);
+  assert.equal(migrateRun([]),null);
+});
+test('local save migration drops inherited anomaly IDs and foreign result fields',()=>{
+  const original=evaluateRun(advanceRun(createRun({seed:'save',mode:'single'})),true);
+  const restored=migrateRun({...original,history:['constructor','toString','__proto__'],lastResult:{...original.lastResult,anomalyId:'constructor',privateToken:'PRIVATE',otherView:{effects:['PRIVATE']}}});
+  assert.deepEqual(restored.history,[]);assert.equal(restored.lastResult.anomalyId,null);
+  assert.deepEqual(Object.keys(restored.lastResult).sort(),['correct','hasAnomaly','title','description','observerSlots','anomalyId'].sort());
+  assert.ok(!JSON.stringify(restored).includes('PRIVATE'));
+});

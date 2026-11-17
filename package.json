@@ -45,7 +45,9 @@
     "test:vercel": "node tests/build-info.test.mjs && node tests/vercel-boundary.test.mjs && node tests/vercel-session.test.mjs",
     "test:downloads": "node tests/release-downloads.test.mjs",
     "test:interruptions": "node tests/runtime-interruptions.test.mjs",
-    "test:browser-runtime": "node tests/browser-runtime.mjs"
+    "test:browser-runtime": "node tests/browser-runtime.mjs",
+    "test:records": "node tests/mission-records.test.mjs",
+    "test:browser-records": "node tests/browser-records.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
