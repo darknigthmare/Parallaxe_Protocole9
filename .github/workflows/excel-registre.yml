@@ -52,6 +52,7 @@ jobs:
           python3 scripts/validate-reprise-scenes-workbook.py
           python3 scripts/validate-interruptions-workbook.py
           python3 scripts/validate-records-workbook.py
+          python3 scripts/validate-collectibles-workbook.py
       - name: Vérifier la syntaxe des deux générateurs Excel
         run: |
           node --check scripts/build-design-workbook.mjs

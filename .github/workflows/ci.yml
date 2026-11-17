@@ -91,6 +91,7 @@ jobs:
           python3 scripts/validate-reprise-scenes-workbook.py
           python3 scripts/validate-interruptions-workbook.py
           python3 scripts/validate-records-workbook.py
+          python3 scripts/validate-collectibles-workbook.py
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
