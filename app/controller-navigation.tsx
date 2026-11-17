@@ -22,7 +22,7 @@ export function ControllerNavigation({enabled,scope,onBack}:{enabled:boolean;sco
       if(!!pad!==wasConnected){wasConnected=!!pad;setConnected(wasConnected);}
       const active=editRef.current;
       const focused=!document.hidden&&document.hasFocus();
-      const root=document.querySelector<HTMLElement>('.pad-keyboard')??document.querySelector<HTMLElement>('.modal-panel')??document.querySelector<HTMLElement>('.graphics-error')??document.querySelector<HTMLElement>('.result-panel')??document.querySelector<HTMLElement>('.lobby-screen')??document.querySelector<HTMLElement>('.game-root');
+      const root=document.querySelector<HTMLElement>('.pad-keyboard')??document.querySelector<HTMLElement>('.graphics-error')??document.querySelector<HTMLElement>('.modal-panel')??document.querySelector<HTMLElement>('.result-panel')??document.querySelector<HTMLElement>('.lobby-screen')??document.querySelector<HTMLElement>('.game-root');
       const key=scope+(active?':keyboard':'');
       for(const action of gate.current.update(pad,key,enabled&&focused,now))if(root)navigateMenu(root,action,{
         back:()=>{if(editRef.current){const node=editRef.current.node;setEdit(null);node.focus();}else onBack();},

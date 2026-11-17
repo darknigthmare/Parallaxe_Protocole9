@@ -1,0 +1,45 @@
+{
+  "schema": "parallaxe-reprise-interruptions-v1",
+  "date": "2026-11-16",
+  "base_commit": "712e886d40350eef21d7b310d11cd2af2f972eea",
+  "source_workbook": "docs/PARALLAXE_Suivi_Reprise_2026-11-16_Scenes.xlsx",
+  "source_workbook_sha256": "e7c563fa56b0994723fbc8dc82b8c86cbe3ceb2625f507f3d56d62233b6d51a8",
+  "output_workbook": "docs/PARALLAXE_Suivi_Interruptions_2026-11-16.xlsx",
+  "runtime": 119,
+  "remaining": 1,
+  "items": 600,
+  "updates": {
+    "W03": {
+      "etat": "Perte/restauration WebGL gérée — réception GPU ouverte",
+      "preuves_disponibles": "test:scene ; test:interruptions ; test:browser-runtime (CI du SHA exact)",
+      "prochaine_recette": "Vérifier éclairage et dix reflets après perte de contexte sur cartes graphiques réelles ; le test Chromium logiciel ne certifie pas ces appareils."
+    },
+    "W11": {
+      "etat": "Capture tactile et changements de viewport protégés",
+      "preuves_disponibles": "test:movement : 36 cas ; sept nouvelles régressions",
+      "prochaine_recette": "Essai mobile réel à deux doigts, portrait/paysage, capture interrompue et retour de l’application. Aucun geste maintenu ne doit reprendre seul."
+    },
+    "W13": {
+      "etat": "Simulation suspendue sans reprise automatique après incident",
+      "preuves_disponibles": "test:scene : 66 cas ; test:interruptions : 7 cas",
+      "prochaine_recette": "Perte/restauration pendant référence et inspection sur les cinq lieux, puis nouveau passage ; comparer position, preuves et état de session."
+    },
+    "W14": {
+      "etat": "Message technique et focus du panneau supérieur fiabilisés",
+      "preuves_disponibles": "test:interruptions ; test:browser-runtime ; tests existants accessibilité/manette",
+      "prochaine_recette": "Vérifier clavier et manette physique avec le message graphique au-dessus de la pause ; conserver une reprise volontaire et microphone éteint."
+    },
+    "W23": {
+      "etat": "Registre complémentaire et preuves de réception séparés",
+      "preuves_disponibles": "validate-interruptions-workbook.py ; rapports CPU et navigateur séparés",
+      "prochaine_recette": "Vérifier la révision des preuves avant chaque clôture humaine ; conserver les anciens classeurs et 600 clés."
+    }
+  },
+  "closed_by_this_delivery": 0,
+  "limits": [
+    "CPU tests are not GPU or human acceptance",
+    "Local Chromium navigation blocked by administrator",
+    "Full build and software WebGL checks run in GitHub CI; consult exact revision result",
+    "No dependencies or original A/B concepts changed"
+  ]
+}

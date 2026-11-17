@@ -61,6 +61,8 @@ jobs:
         run: npm run test:workstreams
       - name: Vérifier les commandes accessibles, la migration et les événements clavier
         run: npm run test:accessibility
+      - name: Vérifier les interruptions graphiques et la reprise volontaire
+        run: npm run test:interruptions
       - name: Vérifier les géométries et les changements de lieu
         run: npm run test:scene
       - name: Vérifier le chalet et la voûte du métro
@@ -85,6 +87,7 @@ jobs:
         run: |
           python3 scripts/validate-open-workbook.py
           python3 scripts/validate-reprise-scenes-workbook.py
+          python3 scripts/validate-interruptions-workbook.py
       - name: Vérifier la radio et les autorisations
         run: npm run test:radio
       - name: Vérifier l’annulation des actions de l’interface radio
@@ -102,6 +105,8 @@ jobs:
         run: |
           npm run build:local
           node tests/build-output.test.mjs portable
+      - name: Éprouver le jeu compilé dans Chromium et WebGL logiciel
+        run: npm run test:browser-runtime
       - name: Construire les ZIP PC et sources de cette révision
         run: npm run package:release
       - name: Vérifier et lancer le paquet PC depuis son ZIP extrait
@@ -112,4 +117,12 @@ jobs:
           name: parallaxe-pc-lan-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: outputs/release-v*/
           if-no-files-found: error
+          retention-days: 14
+      - name: Conserver les captures et le rapport navigateur, y compris en échec
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallaxe-browser-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: outputs/browser-interruptions/
+          if-no-files-found: warn
           retention-days: 14
