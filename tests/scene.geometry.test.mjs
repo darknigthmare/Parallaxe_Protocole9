@@ -85,7 +85,12 @@ try {
         dispose() { this.disposed = true; }
       },
       PMREMGenerator: class {
-        fromScene() { return { texture: new THREE_REAL.Texture(), dispose() {} }; }
+        fromScene() {
+          const renderer=globalThis.__parallaxeGeometryRenderer;
+          if(renderer.failEnvironment)throw new Error('GPU allocation failed');
+          const result={texture:new THREE_REAL.Texture(),disposeCount:0,dispose(){this.disposeCount++;}};
+          (renderer.environmentTargets??=[]).push(result);return result;
+        }
         dispose() {}
       },
     };
@@ -1129,6 +1134,59 @@ try {
     }finally{if(descriptor)Object.defineProperty(performance,'now',descriptor);else delete performance.now;game.setPeers([]);game.setSharedInteractions(null);}
   });
 
+
+  check('context loss stops scene rendering, movement and stale selection synchronously',()=>{
+    const canvas=Object.assign(new EventTarget(),{clientWidth:900,clientHeight:600}),signals=[];
+    const local=createScene(canvas,{onGraphicsState:s=>signals.push(s)});
+    try{
+      local.setActive(true);local.setObservationActive(true);local.setInput({forward:1,strafe:0});local.update(.02);
+      const r=globalThis.__parallaxeGeometryRenderer,pose=local.getPose(),calls=r.resets;
+      const event=new Event('webglcontextlost',{cancelable:true});canvas.dispatchEvent(event);
+      assert.equal(event.defaultPrevented,true);assert.equal(local.isGraphicsAvailable(),false);
+      assert.deepEqual(signals,['lost']);local.update(.05);assert.equal(r.resets,calls);
+      local.setInput({forward:1,strafe:1});local.look(100,100);local.update(.05);
+      assert.deepEqual(local.getPose(),pose);assert.equal(local.getTarget(),null);assert.equal(local.getInspection(),null);
+      canvas.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));assert.deepEqual(signals,['lost']);
+    }finally{local.dispose();}
+  });
+  check('restoration rebakes environment and render targets without changing geometry or pose',()=>{
+    const canvas=Object.assign(new EventTarget(),{clientWidth:900,clientHeight:600}),signals=[];
+    const local=createScene(canvas,{onGraphicsState:s=>signals.push(s)});
+    try{
+      local.setView({phase:'reference',levelId:'observatory',effects:[]});local.setActive(true);local.setObservationActive(true);
+      local.setQuality('low');local.setPose({x:1,z:3,yaw:.5,pitch:.2});local.update(0);
+      const r=globalThis.__parallaxeGeometryRenderer,pose=local.getPose(),stats=local.getStats(),previous=r.scene.environment;
+      canvas.dispatchEvent(new Event('webglcontextrestored'));assert.equal(r.environmentTargets.length,1);
+      canvas.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));
+      canvas.dispatchEvent(new Event('webglcontextrestored'));
+      assert.equal(local.isGraphicsAvailable(),true);assert.deepEqual(signals,['lost','restored']);
+      assert.notEqual(r.scene.environment,previous);assert.equal(r.environmentTargets.length,2);assert.equal(r.environmentTargets[0].disposeCount,1);
+      assert.equal(r.info.autoReset,false);assert.equal(r.shadowMap.enabled,false);assert.equal(r.pixelRatio,1);
+      local.update(0);assert.deepEqual(local.getPose(),pose);assert.equal(local.getStats().sceneTriangles,stats.sceneTriangles);
+      assert.deepEqual(local.getStats().loadedLevels,stats.loadedLevels);
+      assert.equal(local.getPropTarget(),null,'Recovery never rearms observation by itself');
+      canvas.dispatchEvent(new Event('webglcontextrestored'));assert.equal(r.environmentTargets.length,2);
+    }finally{const r=globalThis.__parallaxeGeometryRenderer;local.dispose();for(const env of r.environmentTargets)assert.equal(env.disposeCount,1);}
+  });
+  check('failed restoration remains blocked and emits no provider error or hidden observation',()=>{
+    const canvas=Object.assign(new EventTarget(),{clientWidth:900,clientHeight:600}),signals=[];
+    const local=createScene(canvas,{onGraphicsState:s=>signals.push(s)});
+    try{
+      local.update(0);const r=globalThis.__parallaxeGeometryRenderer,calls=r.resets;
+      canvas.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));r.failEnvironment=true;
+      assert.doesNotThrow(()=>canvas.dispatchEvent(new Event('webglcontextrestored')));
+      assert.deepEqual(signals,['lost','failed']);assert.equal(local.isGraphicsAvailable(),false);
+      local.update(.05);assert.equal(r.resets,calls);
+    }finally{local.dispose();}
+  });
+  check('disposed scene removes context listeners and never allocates on a late restoration',()=>{
+    const canvas=Object.assign(new EventTarget(),{clientWidth:900,clientHeight:600}),signals=[];
+    const local=createScene(canvas,{onGraphicsState:s=>signals.push(s)}),r=globalThis.__parallaxeGeometryRenderer;
+    local.dispose();canvas.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));canvas.dispatchEvent(new Event('webglcontextrestored'));
+    assert.deepEqual(signals,[]);assert.equal(r.environmentTargets.length,1);assert.equal(r.environmentTargets[0].disposeCount,1);
+    assert.equal(local.isGraphicsAvailable(),false);
+  });
+  globalThis.__parallaxeGeometryRenderer=renderer;
   check('quality caps, peer cleanup and ready callback are consistent', () => {
     game.setQuality('medium'); assert.equal(renderer.pixelRatio, 1.25);
     game.setQuality('low'); assert.equal(renderer.pixelRatio, 1);

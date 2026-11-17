@@ -257,3 +257,6 @@ Le catalogue de ce lot contenait **104 anomalies sur les 120 concepts**, dont qu
 Les anciens classeurs demeurent des instantanés de leurs livraisons ; ils ne remplacent pas ce suivi. `npm run test:observation` exerce les nouveaux états et les géométries réelles sur CPU. La réception GPU et multiappareils reste ouverte.
 
 La reprise du **11 novembre 2026** matérialise le lot auparavant interrompu au transfert. Les menus, lectures et interruptions du navigateur suspendent les chronomètres des observations. Voir `docs/QA_OBSERVATIONS_20261111.md`.
+
+## Reprise des interruptions — 16 novembre 2026
+La perte WebGL suspend la scène, coupe voix et commandes, puis impose une reprise volontaire après reconstruction de l’éclairage. Gestes tactiles, rotation d’écran et focus des panneaux sont protégés. Voir [la recette et ses limites](docs/QA_INTERRUPTION_20261116.md), le [classeur complémentaire](docs/PARALLAXE_Suivi_Interruptions_2026-11-16.xlsx) et `npm run test:interruptions`. `test:browser-runtime` teste le build local dans Chromium/SwiftShader, sans certifier de matériel physique.

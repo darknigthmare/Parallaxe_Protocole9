@@ -40,6 +40,7 @@ export const SCENE_EFFECTS = [
 
 export function createScene(canvas: HTMLCanvasElement, opts: {
   onInteract?: (target: string) => void; onReady?: () => void;
+  onGraphicsState?: (state: 'lost' | 'restored' | 'failed') => void;
 } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
   // One counter epoch covers the main view AND nested planar reflections.
@@ -53,11 +54,14 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b1719);
   scene.fog = new THREE.FogExp2(0x142326, .013);
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const environmentRoom = new RoomEnvironment();
-  const environmentTarget = pmrem.fromScene(environmentRoom, .04);
+  function bakeEnvironment() {
+    const generator = new THREE.PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    try { return generator.fromScene(room, .04); }
+    finally { room.dispose(); generator.dispose(); }
+  }
+  let environmentTarget = bakeEnvironment();
   scene.environment = environmentTarget.texture; scene.environmentIntensity = .28;
-  environmentRoom.dispose(); pmrem.dispose();
   const camera = new THREE.PerspectiveCamera(65, 1, .06, 65);
   camera.rotation.order = 'YXZ';
   const world = new THREE.Group();
@@ -98,6 +102,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   let target: SceneTarget | null = null;
   let shaderCompiled = false;
   let disposed = false;
+  let graphicsAvailable = true;
   let relayCode = '0909';
   let arrowDirection: 'left' | 'right' = 'right';
   let syncTime = '03:09';
@@ -974,6 +979,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
   tag(doubleAvatar.root, 'player', 'Un inspecteur en trop', { kind: 'double', id: selfIdentity.id });
 
   function look(dx: number, dy: number) {
+    if (!alive || !graphicsAvailable) return;
     if(!Number.isFinite(dx)||!Number.isFinite(dy))return;
     if(cameraInvertY)dy=-dy;
     if (!active) return;
@@ -1160,7 +1166,7 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     root.traverse(object => { const index = targets.indexOf(object); if (index >= 0) targets.splice(index, 1); });
   }
   function update(dt: number) {
-    if (!alive) return;
+    if (!alive || !graphicsAvailable) return;
     dt = THREE.MathUtils.clamp(Number.isFinite(dt) ? dt : .016, 0, .05); elapsed += dt; frame++;
     const oldX = pose.x, oldZ = pose.z;
     const width = Math.max(1, canvas.clientWidth || canvas.width || window.innerWidth);
@@ -1313,7 +1319,9 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     return levelId === 'hotel' ? shadowWorld.getReading(observed?.id) ?? observationWorld.getReading(observed?.id) ?? inspectionProps.getReading(observed?.id) : ensureLocation(levelId).getReading(observed);
   }
   function dispose() {
-    if (disposed) return; disposed = true; alive = false;
+    if (disposed) return; disposed = true; alive = false; graphicsAvailable = false;
+    canvas.removeEventListener?.('webglcontextlost', onContextLost);
+    canvas.removeEventListener?.('webglcontextrestored', onContextRestored);
     world.remove(shadowWorld.root);shadowWorld.dispose();
     world.remove(inspectionProps.root); inspectionProps.dispose();
     world.remove(observationWorld.root); observationWorld.dispose();
@@ -1329,11 +1337,40 @@ export function createScene(canvas: HTMLCanvasElement, opts: {
     geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); textures.forEach(t => t.dispose());
     mirror.getRenderTarget().dispose(); hotelWindowGlass.getRenderTarget().dispose(); environmentTarget.dispose(); renderer.dispose();
   }
+  function onContextLost(event: Event) {
+    event.preventDefault(); // Opt in to the browser's restoration protocol.
+    if (disposed || !graphicsAvailable) return;
+    graphicsAvailable = false;
+    input = { forward: 0, strafe: 0 }; observationActive = false; talking = false;
+    target = null; poseHistory.length = 0; shadowWorld.interrupt();
+    opts.onGraphicsState?.('lost');
+  }
+  function onContextRestored() {
+    if (disposed || graphicsAvailable) return;
+    try {
+      // Three restores buffers; generated render-target contents need a fresh bake.
+      const fresh = bakeEnvironment();
+      environmentTarget.dispose(); environmentTarget = fresh; scene.environment = fresh.texture;
+      renderer.info.autoReset = false;
+      for (const surface of reflectors) surface.getRenderTarget().dispose();
+      setQuality(quality);
+      input = { forward: 0, strafe: 0 }; observationActive = false; talking = false;
+      target = null; poseHistory.length = 0; shadowWorld.interrupt();
+      graphicsAvailable = true;
+    } catch {
+      // Keep the failure local and generic: no driver or private scene details.
+      graphicsAvailable = false; opts.onGraphicsState?.('failed'); return;
+    }
+    opts.onGraphicsState?.('restored');
+  }
+  canvas.addEventListener?.('webglcontextlost', onContextLost);
+  canvas.addEventListener?.('webglcontextrestored', onContextRestored);
   setQuality(window.innerWidth < 750 ? 'medium' : 'high');
   applyView({ effects: [], phase: 'menu', loop: 0 });
   return {
     update,
-    setInput(next: SceneInput) { input = { ...next }; },
+    isGraphicsAvailable: () => !disposed && graphicsAvailable,
+    setInput(next: SceneInput) { if (alive && graphicsAvailable) input = { ...next }; },
     look,
     setView: applyView,
     getPose: () => ({ ...pose }),

@@ -69,6 +69,7 @@ export default function Game({portable=false}:{portable?:boolean}){
   const [ready,setReady]=useState(false);
   const [graphicsError,setGraphicsError]=useState("");
   const [graphicsDismissed,setGraphicsDismissed]=useState(false);
+  const [graphicsInterrupted,setGraphicsInterrupted]=useState(false);
   const [run,setRun]=useState<Run|null>(null);
   const [online,setOnline]=useState<OnlineState|null>(null);
   const [credentials,setCredentials]=useState<Credentials|null>(null);
@@ -128,7 +129,7 @@ export default function Game({portable=false}:{portable?:boolean}){
   const isHost=!!online&&online.hostId===credentials?.selfId;
   const reveal=(online?.reveal??run?.lastResult) as Reveal|undefined;
   const roundFinished=["reveal","won","lost"].includes(phase);
-  const inputBlocked=modal!=="none"||roundFinished||phase==="lobby";
+  const inputBlocked=!ready||modal!=="none"||roundFinished||phase==="lobby";
 
   const notify=useCallback((message:string)=>{setToast(message);},[]);
   const stopCalibration=useCallback(()=>{probeActions.current?.cancel();radio.current?.stopProbe();setRadioCaption("");},[]);
@@ -146,6 +147,19 @@ export default function Game({portable=false}:{portable?:boolean}){
   const suspendTalking=useCallback(()=>{padTalk.current?.suspend();radio.current?.setTalking(false);},[]);
   const stopRadio=useCallback(()=>{stopCalibration();suspendTalking();radioActions.current?.cancel();radio.current?.disablePlayback();},[stopCalibration,suspendTalking]);
   const stopMicrophone=useCallback(()=>{suspendTalking();radioActions.current?.cancel();radio.current?.disableMicrophone();},[suspendTalking]);
+  const handleGraphicsState=useCallback((state:"lost"|"restored"|"failed")=>{
+    blockControls();stopRadio();stopMicrophone();
+    frameState.current.radioInput=false;
+    engine.current?.setObservationActive(false);
+    setTarget(null);setObservation(null);setAcousticCaption("");
+    document.exitPointerLock?.();setModal(frameState.current.playing?"pause":"none");setGraphicsDismissed(false);
+    const restored=state==="restored";
+    setReady(restored);setGraphicsInterrupted(!restored);
+    setGraphicsError(restored?"":state==="lost"
+      ?"Le navigateur a interrompu le contexte graphique. Attente de sa restauration."
+      :"Le contexte est revenu, mais le rendu n’a pas pu être reconstruit. Rechargez la page.");
+    if(restored)notify("Rendu restauré. Reprenez volontairement ; le microphone reste désactivé.");
+  },[blockControls,stopRadio,stopMicrophone,notify]);
   const resetSession=useCallback((credential:Credentials|null)=>{
     stopCalibration();blockControls();suspendTalking();
     // Even a repeat resume of the same saved identity must restart its effects.
@@ -211,11 +225,12 @@ export default function Game({portable=false}:{portable?:boolean}){
     audio.current=new Atmosphere();
     import("@/src/game/scene").then(({createScene})=>{
       if(destroyed||!canvasRef.current)return;
-      const world=createScene(canvasRef.current,{onInteract:()=>actions.current.interact()});
+      const world=createScene(canvasRef.current,{onInteract:()=>actions.current.interact(),onGraphicsState:handleGraphicsState});
       engine.current=world;world.setQuality("medium");world.setFlashlight(true);setReady(true);
       const animate=(now:number)=>{
         if(destroyed)return;
-        const dt=Math.min((now-last)/1000,0.05);last=now;
+        const dt=Math.max(0,Math.min((now-last)/1000,0.05));last=now;
+        if(!world.isGraphicsAvailable()){raf=requestAnimationFrame(animate);return;}
         const s=frameState.current;let forward=0;let strafe=0;
         const focused=!document.hidden&&document.hasFocus();
         let selectedPad=null;try{selectedPad=selectMenuPad(Array.from(navigator.getGamepads?.()??[]));}catch{}
@@ -260,6 +275,7 @@ export default function Game({portable=false}:{portable?:boolean}){
     const onBlur=()=>{resetControls();suspendTalking();audio.current?.stopObservations?.();};
     const onVisibility=()=>{if(document.hidden)onBlur();};
     const onControllerChange=()=>{resetControls();suspendTalking();};
+    const onViewportChange=()=>{resetControls();suspendTalking();audio.current?.stopObservations?.();};
     const onMouse=(e:MouseEvent)=>{if(document.pointerLockElement===canvasRef.current&&!frameState.current.blocked)engine.current?.look(e.movementX*frameState.current.sensitivity,e.movementY*frameState.current.sensitivity);};
     const onKey=(e:KeyboardEvent)=>{
       const s=frameState.current;
@@ -274,9 +290,12 @@ export default function Game({portable=false}:{portable?:boolean}){
     };
     window.addEventListener("keydown",onKey);window.addEventListener("keyup",onKey);window.addEventListener("blur",onBlur);document.addEventListener("pointerlockchange",onLock);document.addEventListener("mousemove",onMouse);
     document.addEventListener("visibilitychange",onVisibility);
+    window.addEventListener("pagehide",onBlur);
+    window.addEventListener("resize",onViewportChange);
+    window.addEventListener("orientationchange",onViewportChange);
     window.addEventListener("gamepadconnected",onControllerChange);window.addEventListener("gamepaddisconnected",onControllerChange);
-    return()=>{destroyed=true;cancelAnimationFrame(raf);engine.current?.dispose();engine.current=null;audio.current?.dispose();window.removeEventListener("keydown",onKey);window.removeEventListener("keyup",onKey);window.removeEventListener("blur",onBlur);document.removeEventListener("pointerlockchange",onLock);document.removeEventListener("mousemove",onMouse);document.removeEventListener("visibilitychange",onVisibility);window.removeEventListener("gamepadconnected",onControllerChange);window.removeEventListener("gamepaddisconnected",onControllerChange);};
-  },[resetControls,suspendTalking]);
+    return()=>{destroyed=true;cancelAnimationFrame(raf);engine.current?.dispose();engine.current=null;audio.current?.dispose();window.removeEventListener("keydown",onKey);window.removeEventListener("keyup",onKey);window.removeEventListener("blur",onBlur);document.removeEventListener("pointerlockchange",onLock);document.removeEventListener("mousemove",onMouse);document.removeEventListener("visibilitychange",onVisibility);window.removeEventListener("pagehide",onBlur);window.removeEventListener("resize",onViewportChange);window.removeEventListener("orientationchange",onViewportChange);window.removeEventListener("gamepadconnected",onControllerChange);window.removeEventListener("gamepaddisconnected",onControllerChange);};
+  },[resetControls,suspendTalking,handleGraphicsState]);
 
   useEffect(()=>{frameState.current={playing,blocked:inputBlocked,sensitivity:preferences.sensitivity,reduceMotion:preferences.reduceMotion,radioInput:!!online&&!networkDown&&(playing&&!inputBlocked||modal==="radio"||modal==="observation"||modal==="journal"||phase==="lobby"),sessionTicket:renderedSessionTicket};},[playing,inputBlocked,preferences.sensitivity,preferences.reduceMotion,online!==null,networkDown,modal,phase,renderedSessionTicket]);
   useEffect(()=>{if(inputBlocked||!playing)resetControls();},[inputBlocked,playing,resetControls]);
@@ -360,14 +379,15 @@ export default function Game({portable=false}:{portable?:boolean}){
   },[roundFinished,reveal,loop,phase]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(""),4200);return()=>clearTimeout(t);},[toast]);
   useEffect(()=>{
-    if(modal==="none")return;
+    const graphicsPanel=!!graphicsError&&!graphicsDismissed;
+    if(modal==="none"&&!graphicsPanel)return;
     const previous=document.activeElement as HTMLElement|null;
-    const panel=document.querySelector<HTMLElement>(".modal-panel");
+    const panel=document.querySelector<HTMLElement>(graphicsPanel?".graphics-error":".modal-panel");
     const focusable=()=>Array.from(panel?.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled])')??[]);
     focusable()[0]?.focus();
     const trap=(event:KeyboardEvent)=>{
       if(document.querySelector(".pad-keyboard"))return;
-      if(event.key==="Escape"){event.preventDefault();closeModal();return;}
+      if(event.key==="Escape"){event.preventDefault();if(graphicsPanel)setGraphicsDismissed(true);else closeModal();return;}
       if(event.key!=="Tab")return;
       const list=focusable();const first=list[0];const last=list[list.length-1];
       if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
@@ -375,7 +395,7 @@ export default function Game({portable=false}:{portable?:boolean}){
     };
     document.addEventListener("keydown",trap);
     return()=>{document.removeEventListener("keydown",trap);previous?.focus?.();};
-  },[modal,closeModal]);
+  },[modal,closeModal,graphicsError,graphicsDismissed]);
 
   useEffect(()=>{
     if(!credentials)return;
@@ -409,6 +429,7 @@ export default function Game({portable=false}:{portable?:boolean}){
 
   const capture=()=>{if(inputBlocked||!playing)return;audio.current?.start();if(!isTouch)canvasRef.current?.requestPointerLock?.()?.catch?.(()=>notify("Maintenez le clic et faites glisser pour regarder autour de vous."));};
   const beginSolo=(resume=false)=>{
+    if(engine.current?.isGraphicsAvailable?.()===false)return;
     stopRadio();resetSession(null);
     const generatedSeed=globalThis.crypto?.randomUUID?.()??`session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const restored=resume&&savedRun?{...savedRun,namedVoiceAllowed:false,...(savedRun.currentAnomalyId==="vent_whisper"?{phase:"reference" as const,currentAnomalyId:null,observerSlots:[],loop:savedRun.loop+1,lastResult:null}:{})}:null;
@@ -419,7 +440,7 @@ export default function Game({portable=false}:{portable?:boolean}){
   };
   // Capture both the lifetime and identity from this render, before any click occurs.
   const decisionTicket=sessionScope.current!.ticket();
-  const currentDecision=()=>sessionScope.current!.isCurrent(decisionTicket)&&(online?credRef.current?.code===online.code&&credRef.current?.selfId===online.selfId:credRef.current===null);
+  const currentDecision=()=>engine.current?.isGraphicsAvailable?.()!==false&&sessionScope.current!.isCurrent(decisionTicket)&&(online?credRef.current?.code===online.code&&credRef.current?.selfId===online.selfId:credRef.current===null);
   const submitDecision=async(action:"start"|"next"|"vote",extra:Record<string,unknown>={})=>{
     if(!online||!currentDecision())return null;
     if(online.paused||networkDown){setError("Le protocole attend le retour de toute l’équipe.");return null;}
@@ -432,6 +453,7 @@ export default function Game({portable=false}:{portable?:boolean}){
   const switchView=()=>{if(online)return;setSlot(s=>1-s);audio.current?.tone("signal");notify(`Perception ${slot===0?"BÊTA":"ALPHA"}. Comparez le même objet.`);};
   const toggleTorch=()=>{setTorch(t=>!t);audio.current?.tone("click");};
   const interact=()=>{
+    if(engine.current?.isGraphicsAvailable?.()===false)return;
     const t=engine.current?.getTarget();
     if(t?.id==="exit"){if(phase==="inspect")openModal("vote");else if(phase==="reference")openModal("journal");return;}
     if(!t){notify("Visez un objet pour le signaler à votre équipe.");return;}
@@ -495,21 +517,25 @@ export default function Game({portable=false}:{portable?:boolean}){
   const sendChat=async(e:React.FormEvent)=>{e.preventDefault();if(!chat.trim())return;const r=await request("chat",{message:chat.trim()});if(r)setChat("");};
   const canUsePointer=()=>frameState.current.playing&&!frameState.current.blocked&&!document.hidden&&document.hasFocus();
   const beginJoystick=(e:React.PointerEvent<HTMLElement>)=>{
-    if(!canUsePointer()||joystickOrigin.current)return;
-    joystickOrigin.current={x:e.clientX,y:e.clientY,id:e.pointerId};e.currentTarget.setPointerCapture(e.pointerId);
+    if(!canUsePointer()||joystickOrigin.current||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY)||(e.button!==undefined&&e.button!==0))return;
+    try{e.currentTarget.setPointerCapture(e.pointerId);}catch{return;}
+    joystickOrigin.current={x:e.clientX,y:e.clientY,id:e.pointerId};
   };
   const moveJoystick=(e:React.PointerEvent<HTMLElement>)=>{
     const o=joystickOrigin.current;if(!canUsePointer()||!o||o.id!==e.pointerId)return;
+    if(!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY)){resetJoystick(e.pointerId);return;}
     const x=Math.max(-38,Math.min(38,e.clientX-o.x)),y=Math.max(-38,Math.min(38,e.clientY-o.y));
     setTouchStick({x,y});touchMove.current={strafe:x/38,forward:-y/38};
   };
   const endJoystick=(e:React.PointerEvent<HTMLElement>)=>resetJoystick(e.pointerId);
   const beginLook=(e:React.PointerEvent<HTMLElement>)=>{
-    if(!canUsePointer()||document.pointerLockElement===canvasRef.current||touchLook.current)return;
-    touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};e.currentTarget.setPointerCapture(e.pointerId);
+    if(!canUsePointer()||document.pointerLockElement===canvasRef.current||touchLook.current||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY)||(e.button!==undefined&&e.button!==0))return;
+    try{e.currentTarget.setPointerCapture(e.pointerId);}catch{return;}
+    touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};
   };
   const moveLook=(e:React.PointerEvent<HTMLElement>,scale=1)=>{
     const o=touchLook.current;if(!canUsePointer()||!o||o.id!==e.pointerId||document.pointerLockElement===canvasRef.current)return;
+    if(!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY)){resetLook(e.pointerId);return;}
     engine.current?.look((e.clientX-o.x)*scale*frameState.current.sensitivity,(e.clientY-o.y)*scale*frameState.current.sensitivity);
     touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};
   };
@@ -559,7 +585,7 @@ export default function Game({portable=false}:{portable?:boolean}){
     </>}
 
     {!ready&&!graphicsError&&<div className="loading-scene"><LoaderCircle className="spin" size={18}/> Initialisation de l’observatoire…</div>}
-    {graphicsError&&!graphicsDismissed&&<section className="graphics-error" role="alert"><AlertTriangle/><h2>Le rendu 3D n’a pas pu démarrer.</h2><p>Ce jeu nécessite WebGL 2. Essayez un navigateur récent avec l’accélération graphique activée.</p><p>Les menus, le salon et le test du talkie restent accessibles. L’inspection 3D attend un rendu fonctionnel.</p><details><summary>Détail technique</summary>{graphicsError}</details><div className="graphics-actions"><button className="solid-button" onClick={()=>location.reload()}>Réessayer</button><button className="outline-button" onClick={()=>setGraphicsDismissed(true)}>Accéder aux menus</button></div></section>}
+    {graphicsError&&!graphicsDismissed&&<section className="graphics-error" role="alert"><AlertTriangle/><h2>{graphicsInterrupted?"Le rendu 3D a été interrompu.":"Le rendu 3D n’a pas pu démarrer."}</h2><p>{graphicsInterrupted?"Incident technique du navigateur, pas une anomalie du jeu. Les commandes et le microphone sont coupés. La partie coopérative continue chez vos équipiers.":"Ce jeu nécessite WebGL 2. Essayez un navigateur récent avec l’accélération graphique activée."}</p><p>Les menus, le salon et le test du talkie restent accessibles. L’inspection 3D attend un rendu fonctionnel.</p><details><summary>Détail technique</summary>{graphicsError}</details><div className="graphics-actions"><button className="solid-button" onClick={()=>location.reload()}>Réessayer</button><button className="outline-button" onClick={()=>setGraphicsDismissed(true)}>Accéder aux menus</button></div></section>}
     {graphicsError&&graphicsDismissed&&<button className="graphics-notice" onClick={()=>setGraphicsDismissed(false)}><AlertTriangle size={13}/> Rendu 3D indisponible · détails</button>}
 
     {playing&&<>
@@ -590,7 +616,7 @@ export default function Game({portable=false}:{portable?:boolean}){
       {modal==="archives"&&<><h2 id="modal-title">Ce que le lieu a révélé.</h2><p className="modal-intro">{known.length} découverte{known.length>1?"s":""} sur {ANOMALIES.length} anomalies jouables. Les dossiers s’ouvrent après une inspection résolue.</p><div className="archive-toolbar"><input placeholder="Rechercher un dossier…" aria-label="Rechercher une anomalie" value={archiveFilter} onChange={e=>setArchiveFilter(e.target.value)}/><label><input type="checkbox" checked={spoilers} onChange={e=>setSpoilers(e.target.checked)}/> Afficher les spoilers</label></div><div className="archive-grid">{renderedAnomalies.map((a,i)=>{const unlocked=spoilers||known.includes(a.id);return <article className={unlocked?"unlocked":""} key={a.id}><span className="eyebrow">DOSSIER {String(i+1).padStart(3,"0")} {unlocked?<Eye size={14}/>:<EyeOff size={14}/>}</span><h3>{unlocked?a.title:"Observation inconnue"}</h3><p>{unlocked?a.description:"Poursuivez le protocole pour documenter cette altération."}</p>{unlocked&&<small>RÉFÉRENCE : {a.baseline}</small>}</article>;})}</div><ReleaseDownloads/></>}
       {modal==="journal"&&<><h2 id="modal-title">{level.name} · référence.</h2><p className="modal-intro">Le premier passage est votre référence. Une altération chez un seul inspecteur suffit à rendre le lieu anormal.</p><div className="baseline-list">{[...level.baseline.map((description,i)=>[`Repère ${i+1}`,description]),["Inspecteurs","Votre corps et les autres joueurs ont une tenue d’inspection. Les reflets suivent leurs mouvements ; aucune présence supplémentaire ne doit apparaître."],["Talkie",getRadioReferenceCaption({relayCode})],["Comparaison","Le code RELAIS change normalement entre deux passages, mais doit être identique pour tous dans un même passage."]].map(([title,description],i)=><article key={title}><span>{String(i+1).padStart(2,"0")}</span><div><h3>{title}</h3><p>{description}</p></div></article>)}</div>{notes.length>0&&<div className="notebook-notes"><h3>Vos repères pour ce passage</h3>{notes.map((note,i)=><p key={i}>{note}</p>)}</div>}{phase==="reference"&&<button className="solid-button wide" disabled={!!online&&(!isHost||online.paused||networkDown)||busy} onClick={nextRound}>{online&&!isHost?"Le responsable lance l’inspection":"J’ai mémorisé la référence"}<ArrowRight size={16}/></button>}</>}
       {modal==="vote"&&<><span className="diagnostic-kicker"><Radio size={17}/> TERMINAL DE DIAGNOSTIC</span><h2 id="modal-title">La réalité concorde-t-elle ?</h2><p className="modal-intro">{online?"Décrivez votre observation à l’équipe avant de voter. Un désaccord bloque la transition ; chacun peut modifier son vote.":"Avez-vous regardé les deux perceptions ? Une anomalie présente dans une seule version compte pour l’inspection entière."}</p><div className="vote-options"><button className={self?.vote===false?"selected":""} disabled={busy||phase!=="inspect"||networkDown||online?.paused} onClick={()=>vote(false)}><ShieldCheck size={30}/><h3>Aucune anomalie</h3><p>Nous avons tout comparé.<br/>Le lieu est conforme.</p><span>VALIDER LE PASSAGE <ArrowRight size={15}/></span></button><button className={`vote-danger ${self?.vote===true?"selected":""}`} disabled={busy||phase!=="inspect"||networkDown||online?.paused} onClick={()=>vote(true)}><Eye size={30}/><h3>Anomalie présente</h3><p>Au moins une perception<br/>révèle une altération.</p><span>SIGNALER L’ALTÉRATION <ArrowRight size={15}/></span></button></div>{online&&<div className="vote-roster">{online.players.map(p=><span key={p.id}>{LETTERS[p.slot]} {p.name} <b>{p.vote===null?"En réflexion":p.vote?"Anomalie":"Conforme"}</b></span>)}</div>}<p className="fine-print">{missionMode==="campaign"?"Un mauvais diagnostic remet les validations du secteur actuel à zéro. Les secteurs terminés restent acquis.":"Un mauvais diagnostic remet les neuf validations à zéro."}</p></>}
-      {modal==="pause"&&<><h2 id="modal-title">Prenez un instant.</h2><p className="modal-intro">{online?"Votre équipe reste dans l’observatoire. La session réseau continue pendant ce menu.":"Votre inspection solo est sauvegardée sur cet appareil."}</p><div className="pause-actions"><button className="solid-button wide" onClick={closeModal}>Reprendre l’observation <ArrowRight size={16}/></button><button className="outline-button wide" onClick={()=>setModal("settings")}><Settings2 size={16}/> Paramètres</button><button className="outline-button wide" onClick={()=>setModal("help")}><CircleHelp size={16}/> Le protocole</button><button className="outline-button wide" onClick={()=>setModal("archives")}><BookOpen size={16}/> Archives d’anomalies</button>{confirmLeave?<div className="leave-confirm"><p>{online?"Quitter le salon et libérer votre place ?":"Revenir à l’accueil ? L’inspection reste enregistrée."}</p><button className="danger-button" onClick={returnMenu}>Confirmer le retour</button><button className="text-button" onClick={()=>setConfirmLeave(false)}>Rester</button></div>:<button className="text-button quit-button" onClick={()=>setConfirmLeave(true)}>Retour à l’accueil</button>}</div></>}
+      {modal==="pause"&&<><h2 id="modal-title">Prenez un instant.</h2><p className="modal-intro">{online?"Votre équipe reste dans l’observatoire. La session réseau continue pendant ce menu.":"Votre inspection solo est sauvegardée sur cet appareil."}</p><div className="pause-actions"><button className="solid-button wide" disabled={!ready} onClick={closeModal}>Reprendre l’observation <ArrowRight size={16}/></button><button className="outline-button wide" onClick={()=>setModal("settings")}><Settings2 size={16}/> Paramètres</button><button className="outline-button wide" onClick={()=>setModal("help")}><CircleHelp size={16}/> Le protocole</button><button className="outline-button wide" onClick={()=>setModal("archives")}><BookOpen size={16}/> Archives d’anomalies</button>{confirmLeave?<div className="leave-confirm"><p>{online?"Quitter le salon et libérer votre place ?":"Revenir à l’accueil ? L’inspection reste enregistrée."}</p><button className="danger-button" onClick={returnMenu}>Confirmer le retour</button><button className="text-button" onClick={()=>setConfirmLeave(false)}>Rester</button></div>:<button className="text-button quit-button" onClick={()=>setConfirmLeave(true)}>Retour à l’accueil</button>}</div></>}
       {modal==="observation"&&observation&&<><span className="eyebrow">LECTURE LOCALE · PERCEPTION {LETTERS[currentSlot].toUpperCase()}</span><h2 id="modal-title">{observation.title}</h2><p className="modal-intro">{observation.location}</p><div className="observation-reading">{observation.lines.map((line,index)=><p key={index}>{line}</p>)}</div><p className="fine-print">Décrivez ce relevé à votre partenaire. Il correspond uniquement à votre perception de cet objet.</p>{online&&<TalkButton enabled={radioStatus?.microphone??false} talking={radioStatus?.talking??false} onTalk={setTalking}/>}<button className="outline-button wide" onClick={closeModal}>Revenir à l’inspection <ArrowRight size={16}/></button></>}
       {modal==="radio"&&<><h2 id="modal-title">Votre voix dans le noir.</h2><p className="modal-intro">Échangez des faits précis. Une interférence dans une seule perception peut faire partie de l’enquête ; une erreur de liaison est signalée séparément.</p><RadioPanel keyHint={keyLabel("talk")} peerNames={Object.fromEntries((online?.players??[]).map(p=>[p.id,p.name]))} status={radioStatus} isOnline={!!online} pending={radioPending} caption={radioCaption} reference={getRadioReferenceCaption({relayCode})} probePending={probePending} onStopProbe={stopCalibration} onEnable={enableMicrophone} onListen={listenRadio} onReconnect={reconnectRadio} onStop={stopRadio} onDisable={stopMicrophone} onTalk={setTalking} onProbe={probeRadio}/>{online&&<><div className="radio-messages" role="log" aria-live="polite">{!online?.messages.length&&<p className="empty-radio">Ligne ouverte. Aucun message pour le moment.</p>}{online?.messages.map(m=><article key={m.id}><b>{m.name}</b><p>{m.text}</p></article>)}</div><form className="radio-form" onSubmit={sendChat}><input autoFocus maxLength={280} aria-label="Message radio" placeholder="Ex. L’horloge tourne à l’envers chez moi." value={chat} onChange={e=>setChat(e.target.value)}/><button className="solid-button" disabled={busy||!chat.trim()} type="submit"><ArrowRight size={18}/><span className="sr-only">Envoyer</span></button></form><p className="fine-print">Les messages restent dans ce salon temporaire.</p></>}</>}
       {error&&<p className="error-line" role="alert"><AlertTriangle size={15}/>{error}</p>}

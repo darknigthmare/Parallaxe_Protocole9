@@ -46,7 +46,7 @@ function makeHarness(){
     ${blocked}
   }
   const event=(pointerId,x=100,y=100)=>({pointerId,clientX:x,clientY:y,currentTarget:{setPointerCapture:id=>state.captures.push(id)}});
-  return {state,keys,touchMove,joystickOrigin,touchLook,frameState,document,canvasRef,event,render,resetSession,openModal,closeModal,togglePause,acceptState,onBlur,onVisibility,beginJoystick,moveJoystick,endJoystick,beginLook,moveLook,endLook,vote};
+  return {state,keys,touchMove,joystickOrigin,touchLook,frameState,document,canvasRef,event,render,resetSession,openModal,closeModal,togglePause,acceptState,onBlur,onVisibility,onViewportChange:typeof onViewportChange==='undefined'?undefined:onViewportChange,beginJoystick,moveJoystick,endJoystick,beginLook,moveLook,endLook,vote};
 }
 `;
 const harness=Function(stripTypeScriptTypes(harnessSource)+'\nreturn makeHarness;')();
@@ -176,4 +176,29 @@ for(const status of ['blocked','not-playing','not-focused','hidden']){
 
 test('real blur resets gameplay neutral gate and measurement even between two frames',()=>{
   const h=harness();h.onBlur();assert.equal(h.state.padResets,1);assert.equal(h.state.measurePauses,1);
+});
+
+
+for(const kind of ['joystick','look'])test(kind+' capture failure leaves no ghost gesture or movement',()=>{
+  const h=harness(),e=h.event(24);e.currentTarget.setPointerCapture=()=>{throw new Error('pointer gone');};
+  assert.doesNotThrow(()=>kind==='joystick'?h.beginJoystick(e):h.beginLook(e));
+  assert.equal(h.joystickOrigin.current,null);assert.equal(h.touchLook.current,null);
+  assert.deepEqual(h.touchMove.current,{forward:0,strafe:0});
+});
+for(const value of [NaN,Infinity,-Infinity])test('non-finite touch coordinate '+value+' cannot poison movement or look',()=>{
+  const h=harness();h.beginJoystick(h.event(7,value,100));h.beginLook(h.event(8,100,value));
+  assert.equal(h.joystickOrigin.current,null);assert.equal(h.touchLook.current,null);
+  moveBoth(h);const looks=h.state.looks.length;
+  h.moveJoystick(h.event(7,value,100));h.moveLook(h.event(8,100,value));
+  assert.deepEqual(h.touchMove.current,{forward:0,strafe:0});assert.equal(h.touchLook.current,null);
+  assert.equal(h.state.looks.length,looks);
+});
+test('a secondary mouse button never starts a touch or drag gesture',()=>{
+  const h=harness(),e={...h.event(7),button:2};h.beginJoystick(e);h.beginLook(e);
+  assert.equal(h.joystickOrigin.current,null);assert.equal(h.touchLook.current,null);
+});
+test('resize or orientation resets gesture origins and talk without altering another session',()=>{
+  const h=harness();moveBoth(h);h.onViewportChange();stopped(h);oldMovesStayStopped(h);
+  assert.equal(h.state.talking,false);
+  h.beginJoystick(h.event(17));h.moveJoystick(h.event(17,100,62));assert.equal(h.touchMove.current.forward,1);
 });

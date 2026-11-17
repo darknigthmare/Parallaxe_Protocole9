@@ -43,7 +43,9 @@
     "test:workstreams": "node tests/gamepad-menu.test.mjs && node tests/training-backup.test.mjs && node tests/performance-capture.test.mjs && node tests/utility-ui.test.mjs",
     "build:vercel": "node scripts/build-vercel.mjs",
     "test:vercel": "node tests/build-info.test.mjs && node tests/vercel-boundary.test.mjs && node tests/vercel-session.test.mjs",
-    "test:downloads": "node tests/release-downloads.test.mjs"
+    "test:downloads": "node tests/release-downloads.test.mjs",
+    "test:interruptions": "node tests/runtime-interruptions.test.mjs",
+    "test:browser-runtime": "node tests/browser-runtime.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
