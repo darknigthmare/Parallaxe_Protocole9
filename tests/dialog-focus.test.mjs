@@ -5,7 +5,7 @@ import {stripTypeScriptTypes} from 'node:module';
 const data=text=>'data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(text)).toString('base64');
 const pad=data(readFileSync(new URL('../src/game/gamepad-menu.ts',import.meta.url),'utf8'));
 const source=readFileSync(new URL('../src/game/dialog-focus.ts',import.meta.url),'utf8').replace("'./gamepad-menu'",JSON.stringify(pad));
-const {containDialog,topDialog}=await import(data(source));
+const {containDialog,topDialog,DialogOpener}=await import(data(source));
 function fixture(){
  const previous={HTMLElement:globalThis.HTMLElement,MutationObserver:globalThis.MutationObserver};
  const listeners=new Map();let observed,observerClosed=false;
@@ -49,4 +49,25 @@ test('a closed disclosure exposes its summary, not hidden inner controls',()=>ch
 test('graphics fault takes priority over virtual keyboard, then the ordinary modal',()=>{
  const entries=new Map();const root={querySelector:s=>entries.get(s)??null};const node=()=>({getClientRects:()=>[{}],hidden:false});
  entries.set('.modal-panel',node());assert.equal(topDialog(root),entries.get('.modal-panel'));entries.set('.pad-keyboard',node());assert.equal(topDialog(root),entries.get('.pad-keyboard'));entries.set('.graphics-error',node());assert.equal(topDialog(root),entries.get('.graphics-error'));entries.get('.graphics-error').hidden=true;assert.equal(topDialog(root),entries.get('.pad-keyboard'));
+});
+
+test('parent dialog remembers its opener across a nested containment suspension',()=>{
+ const f=fixture(),origin=new DialogOpener();let close;
+ try{
+  close=containDialog(f.panel,f.root,()=>{},origin.remember(f.panel,'coop',f.doc.activeElement));
+  f.b.focus();close();close=null;
+  // The child closes and returns to the edited field before the parent remounts.
+  f.b.focus();
+  close=containDialog(f.panel,f.root,()=>{},origin.remember(f.panel,'coop',f.doc.activeElement));
+  close();close=null;assert.equal(f.doc.activeElement,f.opener);
+ }finally{close?.();f.restore();}
+});
+test('a different dialog, scope or fresh visit receives a new opener',()=>{
+ const f=fixture(),origin=new DialogOpener();
+ try{
+  assert.equal(origin.remember(f.panel,'coop',f.opener),f.opener);
+  assert.equal(origin.remember(f.panel,'settings',f.a),f.a);
+  assert.equal(origin.remember(f.behind,'settings',f.b),f.b);
+  origin.clear();assert.equal(origin.remember(f.behind,'settings',f.opener),f.opener);
+ }finally{f.restore();}
 });

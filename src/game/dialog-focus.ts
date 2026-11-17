@@ -11,6 +11,18 @@ export function topDialog(root:Pick<ParentNode,'querySelector'>):HTMLElement|nul
   return null;
 }
 
+/** Preserve a parent opener while its containment is suspended by a nested keyboard. */
+export class DialogOpener {
+  private panel:HTMLElement|null=null;
+  private scope:string|null=null;
+  private target:HTMLElement|null=null;
+  remember(panel:HTMLElement,scope:string,active:HTMLElement|null):HTMLElement|null {
+    if(this.panel!==panel||this.scope!==scope){this.panel=panel;this.scope=scope;this.target=active;}
+    return this.target;
+  }
+  clear(){this.panel=null;this.scope=null;this.target=null;}
+}
+
 /** A mounted modal owns input only within the game root. Cleanup restores exact inert attributes. */
 export function containDialog(panel:HTMLElement,boundary:HTMLElement,onEscape:()=>void,returnFocus?:HTMLElement|null):()=>void {
   if(!boundary.contains(panel))throw new Error('Dialog outside game root');

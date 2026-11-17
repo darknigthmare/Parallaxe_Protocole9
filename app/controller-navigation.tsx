@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import {MenuPadGate,navigateMenu,selectMenuPad,setControlValue} from '@/src/game/gamepad-menu';
-import {containDialog,topDialog} from '@/src/game/dialog-focus';
+import {containDialog,topDialog,DialogOpener} from '@/src/game/dialog-focus';
 
 const LETTERS=Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 const DIGITS=Array.from('0123456789');
@@ -10,6 +10,7 @@ type Edit={node:HTMLInputElement|HTMLTextAreaElement;value:string;scope:string;l
 /** Runs independently of WebGL, so all menus remain usable after a graphics failure. */
 export function ControllerNavigation({enabled,scope,onBack}:{enabled:boolean;scope:string;onBack:()=>void}){
   const gate=useRef(new MenuPadGate());
+  const opener=useRef(new DialogOpener());
   const latest=useRef({enabled,scope,onBack});latest.current={enabled,scope,onBack};
   const [edit,setEdit]=useState<Edit|null>(null);const editRef=useRef(edit);editRef.current=edit;
   const [lower,setLower]=useState(false);const [connected,setConnected]=useState(false);
@@ -37,14 +38,16 @@ export function ControllerNavigation({enabled,scope,onBack}:{enabled:boolean;sco
     return()=>{alive=false;cancelAnimationFrame(raf);window.removeEventListener('blur',interrupt);window.removeEventListener('gamepaddisconnected',interrupt);document.removeEventListener('visibilitychange',interrupt);};
   },[]);
   useEffect(()=>{
-    if(!enabled)return;
+    if(!enabled){opener.current.clear();return;}
     const boundary=document.querySelector<HTMLElement>('.game-root');
     const panel=boundary&&topDialog(boundary);
-    if(!panel||!boundary)return;
+    if(!panel||!boundary){opener.current.clear();return;}
+    const returnTo=panel.classList.contains('pad-keyboard')?edit?.node
+      :opener.current.remember(panel,scope,panel.ownerDocument.activeElement as HTMLElement|null);
     return containDialog(panel,boundary,()=>{
       if(panel.classList.contains('pad-keyboard'))setEdit(null);
       else latest.current.onBack();
-    },panel.classList.contains('pad-keyboard')?edit?.node:undefined);
+    },returnTo);
   },[enabled,scope,edit?.node]);
   if(!enabled)return null;
   const finish=()=>{if(edit&&edit.scope===scope&&edit.node.isConnected){setControlValue(edit.node,edit.value);edit.node.focus();}setEdit(null);};

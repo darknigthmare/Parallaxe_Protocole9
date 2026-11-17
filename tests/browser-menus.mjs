@@ -72,6 +72,8 @@ try{
  assert.equal(await browser.evaluate("document.querySelector('.modal-coop')!==null"),true);
  report.checks.push('Virtual-keyboard confirmation updates the controlled field without creating a network room');
  await key('Escape','Escape',27);await browser.waitFor("!document.querySelector('.modal-panel')");
+ assert.equal(await browser.evaluate("document.activeElement===document.querySelector('.primary-action')"),true);
+ report.checks.push('Closing the parent after nested editing still restores the original menu opener');
  await browser.evaluate('__menuqa.pad=null');await frame();
 
  await click('.secondary-action');await browser.waitFor("document.querySelector('.modal-start')");await click('.modal-start .solid-button');
@@ -101,5 +103,5 @@ try{
  assert.equal(await browser.evaluate('__menuqa.mic'),0);assert.deepEqual(await browser.evaluate('__menuqa.errors'),[]);
  report.checks.push('After context restoration focus remains in Pause; no microphone request or uncaught exception');
  report.result='PASS';
-}catch(error){report.result='FAIL';report.error=String(error);if(browser)try{await writeFile(resolve(out,'failure.png'),await browser.screenshot());}catch{}throw error;}
+}catch(error){report.result='FAIL';report.error=String(error);report.stack=error?.stack;if(browser)try{await writeFile(resolve(out,'failure.png'),await browser.screenshot());}catch{}throw error;}
 finally{await writeFile(resolve(out,'report.json'),JSON.stringify(report,null,2)+'\n');await browser?.close();await new Promise(resolve=>server.close(resolve));console.log(JSON.stringify(report,null,2));}
