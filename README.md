@@ -1,3 +1,7 @@
+## Navigation clavier et manette — 17 novembre 2026
+Les panneaux ouverts gardent le focus clavier ; l’arrière-plan n’est pas activable. Tab et Maj+Tab parcourent les commandes visibles, y compris le détail technique. Échap ferme uniquement le panneau courant, sans basculer à nouveau la pause. Le clavier virtuel rend le focus au champ édité, sans envoyer le formulaire. L’alerte graphique reste prioritaire ; son rappel demeure accessible depuis le menu.
+Un contrôleur transmettant des axes invalides est désarmé jusqu’au retour au neutre. Cela ne remplace pas une réception sur manette physique. Suivi : `docs/current-delivery.json`, classeur Navigation à treize onglets ; critères et limites dans `docs/QA_NAVIGATION_20261117.md`.
+
 ## Consignes physiques et sauvegarde v2 — 17 novembre 2026
 Dans chacun des cinq lieux, retournez-vous vers l’entrée : le feuillet est fixé à gauche de la porte. Visez-le et utilisez votre commande d’interaction pour lire et conserver une copie. L’original reste disponible pour l’équipe ; le carnet propose toujours la même consigne accessible.
 Les nouveaux exports solo emportent les consignes conservées. Les imports v1 restent acceptés et ne suppriment pas les notes présentes. Aperçu et confirmation sont requis ; progression remplacée, découvertes/consignes fusionnées. Ni session coopérative ni autorisation de microphone n’est transférée.

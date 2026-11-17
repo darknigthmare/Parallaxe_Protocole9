@@ -1,0 +1,48 @@
+{
+  "schema": "parallaxe-reprise-navigation-v1",
+  "date": "2026-11-17",
+  "base_commit": "112e4969e3d6ab71947ad5391bb87e7d43126476",
+  "source_workbook": "docs/PARALLAXE_Suivi_Collecte_2026-11-17.xlsx",
+  "source_workbook_sha256": "2306dbbd3149914df5dfedc65a722ef74ca7fb8fa5c3d9a6faaa68e5f01288b5",
+  "output_workbook": "docs/PARALLAXE_Suivi_Navigation_2026-11-17.xlsx",
+  "runtime": 119,
+  "remaining": 1,
+  "items": 600,
+  "updates": {
+    "W01": {
+      "etat": "Entrées manette invalides désarmées — réception radio physique ouverte",
+      "preuves_disponibles": "tests/gamepad-menu.test.mjs : 2 régressions échouaient avant correction",
+      "prochaine_recette": "Pad et microphones réels : défaut de contrôleur, relâchement, retour au neutre puis reprise volontaire. Les mocks ne certifient pas le pilote matériel."
+    },
+    "W14": {
+      "etat": "Focus modal unifié et arrière-plan inerte — recette assistive ouverte",
+      "preuves_disponibles": "test:menus ; test:browser-menus ; alertdialog nommé",
+      "prochaine_recette": "Réception au lecteur d’écran, clavier mobile et zoom : Tab/Échap, sections techniques, focus de retour, changement de panneau et perte WebGL."
+    },
+    "W17": {
+      "etat": "Clavier virtuel et retour au champ fiabilisés — pad réel ouvert",
+      "preuves_disponibles": "test:workstreams ; contrôleur standard simulé dans Chromium compilé",
+      "prochaine_recette": "Vérifier pad standard physique, fenêtre imbriquée, validation de texte sans envoi, axes invalides puis retour au neutre."
+    },
+    "W23": {
+      "etat": "Régressions de navigation et interactions navigateur liées au SHA",
+      "preuves_disponibles": "tests/dialog-focus.test.mjs ; tests/browser-menus.mjs ; 6 validateurs",
+      "prochaine_recette": "Relire captures et rapports du commit final. Les événements CDP ne sont pas un test matériel ni une certification WCAG."
+    },
+    "W28": {
+      "etat": "Suivi Navigation cumulatif à 13 onglets ; skill de reprise actualisé",
+      "preuves_disponibles": "validate-navigation-workbook.py ; current-delivery.json ; test:skills",
+      "prochaine_recette": "Conserver les 600 clés, 28 lots et éditions historiques. Charger le pointeur courant plutôt que les chemins d’un ancien registre."
+    }
+  },
+  "closed_by_this_delivery": 0,
+  "limits": [
+    "No physical pad, screen reader or GPU certification",
+    "Final endings and hall_stretch remain open"
+  ],
+  "references": [
+    "https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/",
+    "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Event/stopPropagation"
+  ]
+}

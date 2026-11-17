@@ -2,6 +2,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {stripTypeScriptTypes} from 'node:module';
 const stripBody=code=>{const out=stripTypeScriptTypes('function fixture(){\n'+code+'\n}');return out.slice(out.indexOf('{')+1,out.lastIndexOf('}'));};
 const source=await readFile(new URL('../app/game.tsx',import.meta.url),'utf8');
+const dataModule=s=>'data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(s)).toString('base64');
+const padModule=dataModule(await readFile(new URL('../src/game/gamepad-menu.ts',import.meta.url),'utf8'));
+const {topDialog}=await import(dataModule((await readFile(new URL('../src/game/dialog-focus.ts',import.meta.url),'utf8')).replace("'./gamepad-menu'",JSON.stringify(padModule))));
 function part(start,end){const a=source.indexOf(start),b=source.indexOf(end,a+start.length);assert.ok(a>=0&&b>a);return source.slice(a,b);}
 const callback=part('  const handleGraphicsState=','  const resetSession=');
 function harness(playing=true){
@@ -45,8 +48,8 @@ test('retained decisions are rejected immediately during loss before a React ren
 test('graphics overlay takes controller priority over an underlying pause panel',async()=>{
  const code=await readFile(new URL('../app/controller-navigation.tsx',import.meta.url),'utf8');
  const expression=code.match(/const root=(.+);\n/)?.[1];assert.ok(expression);
- const graphics={},modal={},document={querySelector:s=>s==='.graphics-error'?graphics:s==='.modal-panel'?modal:null};
- const value=Function('document',stripBody('return '+expression))(document);assert.equal(value,graphics);
+ const graphics={getClientRects:()=>[{}],hidden:false},modal={getClientRects:()=>[{}],hidden:false},document={querySelector:s=>s==='.graphics-error'?graphics:s==='.modal-panel'?modal:null};
+ const value=Function('document','topDialog',stripBody('return '+expression))(document,topDialog);assert.equal(value,graphics);
 });
 test('lost frame exits before looking up gamepads, moving, drawing, sounding or sampling',()=>{
  const frame=part('      const animate=(now:number)=>{','      };raf=requestAnimationFrame(animate);')+'      };';

@@ -43,3 +43,20 @@ test('select navigation skips disabled options, clamps boundaries and dispatches
     select.options=[];navigateMenu(root,'right',hooks);assert.equal(select.value,'low');
   }finally{globalThis.document=previous;}
 });
+
+test('non-finite or out-of-range axes disarm an already active gameplay controller',()=>{
+ for(const invalid of [NaN,Infinity,-Infinity,1.1,-1.1]){
+  const g=new GameplayPadGate();g.accept(pad(),'run',true);
+  assert.equal(g.accept(pad([4],[0,invalid,0,0]),'run',true),false);
+  assert.equal(g.accept(pad([4]),'run',true),false,'held talkie cannot recover on its own');
+  assert.equal(g.accept(pad(),'run',true),false);
+  assert.equal(g.accept(pad([4]),'run',true),true);
+ }
+});
+test('a malformed axis cannot confirm a menu and requires release after recovery',()=>{
+ for(const invalid of [NaN,Infinity,2,-2]){
+  const g=menu();assert.deepEqual(g.update(pad([0],[0,0,invalid,0]),'menu',true,10),[]);
+  assert.deepEqual(g.update(pad([0]),'menu',true,20),[]);
+  g.update(pad(),'menu',true,30);assert.deepEqual(g.update(pad([0]),'menu',true,40),['activate']);
+ }
+});

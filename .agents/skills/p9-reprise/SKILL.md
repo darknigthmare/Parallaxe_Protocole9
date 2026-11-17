@@ -4,7 +4,7 @@ description: "Reprendre Parallaxe depuis une branche, un Excel ou une PR sans pe
 ---
 
 # Reprise de Parallaxe
-Lire AGENTS.md, README.md et package.json depuis la racine. Vérifier le SHA de la branche et les changements non enregistrés avant de travailler. Lire docs/parallaxe-open-work-20261101.json : ses chemins classeur_courant, gap_json et gap_csv sont l'autorité du suivi, les anciennes éditions sont des archives.
+Lire AGENTS.md, README.md et package.json depuis la racine. Vérifier le SHA de la branche et les changements non enregistrés avant de travailler. Lire docs/current-delivery.json : ses chemins workbook, workstream_csv, qa et workstream_updates désignent l’édition courante. Le registre docs/parallaxe-open-work-20261101.json conserve les 600 clés historiques ; ses anciens chemins de livraison ne remplacent pas le pointeur courant.
 
 Comparer la demande aux tâches ouvertes et choisir un lot borné, observable. Ne pas reposer les questions auxquelles la conversation répond. Si une installation externe est demandée, exécuter python3 .ai-tools/setup.py doctor et distinguer référence, fichiers présents, client disponible et compétence effectivement chargée.
 

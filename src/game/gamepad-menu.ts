@@ -9,7 +9,7 @@ export class MenuPadGate {
   private previous:boolean[]=[]; private direction=''; private repeatAt=0;
   reset(){this.identity='';this.context='';this.armed=false;this.previous=[];this.direction='';this.repeatAt=0;}
   update(pad:MenuPad|null,context:string,enabled:boolean,now:number):MenuAction[] {
-    if(!enabled||!pad||!pad.connected||pad.mapping!=='standard'||!Number.isFinite(now)){this.reset();return [];}
+    if(!enabled||!pad||!pad.connected||pad.mapping!=='standard'||!Number.isFinite(now)||pad.axes.some(v=>!Number.isFinite(v)||Math.abs(v)>1)){this.reset();return [];}
     const identity=`${pad.index}:${pad.id}`;
     if(identity!==this.identity||context!==this.context){this.reset();this.identity=identity;this.context=context;}
     const down=pad.buttons.map(b=>b?.pressed===true);
@@ -28,9 +28,23 @@ export class MenuPadGate {
     return actions;
   }
 }
-export const FOCUSABLE='button:not([disabled]),a[href],input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex="0"]';
+export const FOCUSABLE='button:not([disabled]),a[href],input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]';
 export function menuElements(root:HTMLElement):HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(e=>e.getClientRects().length>0&&!e.closest('[hidden],[inert],[aria-hidden="true"]')&&e.getAttribute('aria-disabled')!=='true');
+  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(e=>{
+    if(e.tabIndex<0||e.matches(':disabled')||!e.getClientRects().length||e.closest('[hidden],[inert],[aria-hidden="true"]')||e.getAttribute('aria-disabled')==='true')return false;
+    const style=e.ownerDocument?.defaultView?.getComputedStyle(e);
+    if(style?.visibility==='hidden'||style?.visibility==='collapse')return false;
+    // Descendants of a closed disclosure are not focus targets; its first summary remains usable.
+    let ancestor=e.parentElement;
+    while(ancestor&&ancestor!==root){
+      if(ancestor.tagName==='DETAILS'&&!ancestor.hasAttribute('open')){
+        const summary=Array.from(ancestor.children).find(child=>child.tagName==='SUMMARY');
+        if(!summary?.contains(e))return false;
+      }
+      ancestor=ancestor.parentElement;
+    }
+    return true;
+  }).sort((a,b)=>((a.tabIndex>0?a.tabIndex:Infinity)-(b.tabIndex>0?b.tabIndex:Infinity))||0);
 }
 export function stepValue(value:number,minimum:number,maximum:number,step:number,direction:number):number {
   if(![value,minimum,maximum,step,direction].every(Number.isFinite)||maximum<minimum||step<=0)return value;
@@ -73,7 +87,7 @@ export class GameplayPadGate {
   private identity='';private context='';private armed=false;
   reset(){this.identity='';this.context='';this.armed=false;}
   accept(pad:MenuPad|null,context:string,enabled:boolean):boolean{
-    if(!enabled||!pad||!pad.connected||pad.mapping!=='standard'){this.reset();return false;}
+    if(!enabled||!pad||!pad.connected||pad.mapping!=='standard'||pad.axes.some(v=>!Number.isFinite(v)||Math.abs(v)>1)){this.reset();return false;}
     const id=`${pad.index}:${pad.id}`;
     if(id!==this.identity||context!==this.context){this.reset();this.identity=id;this.context=context;}
     if(!this.armed){this.armed=!pad.buttons.some(b=>b.pressed)&&pad.axes.every(v=>Number.isFinite(v)&&Math.abs(v)<.20);return false;}
