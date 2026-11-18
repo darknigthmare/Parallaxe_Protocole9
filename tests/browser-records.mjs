@@ -58,6 +58,9 @@ try{
   await browser.call('Input.dispatchMouseEvent',{type:'mouseReleased',...end,button:'left',clickCount:1});
   await browser.waitFor(`document.querySelector('.target-label')?.textContent.includes(${JSON.stringify('Consigne '+id)})`);
   await capture(`${index+1}-${levelId}-physical-document.png`);
+  assert.equal(await browser.evaluate("document.pointerLockElement===null"),true,'Releasing a look drag must not switch to pointer lock');
+  assert.equal(await browser.evaluate(`document.querySelector('.target-label')?.textContent.includes(${JSON.stringify('Consigne '+id)})`),true,'The field sheet is still in the crosshair before interacting');
+
   for(const type of ['keyDown','keyUp'])await browser.call('Input.dispatchKeyEvent',{type,key:'e',code:'KeyE',windowsVirtualKeyCode:69});
   await browser.waitFor(`document.querySelector('.modal-fieldDocument [data-note-id="${id}"]')`);
   if(levelId==='hotel')await capture('field-document-reader.png');

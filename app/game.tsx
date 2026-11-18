@@ -113,7 +113,7 @@ export default function Game({portable=false}:{portable?:boolean}){
   const postInFlight=useRef(false);
   const [touchStick,setTouchStick]=useState({x:0,y:0});
   const joystickOrigin=useRef<{x:number;y:number;id:number}|null>(null);
-  const touchLook=useRef<{x:number;y:number;id:number}|null>(null);
+  const touchLook=useRef<{x:number;y:number;startX:number;startY:number;id:number;dragged:boolean}|null>(null);
 
   const renderedSessionTicket=sessionScope.current!.ticket();
   const active=!!run||!!online;
@@ -425,7 +425,8 @@ export default function Game({portable=false}:{portable?:boolean}){
     return()=>{cancelled=true;controller?.abort();clearInterval(interval);clearInterval(heartbeat);};
   },[credentials,acceptState,request,resetSession,suspendTalking]);
 
-  const capture=()=>{if(inputBlocked||!playing)return;audio.current?.start();if(!isTouch)canvasRef.current?.requestPointerLock?.()?.catch?.(()=>notify("Maintenez le clic et faites glisser pour regarder autour de vous."));};
+  const capture=(lockPointer=true)=>{if(inputBlocked||!playing)return;audio.current?.start();if(lockPointer)lockView();};
+  const lockView=()=>{if(!isTouch)canvasRef.current?.requestPointerLock?.()?.catch?.(()=>notify("Maintenez le clic et faites glisser pour regarder autour de vous."));};
   const beginSolo=(resume=false)=>{
     if(engine.current?.isGraphicsAvailable?.()===false)return;
     stopRadio();resetSession(null);
@@ -534,15 +535,24 @@ export default function Game({portable=false}:{portable?:boolean}){
   const beginLook=(e:React.PointerEvent<HTMLElement>)=>{
     if(!canUsePointer()||document.pointerLockElement===canvasRef.current||touchLook.current||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY)||(e.button!==undefined&&e.button!==0))return;
     try{e.currentTarget.setPointerCapture(e.pointerId);}catch{return;}
-    touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};
+    touchLook.current={x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,id:e.pointerId,dragged:false};
   };
   const moveLook=(e:React.PointerEvent<HTMLElement>,scale=1)=>{
     const o=touchLook.current;if(!canUsePointer()||!o||o.id!==e.pointerId||document.pointerLockElement===canvasRef.current)return;
     if(!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY)){resetLook(e.pointerId);return;}
     engine.current?.look((e.clientX-o.x)*scale*frameState.current.sensitivity,(e.clientY-o.y)*scale*frameState.current.sensitivity);
-    touchLook.current={x:e.clientX,y:e.clientY,id:e.pointerId};
+    o.x=e.clientX;o.y=e.clientY;
+    if(Math.hypot(o.x-o.startX,o.y-o.startY)>4)o.dragged=true;
   };
   const endLook=(e:React.PointerEvent<HTMLElement>)=>resetLook(e.pointerId);
+  const releaseCanvasLook=(e:React.PointerEvent<HTMLElement>)=>{
+    const origin=touchLook.current;
+    if(!origin||origin.id!==e.pointerId)return;
+    resetLook(e.pointerId);
+    // Chromium can dispatch a click after a long drag. Acquire pointer lock only
+    // on a completed click; locking after a drag can recenter an already aimed camera.
+    if(canUsePointer()&&e.pointerType!=="touch"&&!origin.dragged&&Math.hypot(e.clientX-origin.startX,e.clientY-origin.startY)<=4)lockView();
+  };
 
   const revokeNamedVoice=()=>{
     setNamedConsent(false);engine.current?.setSpokenIdentity("",false);audio.current?.stopObservations();setAcousticCaption("");
@@ -562,10 +572,10 @@ export default function Game({portable=false}:{portable?:boolean}){
 
   return <main style={{"--caption-scale":preferences.captionScale} as React.CSSProperties} className={`game-root ${playing?"in-game":"in-menu"} ${preferences.reduceMotion?"reduce-motion":""}`}>
     <ControllerNavigation enabled={!playing||inputBlocked} scope={`${modal}:${phase}:${renderedSessionTicket}:${confirmLeave}:${!!graphicsError&&!graphicsDismissed}`} onBack={()=>{if(graphicsError&&!graphicsDismissed)setGraphicsDismissed(true);else if(modal!=="none")closeModal();else if(playing||phase==="lobby")openModal("pause");}}/>
-    <canvas ref={canvasRef} className="world-canvas" aria-label={`Lieu 3D explorable : ${level.name}`} onClick={capture}
+    <canvas ref={canvasRef} className="world-canvas" aria-label={`Lieu 3D explorable : ${level.name}`} onClick={()=>capture(false)}
       onPointerDown={e=>{if(e.pointerType!=="touch")beginLook(e);}}
       onPointerMove={e=>moveLook(e)}
-      onPointerUp={endLook} onPointerCancel={endLook} onLostPointerCapture={endLook}/>
+      onPointerUp={releaseCanvasLook} onPointerCancel={endLook} onLostPointerCapture={endLook}/>
     <div className="cinematic-shade" aria-hidden="true"/><div className="grain" aria-hidden="true"/>
 
     {!active&&<>
@@ -597,7 +607,7 @@ export default function Game({portable=false}:{portable?:boolean}){
       {phase==="inspect"&&<div className="inspection-hint"><span className="pulse-dot"/>{online?"Comparez vos observations avant de voter.":"Inspectez les deux perceptions avant de décider."}</div>}
       {!inputBlocked&&<div className={`reticle ${target?"has-target":""}`} aria-hidden="true"><i/><i/><i/><i/></div>}
       {!inputBlocked&&target&&<div className="target-label"><Key>{keyLabel("interact")}</Key><span>{target.id==="exit"?"Terminal de diagnostic":target.label}</span><small>{target.id==="exit"?"OUVRIR":target.id==="mission-note"?"LIRE":engine.current?.getPropTarget?.()?"MANIPULER":engine.current?.getInspection()?"EXAMINER":"SIGNALER"}</small></div>}
-      {!isTouch&&!locked&&!inputBlocked&&<button className="capture-prompt" onClick={capture}><Crosshair size={15}/> Cliquez dans le lieu pour regarder autour de vous</button>}
+      {!isTouch&&!locked&&!inputBlocked&&<button className="capture-prompt" onClick={()=>capture()}><Crosshair size={15}/> Cliquez dans le lieu pour regarder autour de vous</button>}
       <aside className="field-info"><span className="eyebrow">{online?"ÉQUIPE EN LIAISON":"ENTRAÎNEMENT SOLO"}</span>{online?<div className="team-list">{online.players.map(p=><div key={p.id} className={p.connected?"":"disconnected"}><span className={`role-dot role-${p.slot}`}/><span>{p.name}{p.id===self?.id?" (vous)":""}</span><small>{!p.connected?"ABSENT":p.talking?"PARLE":p.vote===null?"OBSERVE":p.vote?"ANOMALIE":"NORMAL"}</small></div>)}</div>:<><p>Un seul lieu. Deux observations.</p><button className="switch-perception" onClick={switchView}><Key>{keyLabel("switchView")}</Key> Passer en perception {slot===0?"β":"α"}<ArrowRight size={14}/></button></>}
       <div className="strikes"><span>ERREURS</span>{Array.from({length:3},(_,i)=><i key={i} className={i<strikes?"used":""}/>)}<small>{(online?.difficulty??run?.difficulty)==="relaxed"?"SANS ÉCHEC FINAL":"3 = RUPTURE"}</small></div></aside>
       <div className="field-actions"><IconButton title={`Carnet de référence (${keyLabel("journal")})`} onClick={()=>openModal("journal")}><BookOpen size={18}/></IconButton><IconButton title={`Lampe torche (${keyLabel("torch")})`} active={torch} onClick={toggleTorch}><Flashlight size={18}/></IconButton><IconButton title={`Talkie et communication (${keyLabel("talk")})`} onClick={()=>openModal("radio")}><Radio size={18}/></IconButton>{phase==="reference"?<button className="diagnostic-button" disabled={!!online&&(!isHost||online.paused||networkDown)||busy} onClick={nextRound}>{online&&!isHost?"L’hôte lance l’inspection":"Référence mémorisée"}<ArrowRight size={17}/></button>:<button className="diagnostic-button" onClick={()=>openModal("vote")} disabled={phase!=="inspect"}><Key>{keyLabel("vote")}</Key> Diagnostic <ArrowRight size={17}/></button>}</div>

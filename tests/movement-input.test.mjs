@@ -24,6 +24,7 @@ function makeHarness(){
   const gameplayPad={current:{reset:()=>state.padResets++}},performanceCapture={current:{pause:()=>state.measurePauses++}};
   const keys={current:new Set()},touchMove={current:{forward:0,strafe:0}},joystickOrigin={current:null},touchLook={current:null};
   const frameState={current:{playing:true,blocked:false,sensitivity:1}},canvasRef={current:{}};
+  const lockView=()=>{state.lockRequests=(state.lockRequests??0)+1;};
   const engine={current:{setInput:input=>state.inputs.push({...input}),look:(x,y)=>state.looks.push({x,y})}};
   const document={hidden:false,hasFocus:()=>state.focused,pointerLockElement:null,exitPointerLock(){}};
   const setTouchStick=v=>state.stick=v,setError=v=>state.error=v,setConfirmLeave=()=>{};
@@ -46,7 +47,7 @@ function makeHarness(){
     ${blocked}
   }
   const event=(pointerId,x=100,y=100)=>({pointerId,clientX:x,clientY:y,currentTarget:{setPointerCapture:id=>state.captures.push(id)}});
-  return {state,keys,touchMove,joystickOrigin,touchLook,frameState,document,canvasRef,event,render,resetSession,openModal,closeModal,togglePause,acceptState,onBlur,onVisibility,onViewportChange:typeof onViewportChange==='undefined'?undefined:onViewportChange,beginJoystick,moveJoystick,endJoystick,beginLook,moveLook,endLook,vote};
+  return {state,keys,touchMove,joystickOrigin,touchLook,frameState,document,canvasRef,event,render,resetSession,openModal,closeModal,togglePause,acceptState,onBlur,onVisibility,onViewportChange:typeof onViewportChange==='undefined'?undefined:onViewportChange,beginJoystick,moveJoystick,endJoystick,beginLook,moveLook,endLook,releaseCanvasLook,vote};
 }
 `;
 const harness=Function(stripTypeScriptTypes(harnessSource)+'\nreturn makeHarness;')();
@@ -201,4 +202,25 @@ test('resize or orientation resets gesture origins and talk without altering ano
   const h=harness();moveBoth(h);h.onViewportChange();stopped(h);oldMovesStayStopped(h);
   assert.equal(h.state.talking,false);
   h.beginJoystick(h.event(17));h.moveJoystick(h.event(17,100,62));assert.equal(h.touchMove.current.forward,1);
+});
+
+test('a small mouse click still requests lock while a deliberate drag keeps its aim',()=>{
+  const h=harness();
+  h.beginLook(h.event(1,10,10));h.moveLook(h.event(1,12,11));h.releaseCanvasLook(h.event(1,12,11));
+  assert.equal(h.state.lockRequests,1);
+  h.beginLook(h.event(2,1200,400));h.moveLook(h.event(2,34,406));h.releaseCanvasLook(h.event(2,34,406));
+  assert.equal(h.state.lockRequests,1);assert.deepEqual(h.state.looks.at(-1),{x:-1166,y:6});
+  h.beginLook(h.event(3,30,30));h.moveLook(h.event(3,42,30));h.moveLook(h.event(3,30,30));h.releaseCanvasLook(h.event(3,30,30));
+  assert.equal(h.state.lockRequests,1,'a drag that returns to its origin is still a drag');
+  h.beginLook(h.event(4,10,10));h.releaseCanvasLook(h.event(4,80,10));
+  assert.equal(h.state.lockRequests,1,'a long displacement first delivered at release cannot acquire lock');
+});
+test('a lost, cancelled, interrupted or touch look cannot later lock the camera',()=>{
+  const h=harness();
+  h.beginLook(h.event(1));h.endLook(h.event(1));h.releaseCanvasLook(h.event(1));
+  h.beginLook(h.event(2));h.onBlur();h.releaseCanvasLook(h.event(2));
+  h.beginLook(h.event(3));h.releaseCanvasLook({...h.event(3),pointerType:'touch'});
+  h.beginLook(h.event(4));h.releaseCanvasLook(h.event(5));assert.equal(h.touchLook.current.id,4);
+  h.frameState.current.blocked=true;h.releaseCanvasLook(h.event(4));
+  assert.equal(h.state.lockRequests??0,0);
 });

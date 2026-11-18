@@ -8,6 +8,7 @@ Le compteur public des erreurs détermine l’accès au bouton. La séquence est
 
 | Parcours | Résultat attendu |
 | --- | --- |
+| Viser le feuillet du hall par un glissement à la souris, relâcher puis appuyer sur la touche d’interaction. | La visée reste sur le feuillet après le relâchement. Un clic bref ou le bouton de capture permet toujours de verrouiller le pointeur. |
 | Reprendre une campagne à huit validations dans une fenêtre paysage de 640 × 420. | Les commandes de l’accueil défilent entre l’en-tête et le pied de page. « Reprendre l’inspection » reste activable. |
 | Gagner la campagne avec zéro erreur et ouvrir l’épilogue. | Le premier plan montre la salle du matin. Le dernier réunit les trois relevés. Chaque plan a une description en français. |
 | Activer la réduction des mouvements avant la victoire. | La lecture démarre sur une image fixe. Les boutons permettent de parcourir les trois plans au rythme du joueur. |
