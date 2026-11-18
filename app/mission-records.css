@@ -7,3 +7,14 @@
 .result-panel:has(.mission-debrief){margin-block:auto;padding-block:24px;max-height:none}
 .result-overlay:has(.mission-debrief){align-items:flex-start;overscroll-behavior:contain}
 @media(max-width:600px){.mission-record,.mission-debrief{padding:16px}.mission-record-text{font-size:13px}}
+
+.concordance-open{margin-bottom:12px}
+.modal-panel.modal-concordance{width:min(800px,100%)}
+.concordance-film{margin:16px 0 20px}
+.concordance-film canvas{display:block;width:100%;aspect-ratio:16/9;background:#23302c;border:1px solid #a1b78e40}
+.concordance-film canvas[hidden]{display:none}
+.concordance-film figcaption{padding:18px 0 0}
+.concordance-film h3{font-size:18px;font-weight:500;color:#dbe4cf;margin:6px 0}
+.concordance-film figcaption p{font-size:calc(14px * var(--caption-scale,1));line-height:1.65;color:#bdccb0}
+.concordance-controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.concordance-controls button{flex:1 0 auto}

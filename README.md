@@ -1,3 +1,9 @@
+## Concordance · épilogue de campagne du 18 novembre 2026
+
+Après une traversée des trois secteurs sans erreur, le bilan propose **Voir l’épilogue · Concordance**. Dans la salle de relève au petit matin, les trois dossiers montrent chacun un morceau du trajet. Regardez la séquence ou parcourez les plans avec **Plan précédent** et **Plan suivant**. Le mode confort ouvre le premier plan à l’arrêt. **Retour au bilan** permet de relire le rapport ou de revenir à l’accueil. Chaque membre d’une équipe peut regarder à son rythme.
+
+Le suivi de cette livraison et les recettes restent accessibles dans [le registre courant](docs/current-delivery.json).
+
 ## Navigation clavier et manette — 17 novembre 2026
 Les panneaux ouverts gardent le focus clavier ; l’arrière-plan n’est pas activable. Tab et Maj+Tab parcourent les commandes visibles, y compris le détail technique. Échap ferme uniquement le panneau courant, sans basculer à nouveau la pause. Le clavier virtuel rend le focus au champ édité, sans envoyer le formulaire. L’alerte graphique reste prioritaire ; son rappel demeure accessible depuis le menu.
 Un contrôleur transmettant des axes invalides est désarmé jusqu’au retour au neutre. Cela ne remplace pas une réception sur manette physique. Suivi : `docs/current-delivery.json`, classeur Navigation à treize onglets ; critères et limites dans `docs/QA_NAVIGATION_20261117.md`.

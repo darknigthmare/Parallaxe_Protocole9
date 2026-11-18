@@ -25,8 +25,12 @@ try{
  // Named options and assertions on the received native event prevent false UX failures.
  async function key(key,code,n,{shift=false,repeat=false}={}){
   await browser.evaluate('__menuqa.lastKey=null');
-  for(const type of ['keyDown','keyUp'])await browser.call('Input.dispatchKeyEvent',{
-   type,key,code,windowsVirtualKeyCode:n,modifiers:shift?8:0,autoRepeat:repeat});
+  // Chrome uses Enter's carriage return to dispatch the trusted keypress
+  // that activates a native summary. Tab and Escape carry no text.
+  const text=key==='Enter'?'\r':'';
+  const fields={key,code,windowsVirtualKeyCode:n,modifiers:shift?8:0};
+  await browser.call('Input.dispatchKeyEvent',{...fields,type:text?'keyDown':'rawKeyDown',text,unmodifiedText:text,autoRepeat:repeat});
+  await browser.call('Input.dispatchKeyEvent',{...fields,type:'keyUp'});
   await frame();
   assert.deepEqual(await browser.evaluate('__menuqa.lastKey'),
    {key,shift,alt:false,ctrl:false,meta:false,repeat,trusted:true},'Native keyboard gesture received by the game');
@@ -92,6 +96,7 @@ try{
  await browser.waitFor("document.querySelector('.graphics-error')?.contains(document.activeElement)");
  assert.equal(await browser.evaluate("document.querySelector('.graphics-error').getAttribute('role')"),'alertdialog');
  assert.equal(await browser.evaluate("document.activeElement.tagName"),'SUMMARY');
+ assert.equal(await browser.evaluate("document.querySelector('.graphics-error details').open"),false);
  await key('Enter','Enter',13);assert.equal(await browser.evaluate("document.querySelector('.graphics-error details').open"),true);
  await key('Tab','Tab',9,{shift:true});assert.equal(await browser.evaluate("document.activeElement.textContent==='Accéder aux menus'"),true);
  await key('Escape','Escape',27);await browser.waitFor("!document.querySelector('.graphics-error')&&document.querySelector('.modal-pause .graphics-notice')");

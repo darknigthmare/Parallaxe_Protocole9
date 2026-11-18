@@ -46,7 +46,7 @@
     "test:downloads": "node tests/release-downloads.test.mjs",
     "test:interruptions": "node tests/runtime-interruptions.test.mjs",
     "test:browser-runtime": "node tests/browser-runtime.mjs",
-    "test:records": "node tests/mission-records.test.mjs",
+    "test:records": "node tests/mission-records.test.mjs && node tests/concordance-scene.test.mjs && python3 scripts/validate-concordance-workbook.py",
     "test:browser-records": "node tests/browser-records.mjs",
     "test:menus": "node tests/dialog-focus.test.mjs",
     "test:browser-menus": "node tests/browser-menus.mjs"
