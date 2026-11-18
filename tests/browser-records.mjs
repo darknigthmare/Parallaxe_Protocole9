@@ -130,7 +130,16 @@ try{
   if(victory)await browser.evaluate("localStorage.setItem('parallaxe-preferences',JSON.stringify({...JSON.parse(localStorage.getItem('parallaxe-preferences')||'{}'),reduceMotion:true}))");
   await browser.evaluate(`localStorage.setItem('parallaxe-training',${JSON.stringify(JSON.stringify(fixture))})`);
   await assertQuiet();await browser.call('Page.reload',{ignoreCache:true});await ready();
-  await click('.resume-link','Reprendre l’inspection');await browser.waitFor("document.querySelector('.in-game')&&!document.querySelector('.modal-panel')");
+  if(victory){
+   await browser.call('Emulation.setDeviceMetricsOverride',{width:640,height:420,deviceScaleFactor:1,mobile:false});
+   await browser.waitFor('innerWidth===640');
+   await click('.resume-link','Reprendre l’inspection');
+   await browser.call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
+   report.checks.push('Saved campaign can be resumed above the footer at 640×420');
+  }else{
+   await click('.resume-link','Reprendre l’inspection');
+  }
+  await browser.waitFor("document.querySelector('.in-game')&&!document.querySelector('.modal-panel')");
   await click('.diagnostic-button');await browser.waitFor("JSON.parse(localStorage.getItem('parallaxe-training')).phase==='inspect'");
   await click('.diagnostic-button');await browser.waitFor("document.querySelector('.modal-vote')");
   await click(vote?'.vote-options .vote-danger':'.vote-options button:not(.vote-danger)');
