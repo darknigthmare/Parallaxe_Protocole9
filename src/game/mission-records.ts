@@ -60,7 +60,7 @@ export function keepMissionNote(storage:Pick<Storage,'getItem'|'setItem'>,levelI
 }
 
 export type DebriefInput=Readonly<{phase:string;mode:GameMode;levelId:LevelId;strikes:number;loop:number;streak:number;correctTotal:number;stage:number}>;
-export type MissionDebrief=Readonly<{id:string;heading:string;paragraphs:readonly string[];route:string;validated:number;attempts:number;errors:number}>;
+export type MissionDebrief=Readonly<{epilogue:'concordance'|null;id:string;heading:string;paragraphs:readonly string[];route:string;validated:number;attempts:number;errors:number}>;
 const exitLines:Record<LevelId,string>={
   hotel:'La réception garde une copie de votre dernier relevé. Pour cette traversée de Saint-Clair, les neuf diagnostics sont certifiés.',
   metro:'Le dernier compte rendu rejoint le registre de régulation. Votre sortie ne dépendait pas de l’arrivée d’un train, mais des neuf diagnostics du terminus.',
@@ -80,7 +80,8 @@ export function missionDebrief(input:DebriefInput):MissionDebrief|null{
     :input.mode==='campaign'?`La tolérance du protocole est épuisée. ${input.stage} secteur${input.stage>1?'s':''} avai${input.stage>1?'ent':'t'} été certifié${input.stage>1?'s':''} avant cette interruption. Une nouvelle partie commencera une nouvelle traversée.`:'La série de cette annexe est interrompue. Une nouvelle partie repartira de la référence et de zéro validation.';
   const second=won?(input.strikes===0?'Aucun diagnostic erroné n’a été enregistré. Ce bilan atteste vos réponses, pas une mesure de confiance entre les personnes.':input.mode==='campaign'?'Le registre conserve aussi les erreurs et les reprises. Elles n’annulent pas les secteurs déjà certifiés ; elles expliquent le chemin suivi jusqu’à la sortie.':'Le registre conserve les erreurs et les séries recommencées. La série finale de neuf validations a été obtenue dans cette seule annexe.')
     :'Le contrôle n’attribue pas cet échec à un témoin. Des perceptions différentes ne rendent aucun inspecteur coupable ; comparez de nouveau avant de conclure.';
-  return {id:`${input.mode}-${input.levelId}-${won?(input.strikes===0?'clear':'recovered'):'interrupted'}`,heading,route,
+  const epilogue=won&&input.mode==='campaign'&&input.strikes===0?'concordance':null;
+  return {epilogue,id:`${input.mode}-${input.levelId}-${won?(input.strikes===0?'clear':'recovered'):'interrupted'}`,heading,route,
     paragraphs:[first,second,'Les anomalies déjà découvertes et les consignes que vous avez conservées restent consultables dans les Archives, sur cet appareil.'],
     validated:input.correctTotal,attempts:input.loop,errors:input.strikes};
 }

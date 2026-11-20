@@ -1,0 +1,36 @@
+{
+  "schema": "parallaxe-reprise-concordance-v1",
+  "date": "2026-11-18",
+  "base_commit": "e3b2436cb457e8d71eaf2264d95e65e400af44be",
+  "source_workbook": "docs/PARALLAXE_Suivi_Navigation_2026-11-17.xlsx",
+  "source_workbook_sha256": "0ceda299f1ae7615996d1bf1ee164ff7e1936801946937751a73c10a59446af5",
+  "output_workbook": "docs/PARALLAXE_Suivi_Concordance_2026-11-18.xlsx",
+  "workstream_csv": "docs/CHANTIERS_CONCORDANCE_20261118.csv",
+  "qa": "docs/QA_CONCORDANCE_20261118.md",
+  "runtime": 119,
+  "remaining": 1,
+  "items": 600,
+  "updates": {
+    "W20": {
+      "etat": "Une salle de dénouement pour Concordance (N07). Dossier 09 et Dernier témoin restent à produire.",
+      "prochaine_recette": "Vérifier en jeu la lisibilité de la salle du matin sur petit écran et sur GPU physique. Poursuivre les deux autres dénouements.",
+      "preuves_disponibles": "src/game/concordance-scene.ts et fiche de recette N07"
+    },
+    "W26": {
+      "etat": "Cinématique N07 facultative après une victoire de campagne sans erreur. Les relevés partiels se complètent.",
+      "prochaine_recette": "Demander aux joueurs ce que chaque témoin a pu voir, puis pourquoi la séquence s’est ouverte. Vérifier les deux réponses indépendamment.",
+      "preuves_disponibles": "DESIGN/Narration/N07 dans le registre historique et conditions publiques dans le bilan de campagne"
+    },
+    "W28": {
+      "etat": "Édition Concordance issue du classeur Navigation. Les 28 chantiers restent suivis.",
+      "prochaine_recette": "Rattacher les résultats des essais de confort et de compréhension à la révision jouée avant de clôturer N07.",
+      "preuves_disponibles": "scripts/validate-concordance-workbook.py et docs/current-delivery.json"
+    }
+  },
+  "narration": [
+    ["N07", "Concordance", "Partiel", "Après une victoire sans erreur en campagne, ouvrir la salle du matin depuis le bilan. Observer ce que les relevés réunis révèlent, ou lire leur description."],
+    ["N08", "Dossier 09", "À produire", "La conception prévoit des témoignages et les fiches d’une équipe précédente. La collecte actuelle des consignes murales est distincte."],
+    ["N09", "Dernier témoin", "À produire", "La conception prévoit une cabine contenant les objets décrits par chaque joueur et un dénouement où l’équipe reste réunie."]
+  ],
+  "closed_by_this_delivery": 0
+}

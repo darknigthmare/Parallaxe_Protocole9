@@ -1,21 +1,22 @@
 {
   "schema": "parallaxe-current-delivery-v1",
-  "updated": "2026-11-17",
-  "base_commit": "112e4969e3d6ab71947ad5391bb87e7d43126476",
-  "workbook": "docs/PARALLAXE_Suivi_Navigation_2026-11-17.xlsx",
-  "workstream_csv": "docs/CHANTIERS_NAVIGATION_20261117.csv",
+  "updated": "2026-11-18",
+  "base_commit": "e3b2436cb457e8d71eaf2264d95e65e400af44be",
+  "workbook": "docs/PARALLAXE_Suivi_Concordance_2026-11-18.xlsx",
+  "workstream_csv": "docs/CHANTIERS_CONCORDANCE_20261118.csv",
   "workstream_updates": [
     "docs/integration-workstreams-20261116.json",
     "docs/reprise-scenes-20261116.json",
     "docs/reprise-interruptions-20261116.json",
     "docs/reprise-dossiers-20261117.json",
     "docs/reprise-collecte-20261117.json",
-    "docs/reprise-navigation-20261117.json"
+    "docs/reprise-navigation-20261117.json",
+    "docs/reprise-concordance-20261118.json"
   ],
   "historical_registry": "docs/parallaxe-open-work-20261101.json",
   "runtime_catalog": "docs/runtime-catalog.json",
   "original_concepts": "docs/anomalies-design.json",
-  "qa": "docs/QA_NAVIGATION_20261117.md",
+  "qa": "docs/QA_CONCORDANCE_20261118.md",
   "runtime_count": 119,
   "tracked_keys": 600,
   "workstreams": 28,

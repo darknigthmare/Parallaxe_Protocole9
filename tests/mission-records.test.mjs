@@ -82,3 +82,10 @@ test('ending ignores secret seed, active case and affected-observer information'
  const d=missionDebrief({...ending,seed:'DO_NOT_READ',currentAnomalyId:'SECRET',observerSlots:[3],namedVoiceAllowed:true});
  assert.deepEqual(d,missionDebrief(ending));assert.doesNotMatch(JSON.stringify(d),/DO_NOT_READ|SECRET|observerSlots|namedVoiceAllowed/);
 });
+
+test('Concordance is offered only for a completed campaign with zero recorded errors',()=>{
+ assert.equal(missionDebrief(ending).epilogue,'concordance');
+ for(const patch of [{mode:'single'},{strikes:1},{phase:'lost'},{phase:'reveal'},{phase:'inspect'}]){
+  assert.equal(missionDebrief({...ending,...patch})?.epilogue??null,null);
+ }
+});

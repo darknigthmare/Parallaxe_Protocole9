@@ -83,3 +83,15 @@
 .performance-values {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0;}
 .performance-values dt {font-size:12px;color:#aebfb9;}.performance-values dd {font-size:20px;color:#e4eee9;}
 @media(max-width:600px){.pad-keys {grid-template-columns:repeat(7,minmax(0,1fr));}.pad-keyboard {padding:15px;}.performance-values {grid-template-columns:1fr;}}
+
+/* Short landscape windows still need room for saved games below the primary actions. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .in-menu .title-section {
+    top: 64px;
+    bottom: 48px;
+    transform: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+}

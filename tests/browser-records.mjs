@@ -58,6 +58,9 @@ try{
   await browser.call('Input.dispatchMouseEvent',{type:'mouseReleased',...end,button:'left',clickCount:1});
   await browser.waitFor(`document.querySelector('.target-label')?.textContent.includes(${JSON.stringify('Consigne '+id)})`);
   await capture(`${index+1}-${levelId}-physical-document.png`);
+  assert.equal(await browser.evaluate("document.pointerLockElement===null"),true,'Releasing a look drag must not switch to pointer lock');
+  assert.equal(await browser.evaluate(`document.querySelector('.target-label')?.textContent.includes(${JSON.stringify('Consigne '+id)})`),true,'The field sheet is still in the crosshair before interacting');
+
   for(const type of ['keyDown','keyUp'])await browser.call('Input.dispatchKeyEvent',{type,key:'e',code:'KeyE',windowsVirtualKeyCode:69});
   await browser.waitFor(`document.querySelector('.modal-fieldDocument [data-note-id="${id}"]')`);
   if(levelId==='hotel')await capture('field-document-reader.png');
@@ -127,9 +130,19 @@ try{
  for(const victory of [true,false]){
   const fixture={...createRun({seed:'records-browser-fixture',mode:victory?'campaign':'single',levelId:victory?'clinic':'cabin'}),levelId:victory?'clinic':'cabin',stage:victory?2:0,stageProgress:victory?2:0,streak:victory?8:0,correctTotal:victory?8:0,strikes:victory?0:2,loop:victory?8:2};
   const caseRun=advanceRun(fixture),hasAnomaly=caseRun.currentAnomalyId!==null,vote= victory?hasAnomaly:!hasAnomaly;
+  if(victory)await browser.evaluate("localStorage.setItem('parallaxe-preferences',JSON.stringify({...JSON.parse(localStorage.getItem('parallaxe-preferences')||'{}'),reduceMotion:true}))");
   await browser.evaluate(`localStorage.setItem('parallaxe-training',${JSON.stringify(JSON.stringify(fixture))})`);
   await assertQuiet();await browser.call('Page.reload',{ignoreCache:true});await ready();
-  await click('.resume-link','Reprendre l’inspection');await browser.waitFor("document.querySelector('.in-game')&&!document.querySelector('.modal-panel')");
+  if(victory){
+   await browser.call('Emulation.setDeviceMetricsOverride',{width:640,height:420,deviceScaleFactor:1,mobile:false});
+   await browser.waitFor('innerWidth===640');
+   await click('.resume-link','Reprendre l’inspection');
+   await browser.call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
+   report.checks.push('Saved campaign can be resumed above the footer at 640×420');
+  }else{
+   await click('.resume-link','Reprendre l’inspection');
+  }
+  await browser.waitFor("document.querySelector('.in-game')&&!document.querySelector('.modal-panel')");
   await click('.diagnostic-button');await browser.waitFor("JSON.parse(localStorage.getItem('parallaxe-training')).phase==='inspect'");
   await click('.diagnostic-button');await browser.waitFor("document.querySelector('.modal-vote')");
   await click(vote?'.vote-options .vote-danger':'.vote-options button:not(.vote-danger)');
@@ -139,6 +152,47 @@ try{
   assert.equal(await browser.evaluate('document.documentElement.scrollWidth<=390'),true);
   await browser.waitFor("!document.querySelector('.toast')");
   await capture(victory?'7-victory-mobile.png':'8-defeat-mobile.png',390,844);
+  assert.equal(await browser.evaluate("!!document.querySelector('.concordance-open')"),victory);
+  if(victory){
+   const reportBefore=await browser.evaluate("document.querySelector('.mission-debrief').textContent");
+   await click('.concordance-open');
+   await browser.waitFor("document.querySelector('.concordance-film[data-view=scene][data-playing=false]')");
+   assert.equal(await browser.evaluate("document.querySelector('.concordance-film h3').textContent"),'La relève du matin');
+   assert.equal(await browser.evaluate("document.querySelector('.concordance-controls button').disabled"),true);
+   await capture('concordance-1-aube-mobile.png',390,844);
+   await click('.concordance-controls button','Plan suivant');
+   await browser.waitFor("document.querySelector('.concordance-film h3')?.textContent==='Trois dépositions'");
+   await capture('concordance-2-depositions-mobile.png',390,844);
+   await click('.concordance-controls button','Plan suivant');
+   await browser.waitFor("document.querySelector('.concordance-film h3')?.textContent==='Un seul itinéraire'");
+   await capture('concordance-3-itineraire-mobile.png',390,844);
+   assert.equal(await browser.evaluate("document.querySelectorAll('.concordance-controls button')[1].disabled"),true);
+   await click('.concordance-controls button','Plan précédent');
+   await click('.concordance-controls button','Lecture animée');
+   await browser.waitFor("document.querySelector('.concordance-film[data-playing=true]')");
+   await browser.waitFor("document.querySelector('.concordance-film h3')?.textContent==='Un seul itinéraire'");
+   await browser.waitFor("document.querySelector('.concordance-controls')?.textContent.includes('Revoir la séquence')");
+   await browser.call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
+   await browser.waitFor("innerWidth===1280 && document.querySelector('.concordance-film canvas').clientWidth>500");
+   await capture('concordance-3-itineraire-desktop.png');
+   await click('.concordance-controls button','Revoir la séquence');
+   await browser.waitFor("document.querySelector('.concordance-film h3')?.textContent==='La relève du matin'");
+   await click('.modal-concordance .solid-button','Retour au bilan');
+   await browser.waitFor("!document.querySelector('.modal-panel')&&document.activeElement===document.querySelector('.concordance-open')");
+   await click('.concordance-open');
+   await browser.waitFor("document.querySelector('.concordance-film[data-view=scene]')");
+   const loss=await browser.evaluate("(()=>{const ext=document.querySelector('.concordance-film canvas').getContext('webgl2').getExtension('WEBGL_lose_context');if(!ext)return false;ext.loseContext();return true;})()");
+   assert.ok(loss,'Context loss extension available in test renderer');
+   await browser.waitFor("document.querySelector('.concordance-film[data-view=text]')");
+   await click('.concordance-controls button','Plan suivant');
+   await browser.waitFor("document.querySelector('.concordance-film h3')?.textContent==='Trois dépositions'");
+   await click('.modal-concordance .solid-button','Retour au bilan');
+   assert.equal(await browser.evaluate("document.querySelector('.mission-debrief').textContent"),reportBefore);
+   await browser.call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+   await browser.waitFor('innerWidth===390');
+   report.checks.push('Concordance: clean campaign, static frames in comfort mode, native controls and captions, animated completion/replay, local context loss, unchanged report and restored focus');
+  }
+
   await browser.evaluate("document.querySelector('.result-panel .solid-button').scrollIntoView({block:'center'})");
   await capture(victory?'9-victory-exit-mobile.png':'10-defeat-exit-mobile.png',390,844);
   await click('.result-panel .solid-button');await browser.waitFor("document.querySelector('.in-menu')&&!document.querySelector('.result-overlay')");

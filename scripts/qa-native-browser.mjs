@@ -1,64 +1,98 @@
-/** Disposable, loopback-only CDP harness. No credentials or external services. */
+/** Disposable Chromium process. CDP only uses the two inherited debugging pipes. */
 import {spawn} from 'node:child_process';
 import {existsSync} from 'node:fs';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 
 export async function openQABrowser(){
- const executable=['/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
+ const configured=process.env.PARALLAXE_QA_CHROME;
+ const candidates=configured?[configured]:['/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium','/usr/bin/chromium-browser'];
+ const executable=candidates.find(existsSync);
  if(!executable)throw new Error('Chrome/Chromium unavailable; browser reception not run.');
  const profile=await mkdtemp(join(tmpdir(),'p9-browser-'));
+ const started=performance.now();
  const child=spawn(executable,['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
-  '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--window-size=1280,800','--force-device-scale-factor=1',
-  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});
- let launchError=null,launchOutput='';
- child.once('error',error=>{launchError=error;});
+  '--remote-debugging-pipe','--window-size=1280,800','--force-device-scale-factor=1',
+  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--user-data-dir='+profile,'about:blank'],
+  {stdio:['ignore','ignore','pipe','pipe','pipe']});
+ const commands=child.stdio[3],responses=child.stdio[4];
+ const pending=new Map();
+ let stage='browser startup',launchOutput='',sessionId,seq=0,closed=false,transportError=null;
+ function disconnect(error){
+  if(transportError)return;
+  transportError=error;
+  for(const task of pending.values()){
+   clearTimeout(task.timer);
+   task.reject(error);
+  }
+  pending.clear();
+ }
+ const exited=new Promise(resolve=>child.once('close',(code,signal)=>{
+  disconnect(new Error('Browser exited: '+(signal??code)));
+  resolve();
+ }));
+ child.on('error',disconnect);
  child.stderr.on('data',chunk=>{launchOutput=(launchOutput+String(chunk)).slice(-8192);});
- let stage='process startup';const started=performance.now();
- let socket,sessionId,seq=0,closed=false;const pending=new Map();
+ commands.on('error',disconnect);
+ responses.on('error',disconnect);
+ responses.on('end',()=>disconnect(new Error('Browser closed its debugging pipe')));
+
+ // CDP frames end with a NUL byte. A screenshot can span many stream chunks.
+ // Decode UTF-8 incrementally, and parse only when a complete frame arrives.
+ const fragments=[];
+ responses.setEncoding('utf8');
+ responses.on('data',chunk=>{
+  const frames=chunk.split('\0');
+  for(let index=0;index<frames.length-1;index++){
+   fragments.push(frames[index]);
+   let message;
+   try{message=JSON.parse(fragments.join(''));}
+   catch(error){disconnect(error);return;}
+   fragments.length=0;
+   const task=pending.get(message.id);
+   if(task){
+    pending.delete(message.id);
+    clearTimeout(task.timer);
+    if(message.error)task.reject(new Error('CDP '+JSON.stringify(message.error)));
+    else task.resolve(message.result??{});
+   }
+  }
+  if(frames.at(-1))fragments.push(frames.at(-1));
+ });
+
+ function call(method,params={},timeout=['Page.captureScreenshot','Runtime.evaluate'].includes(method)?60000:15000){
+  if(transportError)return Promise.reject(transportError);
+  const id=++seq;
+  const browserCommand=method.startsWith('Browser.')||method.startsWith('Target.');
+  const frame=JSON.stringify({id,method,params,...(sessionId&&!browserCommand?{sessionId}:{})})+'\0';
+  return new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>{pending.delete(id);reject(new Error('CDP timeout: '+method));},timeout);
+   pending.set(id,{resolve,reject,timer});
+   commands.write(frame);
+  });
+ }
  const close=async()=>{
-  if(closed)return;closed=true;
-  for(const task of pending.values()){clearTimeout(task.timer);task.reject(new Error('Browser closed'));}pending.clear();
-  socket?.close();child.kill('SIGTERM');await sleep(200);await rm(profile,{recursive:true,force:true}).catch(()=>{});
+  if(closed)return;
+  closed=true;
+  disconnect(new Error('Browser closed'));
+  commands.end();
+  child.kill('SIGTERM');
+  const forceExit=setTimeout(()=>child.kill('SIGKILL'),2000);
+  try{await exited;}finally{clearTimeout(forceExit);await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
  };
  try{
-  let port,browserPath;
-  // One bounded launch, not a retry of a failed scenario. No user profile is accessed.
-  const launchDeadline=performance.now()+30000;
-  while(performance.now()<launchDeadline){
-   if(launchError)throw new Error('Browser launch failed: '+launchError.message);
-   if(child.exitCode!==null||child.signalCode!==null)throw new Error('Browser exited before CDP was available: '+(child.exitCode??child.signalCode)+' / '+launchOutput);
-   try{const lines=(await readFile(join(profile,'DevToolsActivePort'),'utf8')).trim().split('\n');
-    port=Number(lines[0]);browserPath=lines[1];
-    if(Number.isInteger(port)&&port>0&&port<65536&&/^\/devtools\/browser\/[a-zA-Z0-9-]+$/.test(browserPath??''))break;
-    port=undefined;
-   }catch{}
-   await sleep(100);
-  }
-  if(!port)throw new Error('Browser startup timed out after 30 seconds: '+launchOutput);
-  // Use the browser's published socket directly. An extra HTTP /json/list probe
-  // could time out independently of a healthy CDP process on a loaded runner.
-  stage='browser socket';socket=new WebSocket(`ws://127.0.0.1:${port}${browserPath}`);
-  await new Promise((resolve,reject)=>{
-   const timer=setTimeout(()=>reject(new Error('CDP socket timed out')),5000);
-   socket.addEventListener('open',()=>{clearTimeout(timer);resolve();},{once:true});
-   socket.addEventListener('error',()=>{clearTimeout(timer);reject(new Error('CDP socket failed'));},{once:true});
-  });
-  socket.addEventListener('message',event=>{
-   const message=JSON.parse(event.data),task=pending.get(message.id);if(!task)return;
-   pending.delete(message.id);clearTimeout(task.timer);message.error?task.reject(new Error('CDP '+JSON.stringify(message.error))):task.resolve(message.result??{});
-  });
-  // Restored software WebGL may need shader warm-up before a surface capture.
-  // Keep ordinary commands strict; never retry a failed capture as a passing test.
-  const call=(method,params={})=>new Promise((resolve,reject)=>{
-   const timeout=['Page.captureScreenshot','Runtime.evaluate'].includes(method)?60000:15000;
-   const id=++seq,timer=setTimeout(()=>{pending.delete(id);reject(new Error('CDP timeout: '+method));},timeout);
-   pending.set(id,{resolve,reject,timer});
-   const browserCommand=method.startsWith('Browser.')||method.startsWith('Target.');
-   socket.send(JSON.stringify({id,method,params,...(sessionId&&!browserCommand?{sessionId}:{})}));
-  });
+  // The first command can be written before Chrome is ready. There is one
+  // bounded startup, with no port discovery, WebSocket handshake or retry.
+  const {targetInfos}=await call('Target.getTargets',{},60000);
+  const blank=targetInfos.find(target=>target.type==='page'&&target.url==='about:blank');
+  const {targetId}=blank??await call('Target.createTarget',{url:'about:blank'});
+  stage='page attachment';
+  ({sessionId}=await call('Target.attachToTarget',{targetId,flatten:true}));
+  stage='page initialization';
+  await call('Page.enable');await call('Runtime.enable');
+  await call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
   const evaluate=async expression=>{
    const result=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,userGesture:true});
    if(result.exceptionDetails)throw new Error(result.exceptionDetails.exception?.description??result.exceptionDetails.text);
@@ -69,14 +103,9 @@ export async function openQABrowser(){
    while(Date.now()<end){if(await evaluate(`Boolean(${expression})`))return;await sleep(150);}
    throw new Error('Browser condition timed out: '+expression);
   };
-  stage='page attachment';
-  const {targetInfos}=await call('Target.getTargets');
-  const target=targetInfos.find(x=>x.type==='page'&&x.url==='about:blank');
-  if(!target)throw new Error('Disposable browser has no blank page target');
-  ({sessionId}=await call('Target.attachToTarget',{targetId:target.targetId,flatten:true}));
-  stage='page initialization';
-  await call('Page.enable');await call('Runtime.enable');
-  await call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});
   return {call,evaluate,waitFor,close,screenshot:async()=>Buffer.from((await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,optimizeForSpeed:true})).data,'base64')};
- }catch(error){const diagnostic=new Error(`Browser startup failed at ${stage} after ${Math.round(performance.now()-started)}ms: ${error?.message??error} / ${launchOutput}`);await close();throw diagnostic;}
+ }catch(error){
+  await close();
+  throw new Error(`Browser startup failed at ${stage} after ${Math.round(performance.now()-started)}ms: ${error?.message??error} / ${launchOutput}`);
+ }
 }
